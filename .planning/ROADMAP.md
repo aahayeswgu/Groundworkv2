@@ -53,7 +53,7 @@ Plans:
 - [x] 02-02-PLAN.md — pin-marker.ts SVG generator, MarkerLayer imperative pool + InfoWindow
 - [x] 02-03-PLAN.md — reverseGeocode utility, pin-drop mode wired into Map.tsx
 - [ ] 02-04-PLAN.md — PinModal portal overlay (create + edit, all 7 fields, activity log)
-- [ ] 02-05-PLAN.md — PinList + PinListItem (search, filter chips, fly-to-pin), Sidebar wired
+- [x] 02-05-PLAN.md — PinList + PinListItem (search, filter chips, fly-to-pin), Sidebar wired
 - [ ] 02-06-PLAN.md — Final wiring: MarkerLayer + PinModal in Map.tsx, StoreHydration + edit state in page.tsx
 **UI hint**: yes
 
@@ -104,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete   | 2026-03-31 |
-| 2. Pins | 3/6 | In Progress|  |
+| 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 0/? | Not started | - |
 | 4. Discover | 0/? | Not started | - |
 | 5. Route | 0/? | Not started | - |
