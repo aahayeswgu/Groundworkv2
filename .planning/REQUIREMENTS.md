@@ -102,53 +102,53 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | — | Pending |
-| FOUN-02 | — | Pending |
-| FOUN-03 | — | Pending |
-| FOUN-04 | — | Pending |
-| PINS-01 | — | Pending |
-| PINS-02 | — | Pending |
-| PINS-03 | — | Pending |
-| PINS-04 | — | Pending |
-| PINS-05 | — | Pending |
-| PINS-06 | — | Pending |
-| PINS-07 | — | Pending |
-| PINS-08 | — | Pending |
-| PINS-09 | — | Pending |
-| PINS-10 | — | Pending |
-| PINS-11 | — | Pending |
-| PINS-12 | — | Pending |
-| PINS-13 | — | Pending |
-| DISC-01 | — | Pending |
-| DISC-02 | — | Pending |
-| DISC-03 | — | Pending |
-| DISC-04 | — | Pending |
-| DISC-05 | — | Pending |
-| DISC-06 | — | Pending |
-| DISC-07 | — | Pending |
-| DISC-08 | — | Pending |
-| DISC-09 | — | Pending |
-| DISC-10 | — | Pending |
-| DISC-11 | — | Pending |
-| DISC-12 | — | Pending |
-| DISC-13 | — | Pending |
-| ROUT-01 | — | Pending |
-| ROUT-02 | — | Pending |
-| ROUT-03 | — | Pending |
-| ROUT-04 | — | Pending |
-| ROUT-05 | — | Pending |
-| ROUT-06 | — | Pending |
-| ROUT-07 | — | Pending |
-| ROUT-08 | — | Pending |
-| ROUT-09 | — | Pending |
-| ROUT-10 | — | Pending |
-| ROUT-11 | — | Pending |
+| FOUN-01 | Phase 1 | Pending |
+| FOUN-02 | Phase 1 | Pending |
+| FOUN-03 | Phase 1 | Pending |
+| FOUN-04 | Phase 1 | Pending |
+| PINS-01 | Phase 2 | Pending |
+| PINS-02 | Phase 2 | Pending |
+| PINS-03 | Phase 2 | Pending |
+| PINS-04 | Phase 2 | Pending |
+| PINS-05 | Phase 2 | Pending |
+| PINS-06 | Phase 2 | Pending |
+| PINS-07 | Phase 2 | Pending |
+| PINS-08 | Phase 2 | Pending |
+| PINS-09 | Phase 2 | Pending |
+| PINS-10 | Phase 2 | Pending |
+| PINS-11 | Phase 2 | Pending |
+| PINS-12 | Phase 2 | Pending |
+| PINS-13 | Phase 3 | Pending |
+| DISC-01 | Phase 4 | Pending |
+| DISC-02 | Phase 4 | Pending |
+| DISC-03 | Phase 4 | Pending |
+| DISC-04 | Phase 4 | Pending |
+| DISC-05 | Phase 4 | Pending |
+| DISC-06 | Phase 4 | Pending |
+| DISC-07 | Phase 4 | Pending |
+| DISC-08 | Phase 4 | Pending |
+| DISC-09 | Phase 4 | Pending |
+| DISC-10 | Phase 4 | Pending |
+| DISC-11 | Phase 4 | Pending |
+| DISC-12 | Phase 4 | Pending |
+| DISC-13 | Phase 4 | Pending |
+| ROUT-01 | Phase 5 | Pending |
+| ROUT-02 | Phase 5 | Pending |
+| ROUT-03 | Phase 5 | Pending |
+| ROUT-04 | Phase 5 | Pending |
+| ROUT-05 | Phase 5 | Pending |
+| ROUT-06 | Phase 5 | Pending |
+| ROUT-07 | Phase 5 | Pending |
+| ROUT-08 | Phase 5 | Pending |
+| ROUT-09 | Phase 5 | Pending |
+| ROUT-10 | Phase 5 | Pending |
+| ROUT-11 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 41 total
-- Mapped to phases: 0
-- Unmapped: 41 ⚠️
+- Mapped to phases: 41
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-31*
-*Last updated: 2026-03-31 after initial definition*
+*Last updated: 2026-03-31 after roadmap creation*
