@@ -17,6 +17,10 @@ A sales rep can discover businesses in an area, pin the ones worth visiting, bui
 - ✓ Responsive layout with sidebar + map + mobile bottom bar — existing
 - ✓ Feature-driven code organization (app/features/, app/components/) — existing
 - ✓ Floating map action buttons (pin drop, location, directions, discover, visibility, satellite, quick entry) — existing (UI shells only)
+- ✓ Zustand state management with feature slices (pins, discover, route) — Phase 1
+- ✓ MapContext for sharing map instance without prop drilling — Phase 1
+- ✓ AdvancedMarkerElement support via mapId and marker library — Phase 1
+- ✓ MapButton extracted as reusable shared component — Phase 1
 
 ### Active
 
@@ -122,4 +126,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-31 after initialization*
+*Last updated: 2026-03-31 after Phase 1 completion*
