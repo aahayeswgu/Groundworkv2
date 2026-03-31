@@ -167,7 +167,7 @@ export function PinList({ onEditPin }: PinListProps) {
                 onClick={() => toggleStatus(status)}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all duration-150 border-[1.5px] ${
                   isActive
-                    ? "border-orange bg-orange-dim text-orange"
+                    ? "border-orange bg-orange-dim text-text-primary"
                     : "border-border text-text-secondary bg-bg-input hover:border-text-muted"
                 }`}
               >
