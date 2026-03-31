@@ -70,7 +70,7 @@ Plans:
 Plans:
 - [x] 03-01-PLAN.md — Install @supabase/supabase-js + vitest, create vitest.config.ts, checkpoint for Supabase project credentials
 - [x] 03-02-PLAN.md — TDD: merge.ts pure functions (mergePins, localToRemote, remoteToLocal) + unit tests
-- [ ] 03-03-PLAN.md — app/lib/supabase.ts singleton, usePinSync hook, StoreHydration update, SQL migration, smoke test
+- [x] 03-03-PLAN.md — app/lib/supabase.ts singleton, usePinSync hook, StoreHydration update, SQL migration, smoke test
 
 ### Phase 4: Discover
 **Goal**: Sales reps can draw a rectangle on the map, search for nearby businesses, and save relevant ones as pins

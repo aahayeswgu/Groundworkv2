@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-31T22:17:04.542Z"
+stopped_at: "Checkpoint: Task 3 smoke test — awaiting human verification"
+last_updated: "2026-03-31T22:51:18.143Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 03 (supabase-sync) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-03-31
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-pins P06 | 2 | 2 tasks | 2 files |
 | Phase 03-supabase-sync P01 | 1 | 1 tasks | 4 files |
 | Phase 03-supabase-sync P02 | 10 | 2 tasks | 3 files |
+| Phase 03-supabase-sync P03 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,7 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
 - [Phase 03-supabase-sync]: vitest.config.ts @ alias maps to project root via path.resolve(__dirname, '.') — consistent with tsconfig paths
 - [Phase 03-supabase-sync]: merge.ts is a pure module with no use client directive — enables isolated unit testing without browser/React setup
+- [Phase 03-supabase-sync]: Plain useStore.subscribe (1-arg) instead of subscribeWithSelector — avoids middleware overhead, uses prevPinIdsRef for deletion detection
 
 ### Pending Todos
 
@@ -100,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T22:17:04.539Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-03-31T22:51:18.141Z
+Stopped at: Checkpoint: Task 3 smoke test — awaiting human verification
 Resume file: None
