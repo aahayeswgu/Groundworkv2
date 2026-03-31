@@ -1,4 +1,12 @@
-export default function Sidebar() {
+"use client";
+
+import PinList from "@/app/features/pins/PinList";
+
+interface SidebarProps {
+  onEditPin?: (pinId: string) => void;
+}
+
+export default function Sidebar({ onEditPin }: SidebarProps) {
   return (
     <div className="sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20">
       {/* Collapse toggle */}
@@ -67,95 +75,9 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Search */}
-      <div className="px-4 py-3 border-b border-border bg-bg-card relative">
-        <div className="flex items-center bg-bg-input border-[1.5px] border-border rounded-lg px-3 transition-colors duration-200 focus-within:border-orange">
-          <svg className="text-text-muted shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-          <input
-            className="flex-1 border-none bg-transparent py-2.5 px-2 text-sm text-text-primary outline-none placeholder:text-text-muted"
-            placeholder="Search pins or enter address..."
-            autoComplete="off"
-            readOnly
-          />
-        </div>
-      </div>
-
-      {/* Pin Count */}
-      <div className="flex items-center justify-between px-4 py-2 text-xs text-text-muted border-b border-border font-medium">
-        <span>0 pins</span>
-        <span className="text-[11px] font-semibold text-orange">Edit</span>
-      </div>
-
-      {/* Filters */}
-      <div className="px-3 py-2 border-b border-border bg-bg-card">
-        <div className="flex flex-wrap gap-[5px] mb-1.5">
-          {[
-            { label: "Active", color: "#22C55E", active: true },
-            { label: "Prospect", color: "#3B82F6", active: false },
-            { label: "Follow-up", color: "#F59E0B", active: false },
-          ].map((chip) => (
-            <div
-              key={chip.label}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all duration-150 border-[1.5px] ${
-                chip.active
-                  ? "border-orange bg-orange-dim text-orange"
-                  : "border-border text-text-secondary bg-bg-input hover:border-text-muted"
-              }`}
-            >
-              <span className="w-[7px] h-[7px] rounded-full" style={{ background: chip.color }} />
-              {chip.label} <span className="font-normal opacity-70">0</span>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-text-muted font-bold uppercase tracking-wide">Group by</span>
-          <select className="flex-1 py-1 px-2 text-[11px] border border-border rounded-md bg-bg-input text-text-primary" defaultValue="status">
-            <option value="status">Status</option>
-            <option value="alpha">A → Z</option>
-            <option value="recent">Most Recent</option>
-            <option value="followup">Follow-Up Date</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Pin List */}
-      <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
-        <div className="py-10 px-5 text-center text-text-muted">
-          <div className="mb-3">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mx-auto text-text-muted">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-          </div>
-          <div className="text-sm leading-relaxed">
-            No pins yet.<br />
-            Click the + button on the map to start dropping pins.
-          </div>
-          <div className="text-xs mt-2 text-text-muted italic">Even the boss takes a day off sometimes.</div>
-        </div>
-      </div>
-
-      {/* Stats Footer */}
-      <div className="flex shrink-0 px-4 py-2.5 border-t border-border bg-bg-card">
-        {[
-          { num: "0", label: "Pins" },
-          { num: "0", label: "Active" },
-          { num: "0", label: "This Week" },
-          { num: "0", label: "Overdue" },
-        ].map((stat, i, arr) => (
-          <div
-            key={stat.label}
-            className={`flex-1 text-center py-1.5 px-1 cursor-pointer rounded-md transition-colors duration-150 hover:bg-orange-dim ${
-              i < arr.length - 1 ? "border-r border-border" : ""
-            }`}
-          >
-            <div className="text-lg font-extrabold text-orange leading-tight tabular-nums">{stat.num}</div>
-            <div className="text-[9px] font-bold uppercase tracking-wide text-text-muted mt-0.5">{stat.label}</div>
-          </div>
-        ))}
+      {/* PinList — replaces static search, filters, pin list, and stats placeholder content */}
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <PinList onEditPin={onEditPin ?? (() => {})} />
       </div>
     </div>
   );
