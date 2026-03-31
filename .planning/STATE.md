@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-31T20:22:22.453Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-31T20:25:10.721Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
@@ -57,7 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-pins P01 | 5 | 2 tasks | 4 files |
 | Phase 02-pins P02 | 8 | 2 tasks | 2 files |
 | Phase 02-pins P03 | 8 | 2 tasks | 2 files |
-| Phase 02-pins P04 | 6 | 1 tasks | 1 files |
+| Phase 02-pins P05 | 10 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,8 +80,8 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: InfoWindow content built as DOM element tree (not string) for reliable click event delegation
 - [Phase 02-pins]: exitDropMode/enterDropMode defined before map init useEffect to satisfy TypeScript block-scoped variable rules
 - [Phase 02-pins]: reverseGeocode uses lazy Geocoder singleton initialized on first call via importLibrary('geocoding') — separate from maps and marker libraries
-- [Phase 02-pins]: createPortal into document.body avoids z-index stacking issues with map and sidebar layers
-- [Phase 02-pins]: Status picker uses inline style colors to match exact brand status colors from D-07
+- [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
+- [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
 
 ### Pending Todos
 
@@ -94,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T20:22:22.451Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-03-31T20:25:10.719Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
