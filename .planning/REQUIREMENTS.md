@@ -16,9 +16,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Pins
 
-- [ ] **PINS-01**: User can enter pin-drop mode and click map to place a pin at that location
+- [x] **PINS-01**: User can enter pin-drop mode and click map to place a pin at that location
 - [x] **PINS-02**: Pin stores title, address, status, contact name, phone, follow-up date, and notes
-- [ ] **PINS-03**: Address is reverse-geocoded automatically from pin coordinates on drop
+- [x] **PINS-03**: Address is reverse-geocoded automatically from pin coordinates on drop
 - [x] **PINS-04**: Pin has one of four fixed statuses: Prospect (blue), Active (green), Follow-Up (amber), Lost (red)
 - [ ] **PINS-05**: User can edit a pin's fields via a slide-in edit panel
 - [ ] **PINS-06**: User can delete a pin from the edit panel or info window
@@ -106,9 +106,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUN-02 | Phase 1 | Complete |
 | FOUN-03 | Phase 1 | Complete |
 | FOUN-04 | Phase 1 | Complete |
-| PINS-01 | Phase 2 | Pending |
+| PINS-01 | Phase 2 | Complete |
 | PINS-02 | Phase 2 | Complete |
-| PINS-03 | Phase 2 | Pending |
+| PINS-03 | Phase 2 | Complete |
 | PINS-04 | Phase 2 | Complete |
 | PINS-05 | Phase 2 | Pending |
 | PINS-06 | Phase 2 | Pending |
