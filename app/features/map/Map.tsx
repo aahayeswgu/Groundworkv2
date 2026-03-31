@@ -5,20 +5,50 @@ import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { getStyleForTheme } from "./map-styles";
 import MapButton from "@/app/components/MapButton";
 import { MapContext } from "./MapContext";
+import { reverseGeocode } from "@/app/lib/geocoding";
 
 const DEFAULT_CENTER = { lat: 27.9506, lng: -82.4572 };
 const DEFAULT_ZOOM = 12;
+
+interface PendingPin { lat: number; lng: number; address: string; }
 
 export default function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const [satellite, setSatellite] = useState(false);
   const [mapState, setMapState] = useState<google.maps.Map | null>(null);
+  const [dropMode, setDropMode] = useState(false);
+  const dropListener = useRef<google.maps.MapsEventListener | null>(null);
+  const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
 
   const getTheme = useCallback(
     () => document.body.getAttribute("data-theme") || "dark",
     [],
   );
+
+  const exitDropMode = useCallback(() => {
+    setDropMode(false);
+    mapInstance.current?.setOptions({ draggableCursor: "" });
+    if (dropListener.current) {
+      google.maps.event.removeListener(dropListener.current);
+      dropListener.current = null;
+    }
+  }, []);
+
+  const enterDropMode = useCallback(() => {
+    if (!mapInstance.current) return;
+    setDropMode(true);
+    mapInstance.current.setOptions({ draggableCursor: "crosshair" });
+    dropListener.current = mapInstance.current.addListener(
+      "click",
+      async (e: google.maps.MapMouseEvent) => {
+        if (!e.latLng) return;
+        exitDropMode();
+        const address = await reverseGeocode(e.latLng);
+        setPendingPin({ lat: e.latLng.lat(), lng: e.latLng.lng(), address });
+      }
+    );
+  }, [exitDropMode]);
 
   useEffect(() => {
     setOptions({
@@ -49,12 +79,20 @@ export default function Map() {
 
     return () => {
       if (mapInstance.current) {
+        exitDropMode();
         google.maps.event.clearInstanceListeners(mapInstance.current);
         mapInstance.current = null;
         setMapState(null);
       }
     };
-  }, [getTheme]);
+  }, [getTheme, exitDropMode]);
+
+  useEffect(() => {
+    if (pendingPin) {
+      // Plan 06 will render PinModal here
+      console.log("[pin-drop] pendingPin set:", pendingPin);
+    }
+  }, [pendingPin]);
 
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
@@ -80,7 +118,11 @@ export default function Map() {
 
       {/* Floating controls */}
       <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
-        <MapButton title="Drop a pin">
+        <MapButton
+          title="Drop a pin"
+          active={dropMode}
+          onClick={dropMode ? exitDropMode : enterDropMode}
+        >
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
         </MapButton>
