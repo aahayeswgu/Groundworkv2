@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. MapButton is a single reusable component used by all floating action buttons
 **Plans**: 2 plans
 Plans:
-- [ ] 01-01-PLAN.md — Zustand install, shared types (Pin, DiscoverResult, RouteStop), three feature slices, root store, MapButton extracted to app/components/
+- [x] 01-01-PLAN.md — Zustand install, shared types (Pin, DiscoverResult, RouteStop), three feature slices, root store, MapButton extracted to app/components/
 - [ ] 01-02-PLAN.md — MapContext + useMapInstance() hook, Map.tsx upgraded with mapId + marker library + cleanup, MapContext.Provider wired
 **UI hint**: yes
 
@@ -96,7 +96,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/2 | Not started | - |
+| 1. Foundation | 1/2 | In Progress|  |
 | 2. Pins | 0/? | Not started | - |
 | 3. Supabase Sync | 0/? | Not started | - |
 | 4. Discover | 0/? | Not started | - |

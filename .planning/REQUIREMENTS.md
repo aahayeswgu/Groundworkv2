@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUN-01**: App uses Zustand store with feature slices (pins, discover, route) for all cross-component state
+- [x] **FOUN-01**: App uses Zustand store with feature slices (pins, discover, route) for all cross-component state
 - [ ] **FOUN-02**: Map instance shared via React Context so all features can access it without prop drilling
 - [ ] **FOUN-03**: All map markers use AdvancedMarkerElement (not deprecated google.maps.Marker)
-- [ ] **FOUN-04**: MapButton component extracted as reusable shared component
+- [x] **FOUN-04**: MapButton component extracted as reusable shared component
 
 ### Pins
 
@@ -102,10 +102,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | Phase 1 | Pending |
+| FOUN-01 | Phase 1 | Complete |
 | FOUN-02 | Phase 1 | Pending |
 | FOUN-03 | Phase 1 | Pending |
-| FOUN-04 | Phase 1 | Pending |
+| FOUN-04 | Phase 1 | Complete |
 | PINS-01 | Phase 2 | Pending |
 | PINS-02 | Phase 2 | Pending |
 | PINS-03 | Phase 2 | Pending |
