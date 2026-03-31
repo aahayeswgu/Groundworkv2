@@ -126,3 +126,11 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   .sidebar-wrap { width: 420px; min-width: 420px; }
   .sidebar-wrap.collapsed { transform: translateX(-420px); margin-right: -420px; }
 }
+
+/* ─── Pin marker bounce animation ─── */
+@keyframes markerBounce {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-12px); }
+  60% { transform: translateY(-6px); }
+}
+.marker-bounce { animation: markerBounce 0.7s ease; }
