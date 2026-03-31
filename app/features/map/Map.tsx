@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { getStyleForTheme } from "./map-styles";
 import MapButton from "@/app/components/MapButton";
+import { MapContext } from "./MapContext";
 
 const DEFAULT_CENTER = { lat: 27.9506, lng: -82.4572 };
 const DEFAULT_ZOOM = 12;
@@ -12,6 +13,7 @@ export default function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const [satellite, setSatellite] = useState(false);
+  const [mapState, setMapState] = useState<google.maps.Map | null>(null);
 
   const getTheme = useCallback(
     () => document.body.getAttribute("data-theme") || "dark",
@@ -22,13 +24,14 @@ export default function Map() {
     setOptions({
       key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       v: "weekly",
-      libraries: ["places", "geometry"],
+      libraries: ["places", "geometry", "marker"],
     });
 
-    importLibrary("maps").then(() => {
+    importLibrary("maps").then(async () => {
       if (!mapRef.current) return;
       const theme = getTheme();
       mapInstance.current = new google.maps.Map(mapRef.current, {
+        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID",
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
         disableDefaultUI: true,
@@ -40,7 +43,17 @@ export default function Map() {
         gestureHandling: "greedy",
         clickableIcons: false,
       });
+      await importLibrary("marker");
+      setMapState(mapInstance.current);
     });
+
+    return () => {
+      if (mapInstance.current) {
+        google.maps.event.clearInstanceListeners(mapInstance.current);
+        mapInstance.current = null;
+        setMapState(null);
+      }
+    };
   }, [getTheme]);
 
   const toggleSatellite = useCallback(() => {
@@ -61,6 +74,7 @@ export default function Map() {
   }, [getTheme]);
 
   return (
+    <MapContext.Provider value={mapState}>
     <div className="flex-1 relative h-screen overflow-hidden">
       <div ref={mapRef} className="w-full h-full z-[1]" />
 
@@ -126,5 +140,6 @@ export default function Map() {
         {satellite ? "Road view" : "Satellite"}
       </button>
     </div>
+    </MapContext.Provider>
   );
 }
