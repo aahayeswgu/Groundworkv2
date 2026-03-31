@@ -24,6 +24,7 @@ A sales rep can discover businesses in an area, pin the ones worth visiting, bui
 - ✓ Pin drop, CRUD, status-colored 3D markers, edit modal, InfoWindow — Phase 2
 - ✓ Sidebar pin list with search, status filter chips, fly-to-pin — Phase 2
 - ✓ localStorage persistence via Zustand persist middleware — Phase 2
+- ✓ Supabase cloud sync with merge semantics and soft-delete — Phase 3
 
 ### Active
 
@@ -115,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-31 after Phase 2 completion*
+*Last updated: 2026-03-31 after Phase 3 completion*
