@@ -29,7 +29,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The map instance is accessible to any feature component without prop drilling via MapContext
   3. Pin-style markers can be rendered using AdvancedMarkerElement (not deprecated google.maps.Marker)
   4. MapButton is a single reusable component used by all floating action buttons
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Zustand install, shared types (Pin, DiscoverResult, RouteStop), three feature slices, root store, MapButton extracted to app/components/
+- [ ] 01-02-PLAN.md — MapContext + useMapInstance() hook, Map.tsx upgraded with mapId + marker library + cleanup, MapContext.Provider wired
 **UI hint**: yes
 
 ### Phase 2: Pins
@@ -93,7 +96,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/? | Not started | - |
+| 1. Foundation | 0/2 | Not started | - |
 | 2. Pins | 0/? | Not started | - |
 | 3. Supabase Sync | 0/? | Not started | - |
 | 4. Discover | 0/? | Not started | - |
