@@ -1,5 +1,5 @@
 import Sidebar from "./components/Sidebar";
-import MapArea from "./components/MapArea";
+import Map from "./features/map/Map";
 import MobileBottomBar from "./components/MobileBottomBar";
 
 export default function Home() {
@@ -7,7 +7,7 @@ export default function Home() {
     <>
       <div className="flex h-screen w-screen">
         <Sidebar />
-        <MapArea />
+        <Map />
       </div>
       <MobileBottomBar />
     </>
