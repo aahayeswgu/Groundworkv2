@@ -52,9 +52,9 @@ Plans:
 - [x] 02-01-PLAN.md — NoteEntry type upgrade, activeStatusFilter in PinsSlice, persist middleware, StoreHydration component
 - [x] 02-02-PLAN.md — pin-marker.ts SVG generator, MarkerLayer imperative pool + InfoWindow
 - [x] 02-03-PLAN.md — reverseGeocode utility, pin-drop mode wired into Map.tsx
-- [ ] 02-04-PLAN.md — PinModal portal overlay (create + edit, all 7 fields, activity log)
+- [x] 02-04-PLAN.md — PinModal portal overlay (create + edit, all 7 fields, activity log)
 - [x] 02-05-PLAN.md — PinList + PinListItem (search, filter chips, fly-to-pin), Sidebar wired
-- [ ] 02-06-PLAN.md — Final wiring: MarkerLayer + PinModal in Map.tsx, StoreHydration + edit state in page.tsx
+- [x] 02-06-PLAN.md — Final wiring: MarkerLayer + PinModal in Map.tsx, StoreHydration + edit state in page.tsx
 **UI hint**: yes
 
 ### Phase 3: Supabase Sync

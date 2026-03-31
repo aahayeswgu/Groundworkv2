@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-03-31T20:25:10.721Z"
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-03-31T20:29:33.386Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 8
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 02 (pins) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-03-31
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-pins P02 | 8 | 2 tasks | 2 files |
 | Phase 02-pins P03 | 8 | 2 tasks | 2 files |
 | Phase 02-pins P05 | 10 | 2 tasks | 4 files |
+| Phase 02-pins P06 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: reverseGeocode uses lazy Geocoder singleton initialized on first call via importLibrary('geocoding') — separate from maps and marker libraries
 - [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
 - [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
+- [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
 
 ### Pending Todos
 
@@ -94,6 +96,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T20:25:10.719Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-03-31T20:29:33.383Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
