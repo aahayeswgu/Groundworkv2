@@ -20,8 +20,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PINS-02**: Pin stores title, address, status, contact name, phone, follow-up date, and notes
 - [x] **PINS-03**: Address is reverse-geocoded automatically from pin coordinates on drop
 - [x] **PINS-04**: Pin has one of four fixed statuses: Prospect (blue), Active (green), Follow-Up (amber), Lost (red)
-- [ ] **PINS-05**: User can edit a pin's fields via a slide-in edit panel
-- [ ] **PINS-06**: User can delete a pin from the edit panel or info window
+- [x] **PINS-05**: User can edit a pin's fields via a slide-in edit panel
+- [x] **PINS-06**: User can delete a pin from the edit panel or info window
 - [x] **PINS-07**: Pins display as status-colored SVG markers on the map
 - [x] **PINS-08**: Clicking a pin marker shows an info window with name, status, address, contact, and action buttons
 - [ ] **PINS-09**: Sidebar shows a searchable list of all pins with text search across title, address, and contact
@@ -110,8 +110,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PINS-02 | Phase 2 | Complete |
 | PINS-03 | Phase 2 | Complete |
 | PINS-04 | Phase 2 | Complete |
-| PINS-05 | Phase 2 | Pending |
-| PINS-06 | Phase 2 | Pending |
+| PINS-05 | Phase 2 | Complete |
+| PINS-06 | Phase 2 | Complete |
 | PINS-07 | Phase 2 | Complete |
 | PINS-08 | Phase 2 | Complete |
 | PINS-09 | Phase 2 | Pending |
