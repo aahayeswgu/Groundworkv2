@@ -28,7 +28,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PINS-10**: Sidebar has status filter chips that filter both the list and map marker visibility
 - [x] **PINS-11**: Clicking a pin in the sidebar pans and zooms the map to that pin and bounces the marker
 - [x] **PINS-12**: Pins persist to localStorage as primary cache
-- [ ] **PINS-13**: Pins sync to Supabase with debounced cloud push and pull-on-load with merge semantics (updated_at comparison)
+- [x] **PINS-13**: Pins sync to Supabase with debounced cloud push and pull-on-load with merge semantics (updated_at comparison)
 
 ### Discover
 
@@ -118,7 +118,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PINS-10 | Phase 2 | Complete |
 | PINS-11 | Phase 2 | Complete |
 | PINS-12 | Phase 2 | Complete |
-| PINS-13 | Phase 3 | Pending |
+| PINS-13 | Phase 3 | Complete |
 | DISC-01 | Phase 4 | Pending |
 | DISC-02 | Phase 4 | Pending |
 | DISC-03 | Phase 4 | Pending |

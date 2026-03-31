@@ -68,7 +68,7 @@ Plans:
   4. The app loads pins from Supabase on startup and merges them with any local changes without losing data
 **Plans**: 3 plans
 Plans:
-- [ ] 03-01-PLAN.md — Install @supabase/supabase-js + vitest, create vitest.config.ts, checkpoint for Supabase project credentials
+- [x] 03-01-PLAN.md — Install @supabase/supabase-js + vitest, create vitest.config.ts, checkpoint for Supabase project credentials
 - [ ] 03-02-PLAN.md — TDD: merge.ts pure functions (mergePins, localToRemote, remoteToLocal) + unit tests
 - [ ] 03-03-PLAN.md — app/lib/supabase.ts singleton, usePinSync hook, StoreHydration update, SQL migration, smoke test
 
@@ -109,6 +109,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/2 | Complete   | 2026-03-31 |
 | 2. Pins | 4/6 | In Progress|  |
-| 3. Supabase Sync | 0/3 | Not started | - |
+| 3. Supabase Sync | 1/3 | In Progress|  |
 | 4. Discover | 0/? | Not started | - |
 | 5. Route | 0/? | Not started | - |
