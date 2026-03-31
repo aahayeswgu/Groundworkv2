@@ -6,13 +6,19 @@ import { getStyleForTheme } from "./map-styles";
 import MapButton from "@/app/components/MapButton";
 import { MapContext } from "./MapContext";
 import { reverseGeocode } from "@/app/lib/geocoding";
+import MarkerLayer from "./MarkerLayer";
+import PinModal from "@/app/features/pins/PinModal";
 
 const DEFAULT_CENTER = { lat: 27.9506, lng: -82.4572 };
 const DEFAULT_ZOOM = 12;
 
 interface PendingPin { lat: number; lng: number; address: string; }
 
-export default function Map() {
+interface MapProps {
+  onEditPin: (pinId: string) => void;
+}
+
+export default function Map({ onEditPin }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
   const [satellite, setSatellite] = useState(false);
@@ -86,13 +92,6 @@ export default function Map() {
       }
     };
   }, [getTheme, exitDropMode]);
-
-  useEffect(() => {
-    if (pendingPin) {
-      // Plan 06 will render PinModal here
-      console.log("[pin-drop] pendingPin set:", pendingPin);
-    }
-  }, [pendingPin]);
 
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
@@ -182,6 +181,15 @@ export default function Map() {
         {satellite ? "Road view" : "Satellite"}
       </button>
     </div>
+
+    {mapState && <MarkerLayer onEditPin={onEditPin} />}
+    {pendingPin && (
+      <PinModal
+        mode="create"
+        initialData={{ lat: pendingPin.lat, lng: pendingPin.lng, address: pendingPin.address }}
+        onClose={() => setPendingPin(null)}
+      />
+    )}
     </MapContext.Provider>
   );
 }
