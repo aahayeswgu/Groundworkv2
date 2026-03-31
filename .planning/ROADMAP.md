@@ -12,7 +12,7 @@ Five phases take a working Next.js scaffold to a fully functional field sales CR
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Map context, Zustand store skeleton, AdvancedMarkerElement init, shared MapButton component
+- [x] **Phase 1: Foundation** - Map context, Zustand store skeleton, AdvancedMarkerElement init, shared MapButton component (completed 2026-03-31)
 - [ ] **Phase 2: Pins** - Full pin CRUD, status-colored markers, sidebar list with search/filter, localStorage persistence
 - [ ] **Phase 3: Supabase Sync** - Cloud sync for pins with merge semantics, debounced upsert, pull-on-load
 - [ ] **Phase 4: Discover** - Draw-to-search rectangle, Places (New) multi-query, dedup, quick-save, mobile touch
@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 Plans:
 - [x] 01-01-PLAN.md — Zustand install, shared types (Pin, DiscoverResult, RouteStop), three feature slices, root store, MapButton extracted to app/components/
-- [ ] 01-02-PLAN.md — MapContext + useMapInstance() hook, Map.tsx upgraded with mapId + marker library + cleanup, MapContext.Provider wired
+- [x] 01-02-PLAN.md — MapContext + useMapInstance() hook, Map.tsx upgraded with mapId + marker library + cleanup, MapContext.Provider wired
 **UI hint**: yes
 
 ### Phase 2: Pins
@@ -96,7 +96,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/2 | In Progress|  |
+| 1. Foundation | 2/2 | Complete   | 2026-03-31 |
 | 2. Pins | 0/? | Not started | - |
 | 3. Supabase Sync | 0/? | Not started | - |
 | 4. Discover | 0/? | Not started | - |
