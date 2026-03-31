@@ -80,10 +80,10 @@ async function pushPins(pins: Pin[]): Promise<void> {
 
 async function softDeleteFromSupabase(ids: string[]): Promise<void> {
   const now = new Date().toISOString();
-  await supabase
-    .from('pins')
-    .upsert(
-      ids.map((id) => ({ id, updated_at: now, deleted_at: now })),
-      { onConflict: 'id' }
-    );
+  for (const id of ids) {
+    await supabase
+      .from('pins')
+      .update({ updated_at: now, deleted_at: now })
+      .eq('id', id);
+  }
 }
