@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-31T19:02:08.166Z"
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-31T20:08:49.409Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 8
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
-**Current focus:** Phase 01 — foundation
+**Current focus:** Phase 02 — pins
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 02 (pins) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
 Last activity: 2026-03-31
 
 Progress: [░░░░░░░░░░] 0%
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 10 | 3 tasks | 11 files |
 | Phase 01-foundation P02 | 5 | 3 tasks | 2 files |
+| Phase 02-pins P01 | 5 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: selectedDiscoverIds as Set<string> — Zustand v5 handles Set correctly
 - [Phase 01-foundation]: mapState useState used instead of ref.current in MapContext.Provider to comply with react-hooks/refs lint rule and ensure correct re-renders
 - [Phase 01-foundation]: DEMO_MAP_ID as default env value for NEXT_PUBLIC_GOOGLE_MAP_ID — Google built-in constant enables AdvancedMarkerElement in dev without a real Map ID
+- [Phase 02-pins]: Persist only pins to localStorage — discover results and route state are ephemeral by design
+- [Phase 02-pins]: skipHydration: true with client-side StoreHydration component prevents SSR localStorage access crash
+- [Phase 02-pins]: activeStatusFilter initialized with all 4 statuses enabled — show-all is the safe default
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T19:02:08.164Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-pins/02-CONTEXT.md
+Last session: 2026-03-31T20:08:49.407Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None

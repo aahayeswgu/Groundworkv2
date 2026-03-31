@@ -17,9 +17,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Pins
 
 - [ ] **PINS-01**: User can enter pin-drop mode and click map to place a pin at that location
-- [ ] **PINS-02**: Pin stores title, address, status, contact name, phone, follow-up date, and notes
+- [x] **PINS-02**: Pin stores title, address, status, contact name, phone, follow-up date, and notes
 - [ ] **PINS-03**: Address is reverse-geocoded automatically from pin coordinates on drop
-- [ ] **PINS-04**: Pin has one of four fixed statuses: Prospect (blue), Active (green), Follow-Up (amber), Lost (red)
+- [x] **PINS-04**: Pin has one of four fixed statuses: Prospect (blue), Active (green), Follow-Up (amber), Lost (red)
 - [ ] **PINS-05**: User can edit a pin's fields via a slide-in edit panel
 - [ ] **PINS-06**: User can delete a pin from the edit panel or info window
 - [ ] **PINS-07**: Pins display as status-colored SVG markers on the map
@@ -27,7 +27,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PINS-09**: Sidebar shows a searchable list of all pins with text search across title, address, and contact
 - [ ] **PINS-10**: Sidebar has status filter chips that filter both the list and map marker visibility
 - [ ] **PINS-11**: Clicking a pin in the sidebar pans and zooms the map to that pin and bounces the marker
-- [ ] **PINS-12**: Pins persist to localStorage as primary cache
+- [x] **PINS-12**: Pins persist to localStorage as primary cache
 - [ ] **PINS-13**: Pins sync to Supabase with debounced cloud push and pull-on-load with merge semantics (updated_at comparison)
 
 ### Discover
@@ -107,9 +107,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUN-03 | Phase 1 | Complete |
 | FOUN-04 | Phase 1 | Complete |
 | PINS-01 | Phase 2 | Pending |
-| PINS-02 | Phase 2 | Pending |
+| PINS-02 | Phase 2 | Complete |
 | PINS-03 | Phase 2 | Pending |
-| PINS-04 | Phase 2 | Pending |
+| PINS-04 | Phase 2 | Complete |
 | PINS-05 | Phase 2 | Pending |
 | PINS-06 | Phase 2 | Pending |
 | PINS-07 | Phase 2 | Pending |
@@ -117,7 +117,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PINS-09 | Phase 2 | Pending |
 | PINS-10 | Phase 2 | Pending |
 | PINS-11 | Phase 2 | Pending |
-| PINS-12 | Phase 2 | Pending |
+| PINS-12 | Phase 2 | Complete |
 | PINS-13 | Phase 3 | Pending |
 | DISC-01 | Phase 4 | Pending |
 | DISC-02 | Phase 4 | Pending |
