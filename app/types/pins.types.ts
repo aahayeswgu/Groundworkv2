@@ -1,5 +1,10 @@
 export type PinStatus = "prospect" | "active" | "follow-up" | "lost";
 
+export interface NoteEntry {
+  text: string;
+  date: string;
+}
+
 export interface Pin {
   id: string;
   title: string;
@@ -10,7 +15,7 @@ export interface Pin {
   contact: string;
   phone: string;
   followUpDate: string;
-  notes: string;
+  notes: NoteEntry[];
   createdAt: string;
   updatedAt: string;
 }
