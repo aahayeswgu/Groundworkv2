@@ -21,22 +21,11 @@ A sales rep can discover businesses in an area, pin the ones worth visiting, bui
 - ✓ MapContext for sharing map instance without prop drilling — Phase 1
 - ✓ AdvancedMarkerElement support via mapId and marker library — Phase 1
 - ✓ MapButton extracted as reusable shared component — Phase 1
+- ✓ Pin drop, CRUD, status-colored 3D markers, edit modal, InfoWindow — Phase 2
+- ✓ Sidebar pin list with search, status filter chips, fly-to-pin — Phase 2
+- ✓ localStorage persistence via Zustand persist middleware — Phase 2
 
 ### Active
-
-**Pins**
-- [ ] Drop pin on map via click-to-place mode
-- [ ] Pin data: title, address (reverse-geocoded), status, contact, phone, follow-up date, notes
-- [ ] Fixed status set with colors: Prospect (blue), Active (green), Follow-Up (amber), Lost (red)
-- [ ] Pin CRUD — create, read, update, delete with edit panel
-- [ ] Pin list in sidebar with search, status filter chips, and grouping (status, A-Z, follow-up, recent)
-- [ ] Pin markers on map with status-colored SVG icons
-- [ ] Pin info window on marker click (name, status, address, contact, actions)
-- [ ] Pin relocate (pick up and re-drop on map)
-- [ ] Bulk pin operations — select all, delete selected, area-select via shift+drag
-- [ ] Fly-to-pin from sidebar click (pan, zoom, bounce marker)
-- [ ] Sidebar ↔ map hover sync (highlight marker when hovering sidebar item and vice versa)
-- [ ] Pin persistence — localStorage with Supabase cloud sync (debounced)
 
 **Discover Business**
 - [ ] Draw-to-search: click+drag rectangle on map to define search area
@@ -126,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-31 after Phase 1 completion*
+*Last updated: 2026-03-31 after Phase 2 completion*
