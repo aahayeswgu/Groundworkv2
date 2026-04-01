@@ -3,6 +3,8 @@
 import { useStore } from "@/app/store";
 import { getOrCreateDay } from "@/app/features/planner/planner.store";
 import { PlannerStopItem } from "@/app/features/planner/PlannerStopItem";
+import PlannerNotes from "@/app/features/planner/PlannerNotes";
+import PlannerActivityLog from "@/app/features/planner/PlannerActivityLog";
 import type { PlannerStopStatus } from "@/app/types/planner.types";
 
 export default function PlannerPanel() {
@@ -12,8 +14,15 @@ export default function PlannerPanel() {
   const removePlannerStop = useStore((s) => s.removePlannerStop);
   const addActivityEntry = useStore((s) => s.addActivityEntry);
   const trackingEnabled = useStore((s) => s.trackingEnabled);
+  const activeNotesPage = useStore((s) => s.activeNotesPage);
+  const setNotesPage = useStore((s) => s.setNotesPage);
+  const addNotesPage = useStore((s) => s.addNotesPage);
+  const deleteNotesPage = useStore((s) => s.deleteNotesPage);
+  const setActiveNotesPage = useStore((s) => s.setActiveNotesPage);
+  const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
 
   const day = getOrCreateDay(plannerDays, activePlannerDate);
+  const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;
 
   // Stats — derived, not stored separately (per PLAN-08)
   const planned = day.stops.filter((s) => s.status === "planned").length;
@@ -26,6 +35,14 @@ export default function PlannerPanel() {
     month: "short",
     day: "numeric",
   });
+
+  function handleAddNotesPage() {
+    addNotesPage();
+    if (trackingEnabled) {
+      const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      addActivityEntry({ time, text: "Added notes page" });
+    }
+  }
 
   function handleStatusChange(stopId: string, status: PlannerStopStatus) {
     const stop = day.stops.find((s) => s.id === stopId);
@@ -101,7 +118,23 @@ export default function PlannerPanel() {
           )}
         </div>
 
-        {/* Notes and Activity Log sections — added in 06-03 */}
+        {/* Notes section */}
+        <PlannerNotes
+          notes={day.notes}
+          activePage={currentNotesPage}
+          onChangePage={(text) => setNotesPage(currentNotesPage, text)}
+          onAddPage={handleAddNotesPage}
+          onDeletePage={deleteNotesPage}
+          onNavigatePage={(page) => setActiveNotesPage(activePlannerDate, page)}
+        />
+
+        {/* Activity log section */}
+        <PlannerActivityLog
+          entries={day.activityLog}
+          trackingEnabled={trackingEnabled}
+          onToggleTracking={setTrackingEnabled}
+        />
+
         {/* Date navigation and calendar — added in 06-04 */}
       </div>
     </div>
