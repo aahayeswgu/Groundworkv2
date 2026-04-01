@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** Groundwork v2
-**Domain:** Map-centric field sales CRM — pin management, Google Places discovery, route optimization
-**Researched:** 2026-03-31
+**Project:** Groundwork v2 — Field Sales CRM (v1.1 Power Features)
+**Domain:** Map-centric field sales CRM — pin management, business discovery, route optimization
+**Researched:** 2026-04-01
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Groundwork v2 is a map-first field sales CRM targeting construction trade reps. The application sits on a working Next.js 16 / React 19 foundation with Google Maps already bootstrapped. The three feature areas to build — pin management, draw-to-search business discovery, and route planning — each have well-documented patterns in the Google Maps JS API ecosystem. The recommended approach is: add Zustand for cross-feature state, Supabase JS for cloud persistence, and rely exclusively on the new (non-legacy) Google Maps APIs: `Place` class for Places (New), `Route` class for routing, and `AdvancedMarkerElement` for markers. No new npm packages are needed for the Maps work; only `@supabase/supabase-js`, `zustand`, `sonner`, and `@dnd-kit` need to be added.
+Groundwork v2 is a map-first field sales tool for construction trade reps. The v1 foundation (pin management, Google Places discovery, route optimization, Supabase sync) is already built and working. The v1.1 milestone adds three power features that extend the existing architecture without requiring new infrastructure: Marathon Mode (multi-area discovery accumulation), Ask AI (per-business Gemini sales brief in the discover info bubble), and Planner Tab (daily stop management and visit logging). The entire milestone requires exactly one new npm dependency — `@google/genai` — and one new Supabase table (`planner_days`, deferred to a later sync milestone).
 
-The key architectural decision is a clean separation between the imperative Maps world and the declarative React world. Map state (markers, polylines, overlays) lives in refs and a marker pool, never in React state. Cross-feature shared state (pins, discover results, route stops) lives in Zustand slices. External API calls are isolated in `lib/` service files; components only dispatch actions and read state. This split is the single pattern that prevents the most common class of map-in-React bugs.
+The recommended approach builds on the existing Zustand slice pattern, a Next.js Route Handler proxy for the Gemini API, and the established imperative InfoWindow DOM mutation pattern. Marathon Mode extends the DiscoverSlice with a `marathonZones: MarathonZone[]` structure (not a flat append to `discoverResults`). Ask AI briefs live only in the InfoWindow DOM with a session-level `Map<placeId, string>` cache — no Zustand state involved. Planner is a fourth independent Zustand slice with its own localStorage partition. The three features are independent in terms of data and state; their build order is determined by dependency (Planner slice first, then Marathon, then Ask AI, then Planner UI).
 
-The primary risks are: (1) using deprecated Google APIs — the legacy `PlacesService`, `DirectionsService`, and `DrawingManager` are all at end-of-life; building against them now requires an immediate migration; (2) Places API bounds are a bias signal, not a hard filter — client-side containment filtering is mandatory; (3) the Supabase sync layer needs merge semantics with `updated_at` timestamps from the start, or multi-device use will clobber data; (4) the Google Maps shareable URL silently truncates to 3 waypoints on mobile, which is the primary use context.
+The key risks are API key exposure (Gemini must be server-side only via a Route Handler), data model contamination (Planner stops and Route stops have different semantics and must not share a slice), store migration discipline (adding `plannerStops` to `partialize` requires bumping the persist version and writing a migration), and Marathon Mode's multi-zone data model choice. A flat append to `discoverResults` will cause problems; a `marathonZones: MarathonZone[]` structure keyed by zone preserves spatial context and enables per-zone clear — this is the single most architecturally consequential decision in the milestone.
 
 ---
 
@@ -19,199 +19,145 @@ The primary risks are: (1) using deprecated Google APIs — the legacy `PlacesSe
 
 ### Recommended Stack
 
-The existing stack (Next.js 16.2.1, React 19.2.4, Tailwind 4, `@googlemaps/js-api-loader` ^2.0.2) requires five additions. Zustand v5 is the correct state solution: it uses native `useSyncExternalStore` (React 19 compatible), has selector-based subscriptions that prevent map re-renders on unrelated state changes, and supports a slice pattern that co-locates each feature's state with its components. Plain `@supabase/supabase-js` (not `@supabase/ssr`) is correct because auth is out of scope — the SSR package adds middleware and session complexity that provides zero benefit until auth is introduced. `@dnd-kit/core` + `@dnd-kit/sortable` replace the archived `react-beautiful-dnd` for route stop reordering. `sonner` handles toast notifications for async feedback (Places search progress, route share confirmation, error states).
-
-All three Google Maps API features — Places (New), Route class, AdvancedMarkerElement — are loaded via the existing `importLibrary()` pattern with no new npm packages. Note: `DirectionsService` was deprecated February 25, 2026; the Route class is the current standard. `DrawingManager` was deprecated August 2025 (removal May 2026); the rectangle draw must be implemented manually with `mousedown/mousemove/mouseup` on the map instance.
+The v1.1 milestone requires minimal stack changes. The existing Next.js 16 / React 19 / Zustand 5 / Supabase / dnd-kit stack covers Marathon Mode and Planner entirely. The only addition is `@google/genai` (v1.x, GA since May 2025) for the Gemini integration. The previous `@google/generative-ai` package is deprecated, archived, and all support ends August 31, 2025 — it must not be used.
 
 **Core technologies:**
-- `zustand` ^5.0.12: Cross-feature shared state — selector subscriptions prevent map re-renders on pin hover
-- `@supabase/supabase-js` ^2.101.1: Database CRUD + debounced cloud sync — anon key only until auth is added
-- `@dnd-kit/core` + `@dnd-kit/sortable` ^6.3.1 / ^10.0.0: Route stop drag-to-reorder — only in route planner, not pin list
-- `sonner` ^2.0.7: Toast notifications — progress states for 18-query discover flow
-- Google Places (New) via `importLibrary('places')`: `Place.searchByText` with `locationRestriction` bounds
-- Google Route class via `importLibrary('routes')`: `computeRoutes` with `optimizeWaypointOrder: true`, 25-stop cap
-- `AdvancedMarkerElement` via `importLibrary('marker')`: Custom SVG content per status; requires Map ID
+- `@google/genai` ^1.x: Gemini API SDK — only official SDK; use `gemini-2.5-flash` (stable GA, not preview)
+- `zustand` ^5.0.12: Planner slice added as fourth feature slice; `plannerStops` added to `partialize` with version bump to 2
+- `@supabase/supabase-js` ^2.x: Existing client reused; `planner_days` table deferred to Supabase sync milestone
+- `@dnd-kit/sortable`: Reused for Planner stop reordering (already installed)
+- Next.js Route Handler (`app/api/ask-ai/route.ts`): Server-side proxy for all Gemini calls — single call site
+
+**Critical version and model notes:**
+- `gemini-2.5-flash` is the correct stable GA model string. Gemini 2.0 models are deprecated with shutdown June 1, 2026.
+- Store the model name in a single config constant — never scatter the string across call sites.
+- Do not use `NEXT_PUBLIC_GEMINI_API_KEY` — exposes key in browser bundle. Use `GEMINI_API_KEY` (server-only, no prefix).
+- Store ISO date strings in Zustand (not `Date` objects) — `Date` objects serialize to strings but do not deserialize back, causing silent type bugs.
 
 ### Expected Features
 
-The competitive set (Badger Maps, SPOTIO, MapMyCustomers) establishes baseline expectations. The draw-to-search discovery mechanic is the primary differentiator — no competitor ships a rectangle-draw-to-discover flow; they use territory zones or address-based search. Construction-specific query defaults give immediate out-of-the-box value that generic tools require manual setup to replicate. The offline-first localStorage model with Supabase sync is a second differentiator — all three major competitors require constant connectivity.
+**Must have — P1 (this milestone):**
+- Marathon Mode: accumulate-across-draws with cross-area dedup, persistent rectangle overlays on map, "Build Route from Session" CTA, "Clear All" escape hatch
+- Ask AI: one-tap Gemini brief in discover info bubble, grounded Google Search via `tools: [{ googleSearch: {} }]`, session cache by placeId, graceful error + retry state
+- Planner: today's stops list, outcome logging (Visited / Called / Left Material / No Answer / Booked Meeting), notes per stop, mark complete, activity log
+- Planner: "Send to Planner" CTA in Route Confirm panel (one-time copy, not live sync)
 
-**Must have (table stakes):**
-- Status-colored pin markers with 4-status palette (Prospect/Active/Follow-Up/Lost)
-- Click-to-place pin drop with mode toggle to prevent accidental drops
-- Pin CRUD with edit panel and reverse geocode on drop
-- Pin list sidebar with text search and status filter chips
-- Fly-to-pin + bidirectional sidebar/map hover sync
-- localStorage persistence (session survival minimum)
-- Multi-stop route building with optimization and map display
-- Shareable Google Maps navigation link
+**Should have — P2 (before milestone closes):**
+- Ask AI: show source citations from `groundingMetadata.groundingChunks`
+- Marathon: area result count badges on saved rectangle overlays
+- Planner: follow-up scheduling from outcome (sets `followUpDate` on pin)
+- Planner: visit history section in pin edit panel
 
-**Should have (competitive differentiators):**
-- Draw-to-search business discovery with construction query defaults
-- Quick-save discovered business as pin (one-tap, in-flow)
-- Drag-to-reorder stops in route confirm panel
-- Supabase cloud sync (debounced, merge semantics)
-- Bulk pin area-select (shift+drag) for delete and route-add
-
-**Defer to v2+:**
-- Auth and user profiles — adds multi-device/team sharing; validate single-user flow first
-- GPS check-in / visit logging — adds accountability complexity; validate route + discover first
-- Email/calendar integration — deferred; follow-up date + notes field covers the immediate need
-- AI visit summaries — validate that reps write notes before adding summarization
-- Marathon mode (>25 stops, multi-cluster) — rare; 25-stop cap covers most real field days
+**Defer to v1.2+:**
+- Ask AI for pinned businesses (outside discover flow)
+- Marathon session save/resume across days (requires auth)
+- Planner manager dashboard / team view (requires auth + user profiles)
+- GPS auto-check-in (requires background location permission + iOS restrictions)
+- Batch AI brief generation for Marathon results (validate cost model first)
 
 ### Architecture Approach
 
-The architecture is a client-rendered SPA shell assembled by a Next.js server page. `Map.tsx` owns the `google.maps.Map` instance and publishes it via `MapContext`; all sub-features (`MarkerLayer`, `DiscoverOverlay`, `RouteLayer`) consume the context rather than receiving the map as a prop. The Zustand store is composed of per-feature slices co-located with their feature folders; the root `store/index.ts` combines slices but is not a god-store. All external API calls are in `lib/` service files (never in components). Each feature is a self-contained folder under `app/features/` — the fork-friendly goal is served by having industry configuration isolated in `app/config/queries.ts`.
+The v1.1 features integrate into the existing four-layer architecture (Server Shell → Client Components → Zustand Global State → Service Layer) without restructuring it. Marathon Mode is an extension of the DiscoverSlice. Ask AI is a thin Next.js API Route proxy with no Zustand involvement. Planner is a new fourth Zustand slice with its own persist partition. Sidebar.tsx gains controlled `activeTab` state with a three-level priority hierarchy: `discoverMode=true` always wins over tab selection, then `activeTab="planner"`, then default PinList.
 
-**Major components:**
-1. `app/features/map/Map.tsx` + `MarkerLayer.tsx` — Map canvas, mode controller, imperative marker pool (ref-based, not state-based)
-2. `app/features/pins/` — `PinList`, `PinPanel`, `PinInfoWindow`, `pins.store.ts`; core data foundation that route and discover both depend on
-3. `app/features/discover/` — `DiscoverOverlay` (manual rectangle draw), `DiscoverPanel` (results + quick-save), `discover.store.ts`
-4. `app/features/route/` — `RoutePlanner` (stop list + dnd reorder + optimize), `RouteLayer` (polyline + numbered markers), `route.store.ts`
-5. `app/lib/` — `supabase.ts`, `places.ts`, `directions.ts`, `geocoding.ts` — pure service wrappers, no React dependencies, called by Zustand actions only
+**Major components for v1.1:**
+1. `discover.store.ts` (modified) — adds `marathonMode`, `marathonSearchCount`, `marathonZones: MarathonZone[]`
+2. `app/api/ask-ai/route.ts` (new) — server-side Gemini proxy; single call site for all AI requests
+3. `app/features/planner/` (new directory) — `planner.store.ts`, `PlannerPanel.tsx`, `PlannerStopItem.tsx`, `PlannerNoteEntry.tsx`
+4. `gemini-brief.ts` (new) — client helper wrapping `fetch('/api/ask-ai')` with session-level `Map<placeId, string>` cache
+5. `store/index.ts` (modified) — adds `PlannerSlice` to `AppStore` type, `plannerStops` to `partialize`, bumps version to 2 with migration
 
 ### Critical Pitfalls
 
-1. **Places API bounds are biases, not hard filters** — Apply a mandatory client-side containment check (`google.maps.geometry.poly.containsLocation()`) after every Places API response. Do not trust the API's `locationRestriction` to enforce strict bounds; it does not.
+1. **Marathon Mode flat-array accumulation loses zone context** — Do not implement as `setDiscoverResults([...existing, ...new])`. Use `marathonZones: MarathonZone[]` where each zone tracks `{ id, bounds, results }`. The flat result view the UI renders is derived with `flatMap`. This enables per-zone clear and prevents undifferentiated result soup across draws.
 
-2. **Using any legacy Google Maps API** — `PlacesService` (legacy), `DirectionsService` (deprecated Feb 2026), `DrawingManager` (deprecated Aug 2025, removal May 2026), and `google.maps.Marker` are all end-of-life. Use `Place` class, `Route` class, manual rectangle events, and `AdvancedMarkerElement` exclusively. Do not copy any search or routing code from the old prototype.
+2. **Gemini API key exposed via `NEXT_PUBLIC_` prefix** — All Gemini calls must go through `app/api/ask-ai/route.ts`. The key lives only in `GEMINI_API_KEY` (server-only). Never instantiate `@google/genai` in any `'use client'` component.
 
-3. **Supabase sync overwrites local changes** — Implement last-write-wins merge using `updated_at` timestamps from the first schema migration. Never do `setLocalPins(remotePins)` — always merge record-by-record. Use soft-delete (`deleted_at`) not hard-delete.
+3. **Gemini model string pointing to a deprecated endpoint** — `gemini-2.0-flash` shuts down June 1, 2026. Use `gemini-2.5-flash`. Store the model name in a single config constant. Subscribe to the Gemini deprecation page for future migration alerts.
 
-4. **Google Maps shareable URL truncates silently on mobile** — The Google Maps consumer app supports only 3 waypoints on mobile browsers. A 10-stop route link that works perfectly in desktop testing will lose 7 stops when a field rep opens it on their phone. Add a stop-count warning in the route confirm panel and consider segment URL generation for longer routes.
+4. **Zustand persist schema version conflict when adding Planner slice** — Adding `plannerStops` to `partialize` without bumping `version` causes silent hydration failures that can lose existing pin data. Bump version to 2 and write a migration branch: `if (version < 2) { persisted.plannerStops = [] }`.
 
-5. **Map instance and event listener leaks across React unmounts** — React 18+ Strict Mode invokes effects twice in development. Every `useEffect` that initializes the map or attaches listeners must return a cleanup function that calls `clearInstanceListeners` and sets markers to `null`. Test with Strict Mode enabled from day one.
+5. **AI quota exhausted by repeated bubble opens** — Without a cache, every InfoWindow re-open fires a new Gemini API request. The free tier is 10 RPM / 250 RPD — easily exhausted in a normal discovery session. Add `aiBrief: string | null | 'loading' | 'error'` to `DiscoverResult` (or a module-level `Map<placeId, string>`) and implement cache-first fetch before wiring the UI trigger.
 
-6. **18 concurrent Places queries exhausting API quota** — At $0.032/Text Search request, one discovery session costs ~$0.58. 10 searches/day per rep = ~$5.76/day. Cap concurrency at 3-4 in-flight requests, cache by `{queryType, boundsHash}` with a 5-minute TTL, show progressive "Searching (3/18)..." feedback, and set a daily quota cap in Google Cloud Console.
+6. **Marathon route stop dedup bypassed by placeId/pinId mismatch** — When a discover result is saved as a pin and then added to the route, the route stop ID is `pin.id` not `placeId`. Two Marathon zone searches returning the same business generate two pins with different IDs; dedup misses the duplicate. Fix: store `pin.sourceId = discoverResult.placeId` during quick-save, and check `sourceId` collision in `addStop`.
 
 ---
 
 ## Implications for Roadmap
 
-Based on the dependency graph in FEATURES.md and the build order in ARCHITECTURE.md, seven phases are suggested. Pin CRUD must precede both discover and route because both depend on the pin data layer. Discover and route can be parallelized in planning but should be sequential in implementation (route benefits from having saved pins to add as stops, which requires a working quick-save from discover).
+Based on the combined research, the v1.1 milestone naturally decomposes into four sequential phases driven by data model dependencies.
 
-### Phase 1: Map Foundation and State Architecture
+### Phase 1: Foundation — Planner Slice and Store Migration
 
-**Rationale:** Everything depends on a stable map instance and a working state layer. MapContext, the Zustand store skeleton, and the error boundary must exist before any feature work starts. Getting cleanup patterns right here prevents the memory leak pitfall from compounding.
+**Rationale:** The Planner slice is a prerequisite for all Planner UI work. The store version bump and migration must be completed first — as a standalone, reviewable change — to avoid breaking existing pin data. This phase has zero UI impact and can be verified in isolation before any feature work begins.
 
-**Delivers:** `MapContext` with stable map ref, Zustand store with empty slice scaffolding, error boundary on map load failure, `AdvancedMarkerElement` initialization with Map ID, `lib/` service file structure.
+**Delivers:** `planner.store.ts` with full `PlannerSlice` interface, `store/index.ts` updated to `AppStore = PinsSlice & DiscoverSlice & RouteSlice & PlannerSlice`, version bumped to 2 with migration, `partialize` including `plannerStops`, Sidebar.tsx tab state wired with empty `PlannerPanel` stub. Implements 30-day localStorage retention policy for planner data (not deferred).
 
-**Addresses:** Basic map render, mode controller scaffold (IDLE | PLACE_PIN | DRAW | ROUTE_ADD)
+**Features addressed:** Planner persistence foundation; "Send to Planner" data model; planner/route separation
 
-**Avoids:** Map instance survival pitfall (Pitfall 5), missing error boundary tech debt
+**Pitfalls avoided:** Zustand persist schema version conflict (Pitfall 12); planner date data stale without expiry (Pitfall 13 — 30-day purge policy implemented here, not as a follow-up)
 
-**Research flag:** Standard patterns — skip research-phase. Map initialization with `@googlemaps/js-api-loader` and Zustand slice pattern are both well-documented.
-
----
-
-### Phase 2: Pin Management
-
-**Rationale:** Pins are the data foundation. Route building and discover both write to the pins slice; neither can be properly built without it. This phase also establishes the localStorage persistence pattern used by all subsequent features.
-
-**Delivers:** Pin drop (click-to-place with reverse geocode), Pin CRUD edit panel, status-colored `AdvancedMarkerElement` markers (4 statuses), `PinList` sidebar with search and status filter chips, fly-to-pin, bidirectional hover sync, `PinInfoWindow` on marker click, localStorage persistence.
-
-**Addresses:** All P1 pin table-stakes features from FEATURES.md
-
-**Avoids:** Marker recreation anti-pattern (use marker pool, never recreate on state change), prop-drilling anti-pattern (Zustand for hover sync)
-
-**Research flag:** Standard patterns — skip research-phase. Pin CRUD + AdvancedMarkerElement pool is well-documented.
+**Research flag:** Standard patterns. Zustand slice composition and persist migration are well-documented. No phase research needed.
 
 ---
 
-### Phase 3: Supabase Cloud Sync
+### Phase 2: Marathon Mode
 
-**Rationale:** Isolated to its own phase so persistence bugs can be debugged independently from UI bugs. Must be built before discover and route add their own persistence needs. Schema design here (with `updated_at`, soft deletes) defines the pattern all future tables follow.
+**Rationale:** Marathon Mode is self-contained — it modifies DiscoverSlice and `discover-search.ts` without depending on Planner. Building it as a complete unit before the Planner UI allows focused testing of the accumulation mechanic and the multi-zone data model. The zone-keyed data structure decision must be made here; retrofitting it into a flat array later requires migrating all downstream consumers.
 
-**Delivers:** Supabase client singleton, `pins` table schema with `updated_at` and `deleted_at`, debounced upsert (500ms) after mutations, merge-on-load logic (last-write-wins by `updated_at`), `beforeunload` immediate sync trigger.
+**Delivers:** `marathonZones: MarathonZone[]` in DiscoverSlice, conditional clear logic in `discover-search.ts`, Marathon toggle in Map.tsx floating controls, marathon session header in DiscoverPanel ("X areas searched, Y businesses found") with "Clear All" button, rectangle overlays for each searched area on the map.
 
-**Addresses:** Cloud sync differentiator from FEATURES.md
+**Features addressed:** Accumulate-across-draws, cross-area dedup, area rectangle count indicator, per-zone clear, "Build Route from Session" CTA
 
-**Avoids:** Supabase sync clobbers local changes (Pitfall 4) — merge semantics built in from schema day one
+**Pitfalls avoided:** Marathon flat-array accumulation loses zone context (Pitfall 10); Marathon route stop dedup via `sourceId` on pins (Pitfall 11); duplicate Places searches on zone re-draw via normalized bounds hash cache (Pitfall 15)
 
-**Research flag:** Standard patterns — skip research-phase. Supabase JS CRUD is thoroughly documented.
-
----
-
-### Phase 4: Business Discovery
-
-**Rationale:** Depends on pin CRUD (quick-save writes to pins slice). Discovery is the primary differentiator and the most technically complex single feature — Place API (New) multi-query orchestration, manual rectangle draw, deduplication, and client-side bounds filtering all need to come together. Building it after the pin layer means quick-save integration is straightforward.
-
-**Delivers:** Manual rectangle draw mode (`mousedown/mousemove/mouseup`, no DrawingManager), `lib/places.ts` with Places (New) multi-query orchestration (concurrency cap 3-4, 5-minute cache by bounds hash), client-side containment filter, deduplication by `placeId` + normalized name + coordinate proximity, `DiscoverPanel` results list with orange/green/yellow marker states, quick-save to pin.
-
-**Addresses:** Draw-to-search differentiator, construction query defaults, quick-save as pin (FEATURES.md)
-
-**Avoids:** Places bounds bias (Pitfall 1 — mandatory containment filter), legacy PlacesService (Pitfall 3), 18-query quota exhaustion (Pitfall 6), DrawingManager deprecated API
-
-**Research flag:** Needs deeper research during planning — the Places (New) `Place.searchByText` multi-query pattern with concurrency, caching, and dedup logic has limited community examples. Verify `locationRestriction` rectangle format and field mask requirements against current API docs before implementation sprint.
+**Research flag:** The `MarathonZone[]` data structure is a custom design with no direct competitor precedent. Recommend a brief implementation spike on zone-based dedup and per-zone clear UX before building the full UI. Specifically: validate that the "Clear All" vs. per-zone clear UX decision is made before component work begins.
 
 ---
 
-### Phase 5: Route Planning
+### Phase 3: Ask AI (Gemini)
 
-**Rationale:** Depends on pin CRUD (stops sourced from pins), and benefits from having discover available (discovered businesses can be added to route directly). The Route class (New) replaces the now-deprecated `DirectionsService`; this phase must use the current API.
+**Rationale:** Fully independent of both Marathon Mode and Planner. Depends only on the existing `DiscoverResult` type and the InfoWindow DOM pattern. The server-side proxy architecture must be established before any AI prompt logic is written — this is the non-negotiable first step within this phase.
 
-**Delivers:** `RoutePlanner` stop list with dnd reorder (`@dnd-kit/sortable`), Route class (`importLibrary('routes')`) with `optimizeWaypointOrder: true`, `RouteLayer` orange polyline + numbered stop markers, 25-stop cap with clear messaging, shareable Google Maps URL with mobile waypoint-count warning (>3 stop advisory).
+**Delivers:** `app/api/ask-ai/route.ts` (Gemini proxy with `GEMINI_API_KEY` server-only), `gemini-brief.ts` (client helper with session-level `Map<placeId, string>` cache), "Ask AI" button in discover info bubble with brief loading state and brief slot, graceful error + retry state, text-only renderer (no `dangerouslySetInnerHTML`).
 
-**Addresses:** Route building, drag-to-reorder, navigation handoff (FEATURES.md P1)
+**Features addressed:** One-tap Gemini brief, grounded search, session cache by placeId, graceful error state; source citations (P2)
 
-**Avoids:** Legacy `DirectionsService` (deprecated Feb 2026), mobile URL truncation (Pitfall 2 — warn at >3 stops), marker recreation during route updates
+**Pitfalls avoided:** API key exposure via `NEXT_PUBLIC_` (Pitfall 7); deprecated model string — use `gemini-2.5-flash` in a config constant (Pitfall 8); LLM output injected without validation — text-only renderer, sanitize input before prompt (Pitfall 9); quota exhaustion by bubble re-opens — cache-first fetch (Pitfall 14)
 
-**Research flag:** Needs research on Route class API during planning — `google.maps.importLibrary('routes')` + `Route` class is newer API surface. Verify `computeRoutes` field masks and `optimizedIntermediateWaypointIndices` response shape before sprint.
-
----
-
-### Phase 6: Bulk Pin Operations
-
-**Rationale:** Deferred to after the core pin/discover/route flow is stable. Area-select (shift+drag) conflicts with discover draw mode (both use mouse drag); implementing this after discover means the mode conflict can be resolved cleanly with the full mode system in place.
-
-**Delivers:** Shift+drag area-select on map canvas (distinct from discover draw mode), selected state on pins, bulk delete and bulk add-to-route actions.
-
-**Addresses:** Bulk pin operations differentiator (FEATURES.md P2)
-
-**Avoids:** Input conflict between area-select and discover draw modes — resolved via explicit `activeMode` state in `map-mode.store.ts`
-
-**Research flag:** Standard patterns — skip research-phase. Mouse event handling on the Maps instance is well-documented.
+**Research flag:** Validate Gemini 2.5 Flash free tier limits (250 RPD) against realistic rep behavior before launch. At 50-business Marathon sessions, first-open cache misses could exhaust the daily quota by noon. Establish cost expectations and plan the session cache design before implementation.
 
 ---
 
-### Phase 7: Polish and Mobile
+### Phase 4: Planner Tab UI
 
-**Rationale:** Final pass after all features are functional. Mobile touch patterns (300ms hold-to-draw, bottom sheet info window, sidebar collapse) are validated against a working feature set rather than speculated upfront.
+**Rationale:** Depends on Phase 1 (Planner slice). Builds the UI on top of the already-working slice. Can proceed after Phase 3 completes or in parallel since Planner and Ask AI share no dependencies. The "Send to Planner" CTA in Route Confirm panel is included here because it requires the Planner slice to be wired to the Route UI.
 
-**Delivers:** Mobile touch draw (300ms hold-to-draw for discover), long-press pin placement on mobile, bottom sheet info window on mobile (replace map overlay), offline connectivity indicator, sidebar scroll position preservation, sonner toast placement optimization for mobile.
+**Delivers:** `PlannerPanel.tsx`, `PlannerStopItem.tsx`, `PlannerNoteEntry.tsx`, "Add to Plan" action on `PinListItem` and `DiscoverResultItem`, "Send to Planner" CTA on Route Confirm panel (one-time copy from `routeStops`), outcome logging with pre-defined set, mark complete toggle, today's date header with stop count, activity log (last 7 days locally; Supabase insert-only for historical data).
 
-**Addresses:** Mobile-responsive table stakes, v1.x deferred mobile features (FEATURES.md)
+**Features addressed:** Today's stops list, outcome logging, notes per stop, mark complete, activity log, "Send to Planner" from route; follow-up scheduling from outcome (P2); visit history in pin edit panel (P2)
 
-**Avoids:** Accidental pin drops on mobile tap (use long-press), frustrating tap-to-dismiss info windows on mobile
+**Pitfalls avoided:** Planner activity log as performance bottleneck — activity log entries go to Supabase `activity_log` table via insert-only pattern, not into the Zustand persisted state; keep only last 7 days locally (Pitfall 16)
 
-**Research flag:** Standard patterns — skip research-phase.
+**Research flag:** Standard patterns for status-toggle list UI. The "Send to Planner" one-time copy UX needs an explicit product decision before implementation: silent copy or confirm dialog. Not a research question — a design decision.
 
 ---
 
 ### Phase Ordering Rationale
 
-- Map foundation before everything: `MapContext` and Zustand skeleton must exist before any feature can wire to the map or shared state.
-- Pins before discover and route: both features read/write the pins slice; the data layer must be stable before consumers are built.
-- Supabase sync isolated: separating sync from CRUD makes bugs traceable; sync also needs schema decisions that affect all future tables.
-- Discover before route: quick-save from discover writes to pins; discover results can be added directly to route — this ordering means route gets that integration for free.
-- Bulk ops after core: mode conflict with discover draw is resolved after the full mode system exists.
-- Polish last: mobile optimizations are faster and more accurate against working features than against mocks.
+- Phase 1 before everything: Store migration must not happen mid-feature. Doing it first as an isolated change keeps the diff reviewable and testable, with no UI changes to mask bugs.
+- Phase 2 and Phase 3 are independent. Single-developer sequence: Marathon first (more complex data model, higher architectural risk), then Ask AI (smaller surface area, lower risk). With two developers: parallelize.
+- Phase 4 last: depends on Phase 1 slice; benefits from UI patterns established in Phase 2 (DiscoverPanel extension) and Phase 3 (InfoWindow DOM mutation pattern).
+- This order matches the build sequence from ARCHITECTURE.md: slice + store update → sidebar tab wiring → Marathon discover + search → Gemini route + client helper → Ask AI in InfoWindow → Planner UI + Discover "Plan" button + PlannerNoteEntry.
 
----
+### Research Flags
 
-### Research Flags Summary
-
-**Needs research-phase during planning:**
-- Phase 4 (Discover): Places (New) multi-query orchestration, `locationRestriction` format, field masks, dedup pattern
-- Phase 5 (Route): Route class `computeRoutes` API, field mask requirements, `optimizedIntermediateWaypointIndices` shape
+**Needs deeper investigation before implementation:**
+- **Phase 2 (Marathon Mode):** The `MarathonZone[]` data structure is custom. Recommend an implementation spike on zone-keyed dedup and per-zone clear before committing to the full UI build. Also validate the "Clear All" vs. per-zone clear UX decision upfront.
+- **Phase 3 (Ask AI):** Validate Gemini 2.5 Flash free tier (250 RPD) against realistic rep behavior. Design the session cache before writing the UI trigger — cache-first is non-negotiable.
 
 **Standard patterns — skip research-phase:**
-- Phase 1 (Foundation): Map init + Zustand slices are thoroughly documented
-- Phase 2 (Pins): AdvancedMarkerElement marker pool is well-documented
-- Phase 3 (Supabase sync): Supabase JS CRUD is thoroughly documented
-- Phase 6 (Bulk ops): Map mouse event handling is well-documented
-- Phase 7 (Polish): Mobile UX patterns are well-documented
+- **Phase 1 (Store Foundation):** Zustand slice composition, persist migration, and version bumping are thoroughly documented.
+- **Phase 4 (Planner UI):** Status-toggle list UI is a standard React pattern. dnd-kit sortable reuse is already proven in the Route Confirm panel.
 
 ---
 
@@ -219,49 +165,51 @@ Based on the dependency graph in FEATURES.md and the build order in ARCHITECTURE
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All versions verified against official npm releases and docs as of 2026-03-31; no speculative picks |
-| Features | MEDIUM-HIGH | Table stakes verified against three direct competitors; differentiators based on competitive gap analysis (marketing copy sources); no direct user interviews |
-| Architecture | HIGH | Patterns verified against official Google Maps docs, Zustand docs, and Next.js App Router patterns; code sketches provided and reviewed |
-| Pitfalls | HIGH | Critical pitfalls verified against official API docs and changelog (deprecation dates confirmed); billing costs verified against current Google pricing |
+| Stack | HIGH | All packages verified against official npm and GitHub repos. `@google/genai` v1.x GA confirmed May 2025. Deprecated SDK confirmed archived. `gemini-2.5-flash` confirmed stable GA. Only one new package needed for the entire milestone. |
+| Features | MEDIUM-HIGH | Competitive analysis covers SPOTIO, Badger Maps, RepMove, Knockbase, Leadbeam. Multi-area accumulation is confirmed as a genuine gap not replicated by any competitor. No direct user interviews — feature prioritization is inference from competitor patterns. |
+| Architecture | HIGH | Comprehensive research grounded in the actual as-built codebase. File structure, existing patterns, and integration points all verified against live code. Build order validated against real dependency graph. |
+| Pitfalls | HIGH | Gemini billing and quota limits verified via official pricing pages. Google API behavior pitfalls verified via official docs. Supabase sync patterns verified via official and community sources. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Places (New) multi-query concurrency pattern:** The exact approach for firing 18 queries with a cap of 3-4 in-flight and a bounds-hash cache has no single canonical reference. The pattern is derived from first principles — verify during Phase 4 planning sprint with the Route class and Places (New) docs.
-- **Route class `computeRoutes` response shape:** `optimizedIntermediateWaypointIndices` is documented in Google's reference but has sparse community examples in 2026. Verify field mask requirements and response parsing before the Phase 5 sprint.
-- **Mobile Google Maps URL waypoint limit:** The 3-waypoint mobile limit is documented but behavior may vary by device (Android vs iOS, in-app vs browser). Test on physical devices during Phase 5.
-- **`@dnd-kit/sortable` v10 API changes:** The jump from v8 to v10 is a major version; release notes should be checked for breaking `useSortable` API changes before Phase 5 implementation.
+- **Gemini daily quota vs. real usage:** The 250 RPD free tier limit needs empirical validation against a realistic rep session. Session cache mitigates this significantly, but if reps do long Marathon sessions comparing 50+ businesses, first-open cache misses could consume quota rapidly. Validate in Phase 3 before launch and set a server-side rate limit on the Route Handler as a secondary safeguard.
+
+- **Marathon Mode UX for per-zone clear:** Research recommends the `marathonZones` data structure with per-zone clear capability, but the UI flow for clearing a single zone (vs. clearing all) is not yet specified. This needs a product/UX decision before Phase 2 implementation begins to avoid building and then redesigning the component.
+
+- **Planner activity log persistence boundary:** The recommendation is Supabase insert-only for historical log data and 7-day local window. The exact trigger for flushing the local buffer to Supabase (on app startup, on log write, on connectivity return) and the offline queuing approach need a design decision in Phase 4.
+
+- **No Supabase sync for Planner stops in v1.1:** Planner stops are localStorage-only this milestone. This means data is lost if the user clears browser storage. Acceptable for v1.1. The activity log (Pitfall 16) should still route to Supabase from day one — keep this boundary explicit in Phase 4.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Google Maps Place class](https://developers.google.com/maps/documentation/javascript/place) — Places (New) confirmed current standard
-- [Place.searchByText docs](https://developers.google.com/maps/documentation/javascript/place-search) — `locationRestriction` rectangle, field masks
-- [Google Maps DirectionsService reference](https://developers.google.com/maps/documentation/javascript/reference/directions) — Deprecated Feb 25, 2026 confirmed
-- [Route class overview](https://developers.google.com/maps/documentation/javascript/routes/route-class-overview) — Current routing API, `optimizeWaypointOrder`
-- [Advanced Markers overview](https://developers.google.com/maps/documentation/javascript/advanced-markers/overview) — Map ID requirement, migration guide
-- [Google Maps Drawing Library deprecation](https://developers.google.com/maps/documentation/javascript/drawinglayer) — Deprecated Aug 2025, removal May 2026
-- [Google Directions API waypoint optimization](https://developers.google.com/maps/documentation/routes/opt-way) — 25-waypoint cap confirmed
-- [Google Maps URLs — waypoint limits](https://developers.google.com/maps/documentation/urls/get-started) — Mobile 3-waypoint limit confirmed
-- [Google Places API (New) — locationRestriction biasing](https://developers.google.com/maps/documentation/places/web-service/text-search) — Bounds are biases not filters confirmed
-- [supabase-js GitHub releases](https://github.com/supabase/supabase-js/releases) — v2.101.1 confirmed current
-- [zustand GitHub releases](https://github.com/pmndrs/zustand/releases) — v5.0.12 confirmed current
+- [@google/genai npm page](https://www.npmjs.com/package/@google/genai) — v1.x GA; install confirmed
+- [googleapis/js-genai GitHub](https://github.com/googleapis/js-genai) — official SDK; unified for Gemini + Vertex AI
+- [deprecated-generative-ai-js GitHub](https://github.com/google-gemini/deprecated-generative-ai-js) — confirmed deprecated; archived
+- [Gemini API Models docs](https://ai.google.dev/gemini-api/docs/models) — `gemini-2.5-flash` stable GA; Gemini 2.0 shutdown June 1, 2026
+- [Gemini API Quickstart](https://ai.google.dev/gemini-api/docs/quickstart) — `GoogleGenAI` import and `generateContent` pattern
+- [Gemini API Grounding with Google Search](https://ai.google.dev/gemini-api/docs/google-search) — grounding mechanics, billing model
+- [Gemini API Key security docs](https://ai.google.dev/gemini-api/docs/api-key) — server-only key requirement confirmed
+- [Google Directions API waypoint optimization](https://developers.google.com/maps/documentation/routes/opt-way) — 25-waypoint cap
+- [Google Places API (New) overview](https://developers.google.com/maps/documentation/places/web-service/op-overview) — new class hierarchy, field masks
+- [Next.js App Router proxy pattern](https://nextjs.org/docs/app/getting-started/proxy) — Route Handler as AI proxy
 
 ### Secondary (MEDIUM confidence)
-- [SPOTIO feature overview](https://spotio.com/features/sales-route-optimization/) — competitor feature breakdown
-- [Badger Maps homepage](https://www.badgermapping.com/) — Lead Finder, lasso tool, route limits
-- [LogRocket toast comparison 2025](https://blog.logrocket.com/react-toast-libraries-compared-2025/) — sonner vs react-hot-toast
-- [Zustand slices pattern](https://deepwiki.com/pmndrs/zustand/7.1-slices-pattern) — slice composition pattern
-- [Supabase offline-first discussion](https://github.com/orgs/supabase/discussions/357) — sync conflict patterns
+- [SPOTIO Sales Tracking features](https://spotio.com/features/sales-tracking/) — visit logging, GPS check-in, audit log patterns
+- [SPOTIO AI Sales Tools 2026](https://spotio.com/blog/ai-sales-tools/) — AI adoption stats (33% of field teams use AI; 26% for content generation)
+- [Gemini API Pricing 2026 — MetaCTO](https://www.metacto.com/blogs/the-true-cost-of-google-gemini-a-guide-to-api-pricing-and-integration) — token pricing for Flash tier
+- [Leadbeam Field Sales Apps 2025](https://www.leadbeam.ai/blog/field-sales-apps) — AI meeting prep as flagship feature
+- [RepMove outside sales management](https://repmove.app) — route + activity log pattern
+- [eCanvasser route planning](https://www.ecanvasser.com/route-planning) — 200-stop accumulation, closest competitor analogue for Marathon route side
 
 ### Tertiary (LOW confidence)
-- [Maptive Best Sales Mapping Software 2026](https://www.maptive.com/15-best-sales-territory-mapping-software/) — competitive landscape overview
-- [Monday.com Sales Mapping Guide 2026](https://monday.com/blog/crm-and-sales/sales-mapping-software/) — feature expectations (vendor blog)
+- [Maptive Best Sales Mapping Software 2026](https://www.maptive.com/15-best-sales-territory-mapping-software/) — competitive landscape overview; treat as directional only
 
 ---
 
-*Research completed: 2026-03-31*
+*Research completed: 2026-04-01*
 *Ready for roadmap: yes*
