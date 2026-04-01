@@ -357,11 +357,11 @@ export default function Map({ onEditPin }: MapProps) {
       {/* Floating satellite label (bottom-left, Google Maps style) */}
       <button
         onClick={toggleSatellite}
-        className={`absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 ${
-          satellite
-            ? "bg-orange text-white border-orange"
-            : "bg-bg-card text-text-primary border-border hover:border-orange hover:text-orange"
-        }`}
+        style={satellite
+          ? { backgroundColor: "#fff", color: "#C4692A", borderColor: "#fff" }
+          : { backgroundColor: "#C4692A", color: "#fff", borderColor: "#C4692A" }
+        }
+        className="absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="7" height="7" />
