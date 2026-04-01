@@ -34,7 +34,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **DISC-01**: User can click Discover button to enter discovery mode
 - [ ] **DISC-02**: User draws a rectangle on the map via click+drag to define the search area
-- [ ] **DISC-03**: Search area is validated (min 200m, max 30km)
+- [x] **DISC-03**: Search area is validated (min 200m, max 30km)
 - [x] **DISC-04**: App searches Google Places (New API) using configurable query categories (default: 18 construction/trade queries)
 - [x] **DISC-05**: Results are filtered by chain/residential/irrelevant-type exclusion rules
 - [x] **DISC-06**: Results are deduplicated by place_id, normalized name, and coordinate proximity
@@ -121,7 +121,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PINS-13 | Phase 3 | Complete |
 | DISC-01 | Phase 4 | Pending |
 | DISC-02 | Phase 4 | Pending |
-| DISC-03 | Phase 4 | Pending |
+| DISC-03 | Phase 4 | Complete |
 | DISC-04 | Phase 4 | Complete |
 | DISC-05 | Phase 4 | Complete |
 | DISC-06 | Phase 4 | Complete |
