@@ -126,5 +126,9 @@ export function buildQuickSavePin(result: DiscoverResult): Pin {
     notes: [{ text: `Discovered via Groundwork — ${type}`, date: new Date().toISOString() }],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    placeId: result.placeId,
+    photoUrl: result.photoUri ?? undefined,
+    rating: result.rating ?? undefined,
+    ratingCount: result.ratingCount ?? undefined,
   };
 }

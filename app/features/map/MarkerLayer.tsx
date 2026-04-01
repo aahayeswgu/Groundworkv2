@@ -40,71 +40,105 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       };
 
       const container = document.createElement("div");
-      container.style.cssText = "padding:12px;min-width:200px;font-family:inherit";
+      container.style.cssText = "min-width:280px;font-family:inherit";
+
+      // Photo (if available from discover quick-save)
+      if (pin.photoUrl) {
+        const photo = document.createElement("div");
+        photo.style.cssText = `height:140px;background:url('${pin.photoUrl}') center/cover no-repeat;border-radius:12px 12px 0 0`;
+        container.appendChild(photo);
+      }
+
+      const body = document.createElement("div");
+      body.style.cssText = `padding:${pin.photoUrl ? "12px 16px 14px" : "12px 16px"}`;
 
       const title = document.createElement("div");
-      title.style.cssText = "font-weight:bold;font-size:14px;margin-bottom:4px";
+      title.style.cssText = "font-weight:bold;font-size:15px;margin-bottom:4px;line-height:1.3";
       title.textContent = pin.title;
-      container.appendChild(title);
+      body.appendChild(title);
 
       const badge = document.createElement("span");
       badge.style.cssText = `display:inline-block;padding:2px 8px;border-radius:12px;background:${statusColors[pin.status]};color:white;font-size:11px;font-weight:600;margin-bottom:8px`;
       badge.textContent = statusLabels[pin.status] ?? pin.status;
-      container.appendChild(badge);
+      body.appendChild(badge);
+
+      // Rating (if available)
+      if (pin.rating) {
+        const ratingEl = document.createElement("div");
+        ratingEl.style.cssText = "font-size:12px;margin-bottom:6px";
+        const stars = "\u2605".repeat(Math.round(pin.rating)) + "\u2606".repeat(5 - Math.round(pin.rating));
+        ratingEl.innerHTML = `<span style="color:#F59E0B;letter-spacing:1px">${stars}</span> ${pin.rating}${pin.ratingCount ? ` <span style="color:#888">(${pin.ratingCount})</span>` : ""}`;
+        body.appendChild(ratingEl);
+      }
 
       if (pin.address) {
         const address = document.createElement("div");
         address.style.cssText = "font-size:12px;color:#888;margin-bottom:4px";
         address.textContent = pin.address;
-        container.appendChild(address);
+        body.appendChild(address);
       }
 
       if (pin.contact) {
         const contact = document.createElement("div");
         contact.style.cssText = "font-size:12px;margin-bottom:2px";
         contact.textContent = `\u{1F464} ${pin.contact}`;
-        container.appendChild(contact);
+        body.appendChild(contact);
       }
 
       if (pin.phone) {
         const phone = document.createElement("div");
         phone.style.cssText = "font-size:12px;margin-bottom:8px";
         phone.textContent = `\u{1F4DE} ${pin.phone}`;
-        container.appendChild(phone);
+        body.appendChild(phone);
+      }
+
+      // Google Maps link (if placeId available)
+      if (pin.placeId) {
+        const gmapsRow = document.createElement("div");
+        gmapsRow.style.cssText = "margin-bottom:8px";
+        const gmapsLink = document.createElement("a");
+        gmapsLink.href = `https://www.google.com/maps/place/?q=place_id:${pin.placeId}`;
+        gmapsLink.target = "_blank";
+        gmapsLink.rel = "noopener";
+        gmapsLink.style.cssText = "display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#4285F4;font-weight:600;text-decoration:none";
+        gmapsLink.textContent = "View on Google Maps";
+        gmapsRow.appendChild(gmapsLink);
+        body.appendChild(gmapsRow);
       }
 
       const buttonRow = document.createElement("div");
-      buttonRow.style.cssText = "display:flex;gap:6px";
+      buttonRow.style.cssText = "display:flex;gap:6px;flex-wrap:wrap";
 
       const editBtn = document.createElement("button");
       editBtn.dataset.action = "edit";
       editBtn.textContent = "Edit";
       editBtn.style.cssText =
-        "padding:4px 12px;background:#D4712A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px";
+        "padding:6px 14px;background:#C4692A;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700";
 
       const deleteBtn = document.createElement("button");
       deleteBtn.dataset.action = "delete";
       deleteBtn.textContent = "Delete";
       deleteBtn.style.cssText =
-        "padding:4px 12px;background:transparent;color:#EF4444;border:1px solid #EF4444;border-radius:6px;cursor:pointer;font-size:12px";
+        "padding:6px 14px;background:#EF4444;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700";
 
       const routeBtn = document.createElement("button");
       routeBtn.dataset.action = "route";
       routeBtn.textContent = "+ Route";
       routeBtn.style.cssText =
-        "padding:4px 12px;background:transparent;color:#D4712A;border:1px solid #D4712A;border-radius:6px;cursor:pointer;font-size:12px";
+        "padding:6px 14px;background:#C4692A;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700";
 
       const planBtn = document.createElement("button");
       planBtn.dataset.action = "plan";
-      planBtn.textContent = "+ Plan";
+      planBtn.textContent = "Add to Planner";
       planBtn.style.cssText =
-        "padding:4px 12px;background:transparent;color:#3B82F6;border:1px solid #3B82F6;border-radius:6px;cursor:pointer;font-size:12px";
+        "padding:6px 14px;background:#3B8CB5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700";
 
       buttonRow.appendChild(editBtn);
       buttonRow.appendChild(deleteBtn);
       buttonRow.appendChild(routeBtn);
       buttonRow.appendChild(planBtn);
-      container.appendChild(buttonRow);
+      body.appendChild(buttonRow);
+      container.appendChild(body);
 
       container.addEventListener("click", (e) => {
         const target = e.target as HTMLElement;
@@ -239,6 +273,21 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       openPinId.current = null;
     }
   }, [map, pins, activeStatusFilter, deletePin, onEditPin, handleMarkerClick]);
+
+  // Listen for sidebar pin clicks to open InfoWindow
+  useEffect(() => {
+    function handleOpenPinInfo(e: Event) {
+      const pinId = (e as CustomEvent).detail?.pinId;
+      if (!pinId || !map) return;
+      const pin = pins.find((p) => p.id === pinId);
+      const marker = markerPool.current.get(pinId);
+      if (pin && marker) {
+        handleMarkerClick(pin, marker);
+      }
+    }
+    window.addEventListener("open-pin-info", handleOpenPinInfo);
+    return () => window.removeEventListener("open-pin-info", handleOpenPinInfo);
+  }, [map, pins, handleMarkerClick]);
 
   // Cleanup on unmount
   useEffect(() => {

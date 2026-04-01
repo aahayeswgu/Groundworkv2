@@ -6,5 +6,6 @@ export interface DiscoverResult {
   lng: number;
   types: string[];
   rating: number | null;
+  ratingCount: number | null;
   photoUri: string | null;
 }

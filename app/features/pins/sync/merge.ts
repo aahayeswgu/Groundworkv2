@@ -14,6 +14,10 @@ export interface RemotePin {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  place_id?: string | null;
+  photo_url?: string | null;
+  rating?: number | null;
+  rating_count?: number | null;
 }
 
 export function localToRemote(pin: Pin): RemotePin {
@@ -31,6 +35,10 @@ export function localToRemote(pin: Pin): RemotePin {
     created_at: pin.createdAt,
     updated_at: pin.updatedAt,
     deleted_at: null,
+    place_id: pin.placeId ?? null,
+    photo_url: pin.photoUrl ?? null,
+    rating: pin.rating ?? null,
+    rating_count: pin.ratingCount ?? null,
   };
 }
 
@@ -48,6 +56,10 @@ export function remoteToLocal(remote: RemotePin): Pin {
     notes: remote.notes,
     createdAt: remote.created_at,
     updatedAt: remote.updated_at,
+    placeId: remote.place_id ?? undefined,
+    photoUrl: remote.photo_url ?? undefined,
+    rating: remote.rating ?? undefined,
+    ratingCount: remote.rating_count ?? undefined,
   };
 }
 

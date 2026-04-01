@@ -18,4 +18,8 @@ export interface Pin {
   notes: NoteEntry[];
   createdAt: string;
   updatedAt: string;
+  placeId?: string;
+  photoUrl?: string;
+  rating?: number;
+  ratingCount?: number;
 }

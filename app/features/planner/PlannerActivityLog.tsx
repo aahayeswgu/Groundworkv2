@@ -21,9 +21,12 @@ export default function PlannerActivityLog({
   return (
     <div className="border-b border-border">
       {/* Header row — always visible, clickable to collapse/expand */}
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setExpanded((v) => !v)}
-        className="w-full px-4 py-2 flex items-center justify-between bg-bg-secondary hover:bg-bg-card transition-colors"
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v); }}
+        className="w-full px-4 py-2 flex items-center justify-between bg-bg-secondary hover:bg-bg-card transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-2">
           {/* Chevron icon — rotates when expanded */}
@@ -68,7 +71,7 @@ export default function PlannerActivityLog({
             </svg>
           )}
         </button>
-      </button>
+      </div>
 
       {/* Collapsible body — CSS max-height transition */}
       <div

@@ -100,6 +100,7 @@ export function filterAndMapPlace(
     lng,
     types,
     rating: place.rating ?? null,
+    ratingCount: place.userRatingCount ?? null,
     photoUri,
   };
 }
