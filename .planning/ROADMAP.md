@@ -142,7 +142,11 @@ Plans:
   4. User can clear results for one specific zone or clear all accumulated results with a single action
   5. Each result in the list is tagged with the zone it came from, and the session header shows total areas searched and businesses found
   6. User can select businesses from the full accumulated pool and build one optimized route from them
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 07-01-PLAN.md — MarathonZone type + DiscoverSlice marathon state and actions
+- [ ] 07-02-PLAN.md — discover-search.ts accumulation + Map.tsx zone rectangle management
+- [ ] 07-03-PLAN.md — DiscoverPanel marathon UI (toggle, session header, zone tags, clear controls) + Map.tsx Marathon button
 **UI hint**: yes
 
 #### Phase 8: Ask AI
