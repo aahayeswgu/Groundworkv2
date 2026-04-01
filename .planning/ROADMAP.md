@@ -126,7 +126,7 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — Planner types (PlannerStop, DayPlan, ActivityEntry), PlannerSlice + createPlannerSlice, store migration v1→v2, StoreHydration purge wiring
 - [x] 06-02-PLAN.md — Sidebar tab switching (Pins/Planner), PlannerPanel skeleton with stats bar and stops list, PlannerStopItem with status cycle
-- [ ] 06-03-PLAN.md — PlannerNotes (multi-page pagination, debounced auto-save), PlannerActivityLog (collapsible, privacy toggle), both mounted in PlannerPanel
+- [x] 06-03-PLAN.md — PlannerNotes (multi-page pagination, debounced auto-save), PlannerActivityLog (collapsible, privacy toggle), both mounted in PlannerPanel
 - [ ] 06-04-PLAN.md — PlannerCalendar (hand-rolled 7-column grid, month nav, has-data dots), date navigation (prev/next/today/month-view) in PlannerPanel
 - [ ] 06-05-PLAN.md — Integration: "+ Plan" in PinListItem, "Add to Plan" in MarkerLayer InfoWindow, "Send to Planner" in RouteConfirmPanel, "Route It" in PlannerPanel
 **UI hint**: yes
