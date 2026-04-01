@@ -40,10 +40,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DISC-06**: Results are deduplicated by place_id, normalized name, and coordinate proximity
 - [x] **DISC-07**: Results are strictly filtered to the drawn rectangle bounds (client-side containment check)
 - [ ] **DISC-08**: Results display in a scrollable list with business name, type classification, rating, and address
-- [ ] **DISC-09**: Results display as markers on the map (orange default, green selected, yellow hover)
-- [ ] **DISC-10**: Clicking a discover marker shows an info bubble with photo, name, type, rating, address, and action buttons
-- [ ] **DISC-11**: User can select multiple discovered businesses via checkboxes
-- [ ] **DISC-12**: User can quick-save a discovered business as a pin with default Prospect status
+- [x] **DISC-09**: Results display as markers on the map (orange default, green selected, yellow hover)
+- [x] **DISC-10**: Clicking a discover marker shows an info bubble with photo, name, type, rating, address, and action buttons
+- [x] **DISC-11**: User can select multiple discovered businesses via checkboxes
+- [x] **DISC-12**: User can quick-save a discovered business as a pin with default Prospect status
 - [ ] **DISC-13**: Mobile touch support: 300ms hold-to-draw to prevent accidental rectangles
 
 ### Route
@@ -127,10 +127,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISC-06 | Phase 4 | Complete |
 | DISC-07 | Phase 4 | Complete |
 | DISC-08 | Phase 4 | Pending |
-| DISC-09 | Phase 4 | Pending |
-| DISC-10 | Phase 4 | Pending |
-| DISC-11 | Phase 4 | Pending |
-| DISC-12 | Phase 4 | Pending |
+| DISC-09 | Phase 4 | Complete |
+| DISC-10 | Phase 4 | Complete |
+| DISC-11 | Phase 4 | Complete |
+| DISC-12 | Phase 4 | Complete |
 | DISC-13 | Phase 4 | Pending |
 | ROUT-01 | Phase 5 | Pending |
 | ROUT-02 | Phase 5 | Pending |
