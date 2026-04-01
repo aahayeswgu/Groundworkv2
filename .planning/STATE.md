@@ -2,6 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
+<<<<<<< HEAD
 status: executing
 stopped_at: Completed 05-01-PLAN.md
 last_updated: "2026-04-01T04:41:19.630Z"
@@ -11,6 +12,17 @@ progress:
   completed_phases: 4
   total_plans: 23
   completed_plans: 17
+=======
+status: verifying
+stopped_at: Completed 05-route-00-PLAN.md
+last_updated: "2026-04-01T04:56:05.208Z"
+last_activity: 2026-04-01
+progress:
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 9
+>>>>>>> worktree-agent-a2942c73
   percent: 0
 ---
 
@@ -25,9 +37,15 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 ## Current Position
 
+<<<<<<< HEAD
 Phase: 05 (route) — EXECUTING
 Plan: 2 of 7
 Status: Ready to execute
+=======
+Phase: 02 (pins) — EXECUTING
+Plan: 6 of 6
+Status: Phase complete — ready for verification
+>>>>>>> worktree-agent-a2942c73
 Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
@@ -59,6 +77,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-pins P03 | 8 | 2 tasks | 2 files |
 | Phase 02-pins P05 | 10 | 2 tasks | 4 files |
 | Phase 02-pins P06 | 2 | 2 tasks | 2 files |
+<<<<<<< HEAD
 | Phase 03-supabase-sync P01 | 1 | 1 tasks | 4 files |
 | Phase 03-supabase-sync P02 | 10 | 2 tasks | 3 files |
 | Phase 03-supabase-sync P03 | 5min | 2 tasks | 3 files |
@@ -68,6 +87,9 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-discover P04 | 3 | 2 tasks | 3 files |
 | Phase 04-discover P05 | 2 | 2 tasks | 3 files |
 | Phase 05-route P01 | 54s | 2 tasks | 2 files |
+=======
+| Phase 05-route P00 | 14 | 2 tasks | 3 files |
+>>>>>>> worktree-agent-a2942c73
 
 ## Accumulated Context
 
@@ -93,6 +115,7 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
 - [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
 - [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
+<<<<<<< HEAD
 - [Phase 03-supabase-sync]: vitest.config.ts @ alias maps to project root via path.resolve(__dirname, '.') — consistent with tsconfig paths
 - [Phase 03-supabase-sync]: merge.ts is a pure module with no use client directive — enables isolated unit testing without browser/React setup
 - [Phase 03-supabase-sync]: Plain useStore.subscribe (1-arg) instead of subscribeWithSelector — avoids middleware overhead, uses prevPinIdsRef for deletion detection
@@ -111,6 +134,10 @@ Recent decisions affecting current work:
 - [Phase 05-route]: reorderStops accepts RouteStop[] directly (not index array) — aligns with dnd-kit arrayMove output, avoids index-mapping bug
 - [Phase 05-route]: clearRoute does NOT reset startMode/customStartAddress — user's home base preference persists between route sessions
 - [Phase 05-route]: addStop returns boolean — callers check the return value to handle 25-stop cap at UI layer
+=======
+- [Phase 05-route]: Route store test harness uses minimal StateCreator shim — no full AppStore needed for unit tests
+- [Phase 05-route]: route-service tests stub google.maps.importLibrary globally — avoids real API calls in test environment
+>>>>>>> worktree-agent-a2942c73
 
 ### Pending Todos
 
@@ -123,6 +150,11 @@ None yet.
 
 ## Session Continuity
 
+<<<<<<< HEAD
 Last session: 2026-04-01T04:41:19.628Z
 Stopped at: Completed 05-01-PLAN.md
+=======
+Last session: 2026-04-01T04:56:05.206Z
+Stopped at: Completed 05-route-00-PLAN.md
+>>>>>>> worktree-agent-a2942c73
 Resume file: None
