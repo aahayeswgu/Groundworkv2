@@ -83,7 +83,13 @@ Plans:
   4. Clicking a discover marker shows an info bubble with photo, name, type, rating, address, and save/route actions
   5. User can check multiple businesses and quick-save any of them as a Prospect pin with one tap
   6. On mobile, holding the map for 300ms initiates a draw (instead of triggering on first tap)
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 04-01-PLAN.md — DiscoverSlice extension (discoverMode, searchProgress, selectAllDiscover, hoveredDiscoverId), query config, discover-filters.ts
+- [ ] 04-02-PLAN.md — discover-search.ts: Place.searchByText() sequential 19-query orchestrator with 200ms delay
+- [ ] 04-03-PLAN.md — discover-marker.ts (3 SVG states), discover-info.ts (DOM InfoWindow + quick-save builder)
+- [ ] 04-04-PLAN.md — DiscoverLayer.tsx (marker pool + InfoWindow), Map.tsx draw mode + Discover button wiring
+- [ ] 04-05-PLAN.md — DiscoverPanel.tsx (3-step UI), DiscoverResultItem.tsx, Sidebar.tsx swap
 **UI hint**: yes
 
 ### Phase 5: Route
@@ -110,5 +116,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 2/2 | Complete   | 2026-03-31 |
 | 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 2/3 | In Progress|  |
-| 4. Discover | 0/? | Not started | - |
+| 4. Discover | 0/5 | Not started | - |
 | 5. Route | 0/? | Not started | - |
