@@ -40,7 +40,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       };
 
       const container = document.createElement("div");
-      container.style.cssText = "min-width:280px;font-family:inherit";
+      container.style.cssText = "min-width:280px;font-family:DM Sans,sans-serif";
 
       // Photo (if available from discover quick-save)
       if (pin.photoUrl) {
@@ -50,10 +50,10 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       }
 
       const body = document.createElement("div");
-      body.style.cssText = `padding:${pin.photoUrl ? "12px 16px 14px" : "12px 16px"}`;
+      body.style.cssText = `padding:${pin.photoUrl ? "12px 16px 14px" : "14px 16px"}`;
 
       const title = document.createElement("div");
-      title.style.cssText = "font-weight:bold;font-size:15px;margin-bottom:4px;line-height:1.3";
+      title.style.cssText = "font-weight:700;font-size:15px;margin-bottom:4px;line-height:1.3;color:#1A1A1A";
       title.textContent = pin.title;
       body.appendChild(title);
 
@@ -62,32 +62,42 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       badge.textContent = statusLabels[pin.status] ?? pin.status;
       body.appendChild(badge);
 
-      // Rating (if available)
+      // Rating — clickable link to Google reviews
       if (pin.rating) {
         const ratingEl = document.createElement("div");
         ratingEl.style.cssText = "font-size:12px;margin-bottom:6px";
         const stars = "\u2605".repeat(Math.round(pin.rating)) + "\u2606".repeat(5 - Math.round(pin.rating));
-        ratingEl.innerHTML = `<span style="color:#F59E0B;letter-spacing:1px">${stars}</span> ${pin.rating}${pin.ratingCount ? ` <span style="color:#888">(${pin.ratingCount})</span>` : ""}`;
+        if (pin.placeId) {
+          const ratingLink = document.createElement("a");
+          ratingLink.href = `https://www.google.com/maps/place/?q=place_id:${pin.placeId}`;
+          ratingLink.target = "_blank";
+          ratingLink.rel = "noopener";
+          ratingLink.style.cssText = "text-decoration:none;cursor:pointer";
+          ratingLink.innerHTML = `<span style="color:#F59E0B;letter-spacing:1px">${stars}</span> <span style="color:#1A1A1A;font-weight:700">${pin.rating}</span>${pin.ratingCount ? ` <span style="color:#888">(${pin.ratingCount} reviews)</span>` : ""}`;
+          ratingEl.appendChild(ratingLink);
+        } else {
+          ratingEl.innerHTML = `<span style="color:#F59E0B;letter-spacing:1px">${stars}</span> <span style="color:#1A1A1A;font-weight:700">${pin.rating}</span>${pin.ratingCount ? ` <span style="color:#888">(${pin.ratingCount})</span>` : ""}`;
+        }
         body.appendChild(ratingEl);
       }
 
       if (pin.address) {
         const address = document.createElement("div");
-        address.style.cssText = "font-size:12px;color:#888;margin-bottom:4px";
+        address.style.cssText = "font-size:12px;color:#555;margin-bottom:4px;line-height:1.4";
         address.textContent = pin.address;
         body.appendChild(address);
       }
 
       if (pin.contact) {
         const contact = document.createElement("div");
-        contact.style.cssText = "font-size:12px;margin-bottom:2px";
+        contact.style.cssText = "font-size:12px;color:#333;margin-bottom:2px";
         contact.textContent = `\u{1F464} ${pin.contact}`;
         body.appendChild(contact);
       }
 
       if (pin.phone) {
         const phone = document.createElement("div");
-        phone.style.cssText = "font-size:12px;margin-bottom:8px";
+        phone.style.cssText = "font-size:12px;color:#333;margin-bottom:8px";
         phone.textContent = `\u{1F4DE} ${pin.phone}`;
         body.appendChild(phone);
       }
