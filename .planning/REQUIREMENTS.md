@@ -39,7 +39,7 @@ Requirements for milestone v1.1: Power Features.
 
 - [x] **PLAN-01**: Planner tab in sidebar (alongside Pins tab) — clicking switches between Pins and Planner views
 - [x] **PLAN-02**: Today's planned stops displayed as an ordered list with business name, address, and status
-- [ ] **PLAN-03**: User can add stops to planner from pin info window, route confirm panel ("Send to Planner"), or sidebar
+- [x] **PLAN-03**: User can add stops to planner from pin info window, route confirm panel ("Send to Planner"), or sidebar
 - [x] **PLAN-04**: User can mark stops as visited, skipped, or pending
 - [x] **PLAN-05**: Daily notes text area for free-form notes about the day
 - [x] **PLAN-06**: Date navigation — prev/next day arrows, today button, calendar date picker
@@ -82,7 +82,7 @@ Deferred beyond v1.1.
 | FOUN-06 | Phase 6 | Pending |
 | PLAN-01 | Phase 6 | Complete |
 | PLAN-02 | Phase 6 | Complete |
-| PLAN-03 | Phase 6 | Pending |
+| PLAN-03 | Phase 6 | Complete |
 | PLAN-04 | Phase 6 | Complete |
 | PLAN-05 | Phase 6 | Complete |
 | PLAN-06 | Phase 6 | Complete |
