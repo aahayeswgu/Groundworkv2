@@ -4,6 +4,7 @@ import { useState } from "react";
 import PinList from "@/app/features/pins/PinList";
 import { useStore } from "@/app/store/index";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
+import PlannerPanel from "@/app/features/planner/PlannerPanel";
 
 interface SidebarProps {
   onEditPin?: (pinId: string) => void;
@@ -12,6 +13,7 @@ interface SidebarProps {
 export default function Sidebar({ onEditPin }: SidebarProps) {
   const discoverMode = useStore((s) => s.discoverMode);
   const [collapsed, setCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState<"pins" | "planner">("pins");
 
   return (
     <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${collapsed ? "collapsed" : ""}`}>
@@ -74,19 +76,27 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
 
       {/* Nav Tabs */}
       <div className="flex border-b border-border bg-bg-card">
-        <button className="flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-orange border-b-2 border-orange text-center transition-all duration-200">
+        <button
+          onClick={() => setActiveTab("pins")}
+          className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${activeTab === "pins" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"}`}
+        >
           Pins
         </button>
-        <button className="flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-text-muted border-b-2 border-transparent text-center transition-all duration-200 hover:text-text-secondary">
+        <button
+          onClick={() => setActiveTab("planner")}
+          className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${activeTab === "planner" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"}`}
+        >
           Planner
         </button>
       </div>
 
-      {/* Content area — swaps between PinList and DiscoverPanel based on mode */}
+      {/* Content area — swaps between PinList/PlannerPanel and DiscoverPanel based on mode */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {discoverMode
           ? <DiscoverPanel />
-          : <PinList onEditPin={onEditPin ?? (() => {})} />
+          : activeTab === "planner"
+            ? <PlannerPanel />
+            : <PinList onEditPin={onEditPin ?? (() => {})} />
         }
       </div>
     </div>
