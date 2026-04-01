@@ -15,6 +15,7 @@ export default function DiscoverPanel() {
   const clearDiscover = useStore((s) => s.clearDiscover);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
   const addPin = useStore((s) => s.addPin);
+  const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
 
   // Determine which step to show
@@ -96,6 +97,14 @@ export default function DiscoverPanel() {
                         (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),
                     );
                     if (!dup) addPin(buildQuickSavePin(r));
+                  }}
+                  onUnsave={(r) => {
+                    const match = useStore.getState().pins.find(
+                      (p) =>
+                        p.title.toLowerCase() === r.displayName.toLowerCase() ||
+                        (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),
+                    );
+                    if (match) deletePin(match.id);
                   }}
                   alreadySaved={alreadySaved}
                 />

@@ -43,13 +43,10 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
           "userRatingCount",
           "photos",
         ],
-        locationRestriction: {
-          rectangle: {
-            low: { lat: bounds.swLat, lng: bounds.swLng },
-            high: { lat: bounds.neLat, lng: bounds.neLng },
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        locationBias: new google.maps.LatLngBounds(
+          { lat: bounds.swLat, lng: bounds.swLng },
+          { lat: bounds.neLat, lng: bounds.neLng },
+        ),
         maxResultCount: 20,
       });
       for (const place of places ?? []) {
@@ -60,8 +57,8 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
         );
         if (result) results.push(result);
       }
-    } catch {
-      // skip failed query, continue with next
+    } catch (err) {
+      console.error(`[Discover] Query "${query}" failed:`, err);
     }
     await sleep(200);
   }

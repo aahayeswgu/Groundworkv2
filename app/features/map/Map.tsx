@@ -63,13 +63,18 @@ export default function Map({ onEditPin }: MapProps) {
     );
   }, [exitDropMode]);
 
-  const exitDiscoverMode = useCallback(() => {
+  const stopDrawing = useCallback(() => {
     mapInstance.current?.setOptions({ draggableCursor: "", draggable: true });
     drawListenersRef.current.forEach((fn) => fn());
     drawListenersRef.current = [];
+  }, []);
+
+  const exitDiscoverMode = useCallback(() => {
+    stopDrawing();
     setDiscoverMode(false);
-    // Keep areaRect visible until user clears results (clearDiscover from panel close)
-  }, [setDiscoverMode]);
+    // Clear rectangle and results
+    if (areaRectRef.current) { areaRectRef.current.setMap(null); areaRectRef.current = null; }
+  }, [setDiscoverMode, stopDrawing]);
 
   const enterDiscoverMode = useCallback(() => {
     if (!mapInstance.current) return;
@@ -162,7 +167,7 @@ export default function Map({ onEditPin }: MapProps) {
           exitDiscoverMode();
           return;
         }
-        exitDiscoverMode();
+        stopDrawing();
         searchBusinessesInArea(bounds);
       };
 
@@ -213,10 +218,11 @@ export default function Map({ onEditPin }: MapProps) {
             neLat: ne.lat(), neLng: ne.lng(),
           };
           const validation = validateBounds(bounds);
-          exitDiscoverMode();
+          stopDrawing();
           if (!validation.valid) {
             alert(validation.error);
             if (areaRectRef.current) { areaRectRef.current.setMap(null); areaRectRef.current = null; }
+            setDiscoverMode(false);
             return;
           }
           searchBusinessesInArea(bounds);
@@ -224,7 +230,7 @@ export default function Map({ onEditPin }: MapProps) {
       };
       google.maps.event.addListenerOnce(map, "mousedown", onMouseDown);
     }
-  }, [setDiscoverMode, exitDiscoverMode]);
+  }, [setDiscoverMode, exitDiscoverMode, stopDrawing]);
 
   useEffect(() => {
     setOptions({

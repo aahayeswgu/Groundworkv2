@@ -11,6 +11,7 @@ interface DiscoverResultItemProps {
   onHoverEnter: (placeId: string) => void;
   onHoverLeave: () => void;
   onQuickSave: (result: DiscoverResult) => void;
+  onUnsave: (result: DiscoverResult) => void;
   alreadySaved: boolean;
 }
 
@@ -22,6 +23,7 @@ export function DiscoverResultItem({
   onHoverEnter,
   onHoverLeave,
   onQuickSave,
+  onUnsave,
   alreadySaved,
 }: DiscoverResultItemProps) {
   const type = classifyGooglePlace(result.types, result.displayName);
@@ -60,9 +62,12 @@ export function DiscoverResultItem({
       {/* Quick-save button */}
       {alreadySaved ? (
         <button
-          disabled
-          className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-green-500 cursor-default"
-          title="Already saved"
+          onClick={(e) => {
+            e.stopPropagation();
+            onUnsave(result);
+          }}
+          className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-green-500 hover:text-red-400 hover:bg-red-400/10 transition-colors duration-150 cursor-pointer"
+          title="Click to remove pin"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <polyline points="20 6 9 17 4 12" />
