@@ -34,7 +34,8 @@ describe('computeRoute', () => {
         }],
       }),
     };
-    const MockRoute = vi.fn(() => mockRoute);
+    // vi.fn requires a real function (not arrow) to be usable as a constructor (Vitest v4)
+    const MockRoute = vi.fn(function() { return mockRoute; });
     vi.mocked(google.maps.importLibrary).mockResolvedValue({ Route: MockRoute } as never);
 
     const origin = { address: 'Home' };
@@ -50,7 +51,7 @@ describe('computeRoute', () => {
     const mockRoute = {
       computeRoutes: vi.fn().mockRejectedValue(new Error('API quota exceeded')),
     };
-    const MockRoute = vi.fn(() => mockRoute);
+    const MockRoute = vi.fn(function() { return mockRoute; });
     vi.mocked(google.maps.importLibrary).mockResolvedValue({ Route: MockRoute } as never);
 
     const result = await computeRoute({ address: 'Home' }, [makeStop('a')]);
@@ -68,7 +69,7 @@ describe('computeRoute', () => {
         }],
       }),
     };
-    const MockRoute = vi.fn(() => mockRoute);
+    const MockRoute = vi.fn(function() { return mockRoute; });
     vi.mocked(google.maps.importLibrary).mockResolvedValue({ Route: MockRoute } as never);
 
     const result = await computeRoute({ address: 'Home' }, [makeStop('a')]);
