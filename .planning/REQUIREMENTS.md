@@ -50,15 +50,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **ROUT-01**: User can add pins to a stop list from the pin info window, sidebar, or discover results
 - [ ] **ROUT-02**: User can select start point: home base address, GPS location, or custom address
-- [ ] **ROUT-03**: Route is optimized via Google Directions API with optimizeWaypoints flag
+- [x] **ROUT-03**: Route is optimized via Google Directions API with optimizeWaypoints flag
 - [ ] **ROUT-04**: Route displays on map as an orange polyline with numbered stop markers
 - [ ] **ROUT-05**: Route confirm panel shows reorderable stop list with distance and time summary
 - [ ] **ROUT-06**: User can drag-to-reorder stops in the confirm panel and route recalculates
-- [ ] **ROUT-07**: App generates a Google Maps shareable link using stop addresses (fallback to coordinates)
+- [x] **ROUT-07**: App generates a Google Maps shareable link using stop addresses (fallback to coordinates)
 - [ ] **ROUT-08**: User can open the route in Google Maps for turn-by-turn navigation via the shareable link
-- [ ] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
+- [x] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
 - [ ] **ROUT-10**: Route returns to start point when departing from home base
-- [ ] **ROUT-11**: Route state (stops, order, shareable link) is managed in Zustand store, not local component state
+- [x] **ROUT-11**: Route state (stops, order, shareable link) is managed in Zustand store, not local component state
 
 ## v2 Requirements
 
@@ -134,15 +134,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISC-13 | Phase 4 | Pending |
 | ROUT-01 | Phase 5 | Pending |
 | ROUT-02 | Phase 5 | Pending |
-| ROUT-03 | Phase 5 | Pending |
+| ROUT-03 | Phase 5 | Complete |
 | ROUT-04 | Phase 5 | Pending |
 | ROUT-05 | Phase 5 | Pending |
 | ROUT-06 | Phase 5 | Pending |
-| ROUT-07 | Phase 5 | Pending |
+| ROUT-07 | Phase 5 | Complete |
 | ROUT-08 | Phase 5 | Pending |
-| ROUT-09 | Phase 5 | Pending |
+| ROUT-09 | Phase 5 | Complete |
 | ROUT-10 | Phase 5 | Pending |
-| ROUT-11 | Phase 5 | Pending |
+| ROUT-11 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 41 total

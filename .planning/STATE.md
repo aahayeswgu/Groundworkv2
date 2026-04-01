@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-03-31T20:29:33.386Z"
-last_activity: 2026-03-31
+status: verifying
+stopped_at: Completed 05-route-00-PLAN.md
+last_updated: "2026-04-01T04:56:05.208Z"
+last_activity: 2026-04-01
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 8
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 Phase: 02 (pins) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
-Last activity: 2026-03-31
+Status: Phase complete — ready for verification
+Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-pins P03 | 8 | 2 tasks | 2 files |
 | Phase 02-pins P05 | 10 | 2 tasks | 4 files |
 | Phase 02-pins P06 | 2 | 2 tasks | 2 files |
+| Phase 05-route P00 | 14 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
 - [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
 - [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
+- [Phase 05-route]: Route store test harness uses minimal StateCreator shim — no full AppStore needed for unit tests
+- [Phase 05-route]: route-service tests stub google.maps.importLibrary globally — avoids real API calls in test environment
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T20:29:33.383Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-04-01T04:56:05.206Z
+Stopped at: Completed 05-route-00-PLAN.md
 Resume file: None
