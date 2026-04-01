@@ -124,8 +124,8 @@ Plans:
   7. Stale planner data older than 30 days is purged automatically on app startup
 **Plans**: 5 plans
 Plans:
-- [ ] 06-01-PLAN.md — Planner types (PlannerStop, DayPlan, ActivityEntry), PlannerSlice + createPlannerSlice, store migration v1→v2, StoreHydration purge wiring
-- [ ] 06-02-PLAN.md — Sidebar tab switching (Pins/Planner), PlannerPanel skeleton with stats bar and stops list, PlannerStopItem with status cycle
+- [x] 06-01-PLAN.md — Planner types (PlannerStop, DayPlan, ActivityEntry), PlannerSlice + createPlannerSlice, store migration v1→v2, StoreHydration purge wiring
+- [x] 06-02-PLAN.md — Sidebar tab switching (Pins/Planner), PlannerPanel skeleton with stats bar and stops list, PlannerStopItem with status cycle
 - [ ] 06-03-PLAN.md — PlannerNotes (multi-page pagination, debounced auto-save), PlannerActivityLog (collapsible, privacy toggle), both mounted in PlannerPanel
 - [ ] 06-04-PLAN.md — PlannerCalendar (hand-rolled 7-column grid, month nav, has-data dots), date navigation (prev/next/today/month-view) in PlannerPanel
 - [ ] 06-05-PLAN.md — Integration: "+ Plan" in PinListItem, "Add to Plan" in MarkerLayer InfoWindow, "Send to Planner" in RouteConfirmPanel, "Route It" in PlannerPanel
@@ -169,6 +169,6 @@ Phases execute in numeric order: 6 → 7 → 8
 | 3. Supabase Sync | v1.0 | 3/3 | Complete | 2026-04-01 |
 | 4. Discover | v1.0 | 5/5 | Complete | 2026-04-01 |
 | 5. Route | v1.0 | 7/7 | Complete | 2026-04-01 |
-| 6. Planner | v1.1 | 0/5 | Not started | - |
+| 6. Planner | v1.1 | 2/5 | In Progress|  |
 | 7. Marathon Mode | v1.1 | 0/TBD | Not started | - |
 | 8. Ask AI | v1.1 | 0/TBD | Not started | - |

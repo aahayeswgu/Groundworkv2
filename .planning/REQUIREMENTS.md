@@ -37,16 +37,16 @@ Requirements for milestone v1.1: Power Features.
 
 ### Planner
 
-- [ ] **PLAN-01**: Planner tab in sidebar (alongside Pins tab) — clicking switches between Pins and Planner views
-- [ ] **PLAN-02**: Today's planned stops displayed as an ordered list with business name, address, and status
+- [x] **PLAN-01**: Planner tab in sidebar (alongside Pins tab) — clicking switches between Pins and Planner views
+- [x] **PLAN-02**: Today's planned stops displayed as an ordered list with business name, address, and status
 - [ ] **PLAN-03**: User can add stops to planner from pin info window, route confirm panel ("Send to Planner"), or sidebar
-- [ ] **PLAN-04**: User can mark stops as visited, skipped, or pending
+- [x] **PLAN-04**: User can mark stops as visited, skipped, or pending
 - [ ] **PLAN-05**: Daily notes text area for free-form notes about the day
 - [ ] **PLAN-06**: Date navigation — prev/next day arrows, today button, calendar date picker
 - [ ] **PLAN-07**: Activity log per day — timestamped entries for stop visits, route starts, notes added
-- [ ] **PLAN-08**: Stats display — planned count, visited count, skipped count for the current day
-- [ ] **PLAN-09**: Planner stops persist to localStorage via Zustand persist (keyed by date)
-- [ ] **PLAN-10**: Clean, minimal UI — cleaner than original Groundwork planner
+- [x] **PLAN-08**: Stats display — planned count, visited count, skipped count for the current day
+- [x] **PLAN-09**: Planner stops persist to localStorage via Zustand persist (keyed by date)
+- [x] **PLAN-10**: Clean, minimal UI — cleaner than original Groundwork planner
 
 ## Future Requirements
 
@@ -80,16 +80,16 @@ Deferred beyond v1.1.
 |-------------|-------|--------|
 | FOUN-05 | Phase 6 | Pending |
 | FOUN-06 | Phase 6 | Pending |
-| PLAN-01 | Phase 6 | Pending |
-| PLAN-02 | Phase 6 | Pending |
+| PLAN-01 | Phase 6 | Complete |
+| PLAN-02 | Phase 6 | Complete |
 | PLAN-03 | Phase 6 | Pending |
-| PLAN-04 | Phase 6 | Pending |
+| PLAN-04 | Phase 6 | Complete |
 | PLAN-05 | Phase 6 | Pending |
 | PLAN-06 | Phase 6 | Pending |
 | PLAN-07 | Phase 6 | Pending |
-| PLAN-08 | Phase 6 | Pending |
-| PLAN-09 | Phase 6 | Pending |
-| PLAN-10 | Phase 6 | Pending |
+| PLAN-08 | Phase 6 | Complete |
+| PLAN-09 | Phase 6 | Complete |
+| PLAN-10 | Phase 6 | Complete |
 | MARA-01 | Phase 7 | Pending |
 | MARA-02 | Phase 7 | Pending |
 | MARA-03 | Phase 7 | Pending |
