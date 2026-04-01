@@ -57,11 +57,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ROUT-07**: App generates a Google Maps shareable link using stop addresses (fallback to coordinates)
 - [x] **ROUT-08**: User can open the route in Google Maps for turn-by-turn navigation via the shareable link
 - [x] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
-<<<<<<< HEAD
 - [x] **ROUT-10**: Route returns to start point when departing from home base
-=======
-- [ ] **ROUT-10**: Route returns to start point when departing from home base
->>>>>>> worktree-agent-a2942c73
 - [x] **ROUT-11**: Route state (stops, order, shareable link) is managed in Zustand store, not local component state
 
 ## v2 Requirements
@@ -145,11 +141,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROUT-07 | Phase 5 | Complete |
 | ROUT-08 | Phase 5 | Complete |
 | ROUT-09 | Phase 5 | Complete |
-<<<<<<< HEAD
 | ROUT-10 | Phase 5 | Complete |
-=======
-| ROUT-10 | Phase 5 | Pending |
->>>>>>> worktree-agent-a2942c73
 | ROUT-11 | Phase 5 | Complete |
 
 **Coverage:**
