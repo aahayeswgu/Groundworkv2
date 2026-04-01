@@ -56,9 +56,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ROUT-06**: User can drag-to-reorder stops in the confirm panel and route recalculates
 - [ ] **ROUT-07**: App generates a Google Maps shareable link using stop addresses (fallback to coordinates)
 - [ ] **ROUT-08**: User can open the route in Google Maps for turn-by-turn navigation via the shareable link
-- [ ] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
-- [ ] **ROUT-10**: Route returns to start point when departing from home base
-- [ ] **ROUT-11**: Route state (stops, order, shareable link) is managed in Zustand store, not local component state
+- [x] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
+- [x] **ROUT-10**: Route returns to start point when departing from home base
+- [x] **ROUT-11**: Route state (stops, order, shareable link) is managed in Zustand store, not local component state
 
 ## v2 Requirements
 
@@ -140,9 +140,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROUT-06 | Phase 5 | Pending |
 | ROUT-07 | Phase 5 | Pending |
 | ROUT-08 | Phase 5 | Pending |
-| ROUT-09 | Phase 5 | Pending |
-| ROUT-10 | Phase 5 | Pending |
-| ROUT-11 | Phase 5 | Pending |
+| ROUT-09 | Phase 5 | Complete |
+| ROUT-10 | Phase 5 | Complete |
+| ROUT-11 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 41 total

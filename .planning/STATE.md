@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 5 context gathered
-last_updated: "2026-04-01T03:47:29.992Z"
+status: executing
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-04-01T04:41:19.630Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 23
+  completed_plans: 17
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
-**Current focus:** Phase 04 — discover
+**Current focus:** Phase 05 — route
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 05 (route) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
 Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-discover P03 | 5 | 2 tasks | 3 files |
 | Phase 04-discover P04 | 3 | 2 tasks | 3 files |
 | Phase 04-discover P05 | 2 | 2 tasks | 3 files |
+| Phase 05-route P01 | 54s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,9 @@ Recent decisions affecting current work:
 - [Phase 04-discover]: areaRect stays visible after draw until clearDiscover() — preserves visual context during result review
 - [Phase 04-discover]: DiscoverResultItem exported as named export — imported by DiscoverPanel in same feature folder
 - [Phase 04-discover]: Quick-save dedup reads useStore.getState().pins at click time — avoids stale closure from render
+- [Phase 05-route]: reorderStops accepts RouteStop[] directly (not index array) — aligns with dnd-kit arrayMove output, avoids index-mapping bug
+- [Phase 05-route]: clearRoute does NOT reset startMode/customStartAddress — user's home base preference persists between route sessions
+- [Phase 05-route]: addStop returns boolean — callers check the return value to handle 25-stop cap at UI layer
 
 ### Pending Todos
 
@@ -119,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T03:47:29.989Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-route/05-CONTEXT.md
+Last session: 2026-04-01T04:41:19.628Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
