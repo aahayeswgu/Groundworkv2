@@ -17,7 +17,6 @@ interface PinListItemProps {
 }
 
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
-  const map = useContext(MapContext);
   const addStop = useStore((s) => s.addStop);
   const removeStop = useStore((s) => s.removeStop);
   const routeStops = useStore((s) => s.routeStops);
