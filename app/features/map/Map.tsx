@@ -260,6 +260,11 @@ export default function Map({ onEditPin }: MapProps) {
       });
       await importLibrary("marker");
       setMapState(mapInstance.current);
+
+      // Backfill Google Places data for pins missing placeId (one-time, non-blocking)
+      import("@/app/features/pins/backfill-place-data").then(({ backfillPlaceData }) => {
+        backfillPlaceData();
+      });
     });
 
     return () => {
