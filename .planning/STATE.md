@@ -2,27 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-<<<<<<< HEAD
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-04-01T04:41:19.630Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-04-01T05:01:57.326Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 17
-=======
-status: verifying
-stopped_at: Completed 05-route-00-PLAN.md
-last_updated: "2026-04-01T04:56:05.208Z"
-last_activity: 2026-04-01
-progress:
-  total_phases: 5
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 9
->>>>>>> worktree-agent-a2942c73
+  completed_plans: 19
   percent: 0
 ---
 
@@ -39,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 <<<<<<< HEAD
 Phase: 05 (route) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 =======
 Phase: 02 (pins) — EXECUTING
@@ -90,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 =======
 | Phase 05-route P00 | 14 | 2 tasks | 3 files |
 >>>>>>> worktree-agent-a2942c73
+| Phase 05-route P02 | 8 minutes | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -115,7 +104,9 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
 - [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
 - [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
+
 <<<<<<< HEAD
+
 - [Phase 03-supabase-sync]: vitest.config.ts @ alias maps to project root via path.resolve(__dirname, '.') — consistent with tsconfig paths
 - [Phase 03-supabase-sync]: merge.ts is a pure module with no use client directive — enables isolated unit testing without browser/React setup
 - [Phase 03-supabase-sync]: Plain useStore.subscribe (1-arg) instead of subscribeWithSelector — avoids middleware overhead, uses prevPinIdsRef for deletion detection
@@ -134,10 +125,17 @@ Recent decisions affecting current work:
 - [Phase 05-route]: reorderStops accepts RouteStop[] directly (not index array) — aligns with dnd-kit arrayMove output, avoids index-mapping bug
 - [Phase 05-route]: clearRoute does NOT reset startMode/customStartAddress — user's home base preference persists between route sessions
 - [Phase 05-route]: addStop returns boolean — callers check the return value to handle 25-stop cap at UI layer
+
 =======
+
 - [Phase 05-route]: Route store test harness uses minimal StateCreator shim — no full AppStore needed for unit tests
 - [Phase 05-route]: route-service tests stub google.maps.importLibrary globally — avoids real API calls in test environment
+
 >>>>>>> worktree-agent-a2942c73
+
+- [Phase 05-route]: Route class (routes library) used instead of deprecated DirectionsService — avoids deprecated-API debt from Feb 2026
+- [Phase 05-route]: api=1 URL format overrides D-05 path format — documented, stable, correct encoding via URLSearchParams
+- [Phase 05-route]: Vitest v4 requires function() not arrow function for vi.fn() constructor mocks
 
 ### Pending Todos
 
@@ -151,8 +149,8 @@ None yet.
 ## Session Continuity
 
 <<<<<<< HEAD
-Last session: 2026-04-01T04:41:19.628Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-04-01T05:01:57.323Z
+Stopped at: Completed 05-02-PLAN.md
 =======
 Last session: 2026-04-01T04:56:05.206Z
 Stopped at: Completed 05-route-00-PLAN.md

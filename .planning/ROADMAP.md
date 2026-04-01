@@ -105,9 +105,9 @@ Plans:
   6. A warning appears when the stop count exceeds 3, noting that the Google Maps link may truncate on mobile
 **Plans**: 7 plans
 Plans:
-- [ ] 05-00-PLAN.md — Wave 0: TDD test scaffolds (route-url, route-store, route-service test files)
+- [x] 05-00-PLAN.md — Wave 0: TDD test scaffolds (route-url, route-store, route-service test files)
 - [x] 05-01-PLAN.md — RouteSlice expansion (startMode, routeActive, shareableUrl, 25-cap addStop, RouteStop[] reorderStops), StartMode type
-- [ ] 05-02-PLAN.md — route-service.ts (Route class computeRoute), route-url.ts (api=1 shareable URL), route-markers.ts (numbered circles), geocoding.ts extended
+- [x] 05-02-PLAN.md — route-service.ts (Route class computeRoute), route-url.ts (api=1 shareable URL), route-markers.ts (numbered circles), geocoding.ts extended
 - [ ] 05-03-PLAN.md — RouteLayer.tsx (two-layer polyline + AdvancedMarkerElement pool, imperative)
 - [ ] 05-04-PLAN.md — RouteConfirmPanel.tsx (@dnd-kit sortable, start picker, mobile warning, Build Route, Open Maps)
 - [ ] 05-05-PLAN.md — Wiring: pin InfoWindow Route button, sidebar PinList, discover InfoWindow + batch
@@ -125,4 +125,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 2/3 | In Progress|  |
 | 4. Discover | 5/5 | Complete   | 2026-04-01 |
-| 5. Route | 1/7 | In Progress|  |
+| 5. Route | 3/7 | In Progress|  |

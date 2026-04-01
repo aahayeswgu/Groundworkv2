@@ -51,11 +51,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ROUT-01**: User can add pins to a stop list from the pin info window, sidebar, or discover results
 - [ ] **ROUT-02**: User can select start point: home base address, GPS location, or custom address
 - [x] **ROUT-03**: Route is optimized via Google Directions API with optimizeWaypoints flag
-- [ ] **ROUT-04**: Route displays on map as an orange polyline with numbered stop markers
+- [x] **ROUT-04**: Route displays on map as an orange polyline with numbered stop markers
 - [ ] **ROUT-05**: Route confirm panel shows reorderable stop list with distance and time summary
 - [ ] **ROUT-06**: User can drag-to-reorder stops in the confirm panel and route recalculates
 - [x] **ROUT-07**: App generates a Google Maps shareable link using stop addresses (fallback to coordinates)
-- [ ] **ROUT-08**: User can open the route in Google Maps for turn-by-turn navigation via the shareable link
+- [x] **ROUT-08**: User can open the route in Google Maps for turn-by-turn navigation via the shareable link
 - [x] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
 <<<<<<< HEAD
 - [x] **ROUT-10**: Route returns to start point when departing from home base
@@ -139,11 +139,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ROUT-01 | Phase 5 | Pending |
 | ROUT-02 | Phase 5 | Pending |
 | ROUT-03 | Phase 5 | Complete |
-| ROUT-04 | Phase 5 | Pending |
+| ROUT-04 | Phase 5 | Complete |
 | ROUT-05 | Phase 5 | Pending |
 | ROUT-06 | Phase 5 | Pending |
 | ROUT-07 | Phase 5 | Complete |
-| ROUT-08 | Phase 5 | Pending |
+| ROUT-08 | Phase 5 | Complete |
 | ROUT-09 | Phase 5 | Complete |
 <<<<<<< HEAD
 | ROUT-10 | Phase 5 | Complete |
