@@ -4,6 +4,7 @@ import { useStore } from "@/app/store/index";
 import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
 import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
+import type { RouteStop } from "@/app/types/route.types";
 
 export default function DiscoverPanel() {
   const discoverResults = useStore((s) => s.discoverResults);
@@ -18,6 +19,7 @@ export default function DiscoverPanel() {
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
+  const addStop = useStore((s) => s.addStop);
 
   // Determine which step to show
   const step = discoverResults.length > 0 ? 3 : searchProgress ? 2 : 1;
@@ -130,9 +132,22 @@ export default function DiscoverPanel() {
                 {selectedDiscoverIds.size} selected
               </span>
               <button
-                disabled
-                title="Coming in Phase 5"
-                className="px-4 py-1.5 rounded-lg bg-orange text-white text-sm font-bold opacity-50 cursor-not-allowed"
+                onClick={() => {
+                  for (const id of selectedDiscoverIds) {
+                    const result = discoverResults.find((r) => r.placeId === id);
+                    if (!result) continue;
+                    const stop: RouteStop = {
+                      id: `discover_${result.placeId}`,
+                      label: result.displayName,
+                      address: result.address ?? "",
+                      lat: result.lat,
+                      lng: result.lng,
+                    };
+                    const added = addStop(stop);
+                    if (!added) break; // cap reached — stop adding
+                  }
+                }}
+                className="px-4 py-1.5 rounded-lg bg-orange text-white text-sm font-bold hover:bg-orange/90 transition-colors"
               >
                 Route {selectedDiscoverIds.size} Stop{selectedDiscoverIds.size !== 1 ? "s" : ""}
               </button>

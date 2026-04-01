@@ -2,7 +2,9 @@
 
 import { useContext } from "react";
 import { MapContext } from "@/app/features/map/MapContext";
+import { useStore } from "@/app/store";
 import type { Pin } from "@/app/types/pins.types";
+import type { RouteStop } from "@/app/types/route.types";
 
 const STATUS_COLORS: Record<string, string> = {
   prospect: "#3B82F6",
@@ -18,6 +20,7 @@ interface PinListItemProps {
 
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const map = useContext(MapContext);
+  const addStop = useStore((s) => s.addStop);
 
   function handleClick() {
     if (!map) return;
@@ -46,6 +49,23 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
         </div>
         <div className="text-[11px] text-text-secondary truncate mt-0.5">{pin.address}</div>
       </div>
+      <button
+        className="opacity-0 group-hover:opacity-100 shrink-0 text-[#D4712A] hover:text-[#D4712A]/80 text-xs font-bold px-2 py-1 rounded border border-[#D4712A]/30 hover:border-[#D4712A] transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          const stop: RouteStop = {
+            id: pin.id,
+            label: pin.title,
+            address: pin.address ?? "",
+            lat: pin.lat,
+            lng: pin.lng,
+          };
+          addStop(stop);
+        }}
+        title="Add to Route"
+      >
+        + Route
+      </button>
       <button
         className="opacity-0 group-hover:opacity-100 shrink-0 text-text-muted hover:text-orange transition-opacity"
         onClick={(e) => {
