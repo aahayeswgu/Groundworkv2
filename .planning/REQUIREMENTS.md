@@ -18,21 +18,12 @@ Requirements for milestone v1.1: Power Features.
 
 ### Marathon
 
-<<<<<<< HEAD
-- [ ] **MARA-01**: User can enter Marathon mode from the discover panel
+- [x] **MARA-01**: User can enter Marathon mode from the discover panel
 - [x] **MARA-02**: User can draw multiple search rectangles sequentially without losing previous results
 - [x] **MARA-03**: Results accumulate across all drawn areas with cross-zone deduplication
-- [ ] **MARA-04**: User can select businesses from the accumulated pool and build one optimized route
-- [ ] **MARA-05**: Zone count progress indicator shows "X areas searched" during marathon session
-- [ ] **MARA-06**: User can clear results per-zone or clear all accumulated results
-=======
-- [x] **MARA-01**: User can enter Marathon mode from the discover panel
-- [ ] **MARA-02**: User can draw multiple search rectangles sequentially without losing previous results
-- [ ] **MARA-03**: Results accumulate across all drawn areas with cross-zone deduplication
 - [x] **MARA-04**: User can select businesses from the accumulated pool and build one optimized route
 - [x] **MARA-05**: Zone count progress indicator shows "X areas searched" during marathon session
 - [x] **MARA-06**: User can clear results per-zone or clear all accumulated results
->>>>>>> worktree-agent-a0e5ca82
 - [x] **MARA-07**: Per-zone attribution — each result tagged with which search area it came from
 
 ### Ask AI
@@ -99,21 +90,12 @@ Deferred beyond v1.1.
 | PLAN-08 | Phase 6 | Complete |
 | PLAN-09 | Phase 6 | Complete |
 | PLAN-10 | Phase 6 | Complete |
-<<<<<<< HEAD
-| MARA-01 | Phase 7 | Pending |
+| MARA-01 | Phase 7 | Complete |
 | MARA-02 | Phase 7 | Complete |
 | MARA-03 | Phase 7 | Complete |
-| MARA-04 | Phase 7 | Pending |
-| MARA-05 | Phase 7 | Pending |
-| MARA-06 | Phase 7 | Pending |
-=======
-| MARA-01 | Phase 7 | Complete |
-| MARA-02 | Phase 7 | Pending |
-| MARA-03 | Phase 7 | Pending |
 | MARA-04 | Phase 7 | Complete |
 | MARA-05 | Phase 7 | Complete |
 | MARA-06 | Phase 7 | Complete |
->>>>>>> worktree-agent-a0e5ca82
 | MARA-07 | Phase 7 | Complete |
 | ASKI-01 | Phase 8 | Pending |
 | ASKI-02 | Phase 8 | Pending |

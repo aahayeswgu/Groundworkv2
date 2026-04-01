@@ -36,8 +36,10 @@ export default function Map({ onEditPin }: MapProps) {
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
   const marathonMode = useStore((s) => s.marathonMode);
   const toggleMarathonMode = useStore((s) => s.toggleMarathonMode);
+  const resetMarathon = useStore((s) => s.resetMarathon);
   const areaRectRef = useRef<google.maps.Rectangle | null>(null);
   const drawListenersRef = useRef<(() => void)[]>([]);
+  const marathonZoneRectsRef = useRef<globalThis.Map<string, google.maps.Rectangle>>(new globalThis.Map());
 
   const getTheme = useCallback(
     () => document.body.getAttribute("data-theme") || "dark",
@@ -77,9 +79,16 @@ export default function Map({ onEditPin }: MapProps) {
   const exitDiscoverMode = useCallback(() => {
     stopDrawing();
     setDiscoverMode(false);
-    // Clear rectangle and results
+    // Always clear the active draw rectangle
     if (areaRectRef.current) { areaRectRef.current.setMap(null); areaRectRef.current = null; }
-  }, [setDiscoverMode, stopDrawing]);
+    // In normal mode clear any persisted zone rectangles and reset marathon state
+    const marathonModeNow = useStore.getState().marathonMode;
+    if (!marathonModeNow) {
+      marathonZoneRectsRef.current.forEach((rect) => rect.setMap(null));
+      marathonZoneRectsRef.current.clear();
+      resetMarathon();
+    }
+  }, [setDiscoverMode, stopDrawing, resetMarathon]);
 
   const enterDiscoverMode = useCallback(() => {
     if (!mapInstance.current) return;
@@ -174,6 +183,18 @@ export default function Map({ onEditPin }: MapProps) {
         }
         stopDrawing();
         searchBusinessesInArea(bounds);
+
+        // Promote completed draw rect to zone pool in marathon mode
+        const touchStore = useStore.getState();
+        if (touchStore.marathonMode && areaRectRef.current) {
+          areaRectRef.current.setOptions({
+            strokeColor: "#D4712A", strokeWeight: 1.5,
+            fillColor: "#D4712A", fillOpacity: 0.05, zIndex: 1,
+          });
+          marathonZoneRectsRef.current.set(Date.now().toString(), areaRectRef.current);
+          areaRectRef.current = null;
+          enterDiscoverMode(); // re-enter for next draw
+        }
       };
 
       const mapDiv = map.getDiv();
@@ -231,6 +252,18 @@ export default function Map({ onEditPin }: MapProps) {
             return;
           }
           searchBusinessesInArea(bounds);
+
+          // Promote completed draw rect to zone pool in marathon mode
+          const mouseStore = useStore.getState();
+          if (mouseStore.marathonMode && areaRectRef.current) {
+            areaRectRef.current.setOptions({
+              strokeColor: "#D4712A", strokeWeight: 1.5,
+              fillColor: "#D4712A", fillOpacity: 0.05, zIndex: 1,
+            });
+            marathonZoneRectsRef.current.set(Date.now().toString(), areaRectRef.current);
+            areaRectRef.current = null;
+            enterDiscoverMode(); // re-enter for next draw
+          }
         });
       };
       google.maps.event.addListenerOnce(map, "mousedown", onMouseDown);
@@ -280,6 +313,8 @@ export default function Map({ onEditPin }: MapProps) {
         areaRectRef.current.setMap(null);
         areaRectRef.current = null;
       }
+      marathonZoneRectsRef.current.forEach((rect) => rect.setMap(null));
+      marathonZoneRectsRef.current.clear();
     };
   }, [getTheme, exitDropMode]);
 
