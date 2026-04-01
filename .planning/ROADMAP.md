@@ -103,7 +103,13 @@ Plans:
   4. User can tap "Open in Google Maps" and the route opens in the Maps app for turn-by-turn navigation
   5. When the stop list exceeds 25, the user sees a clear message that the cap has been reached and no further stops can be added
   6. A warning appears when the stop count exceeds 3, noting that the Google Maps link may truncate on mobile
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 05-01-PLAN.md — RouteSlice expansion (startMode, routeActive, shareableUrl, 25-cap addStop, RouteStop[] reorderStops), StartMode type
+- [ ] 05-02-PLAN.md — route-service.ts (Route class computeRoute), route-url.ts (api=1 shareable URL), route-markers.ts (numbered circles), geocoding.ts extended
+- [ ] 05-03-PLAN.md — RouteLayer.tsx (two-layer polyline + AdvancedMarkerElement pool, imperative)
+- [ ] 05-04-PLAN.md — RouteConfirmPanel.tsx (@dnd-kit sortable, start picker, mobile warning, Build Route, Open Maps)
+- [ ] 05-05-PLAN.md — Wiring: pin InfoWindow Route button, discover InfoWindow + batch, Map.tsx mounts RouteLayer + RouteConfirmPanel
 **UI hint**: yes
 
 ## Progress
@@ -117,4 +123,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 2/3 | In Progress|  |
 | 4. Discover | 5/5 | Complete   | 2026-04-01 |
-| 5. Route | 0/? | Not started | - |
+| 5. Route | 0/5 | Not started | - |
