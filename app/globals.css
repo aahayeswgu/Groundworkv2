@@ -134,3 +134,6 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   60% { transform: translateY(-6px); }
 }
 .marker-bounce { animation: markerBounce 0.7s ease; }
+
+/* ─── Spin animation for loading indicators ─── */
+@keyframes spin { to { transform: rotate(360deg); } }
