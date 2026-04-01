@@ -4,6 +4,7 @@ import type { DiscoverResult } from "@/app/types/discover.types";
 export interface DiscoverSlice {
   discoverResults: DiscoverResult[];
   selectedDiscoverIds: Set<string>;
+  hoveredDiscoverId: string | null;
   isDrawing: boolean;
   drawBounds: { swLat: number; swLng: number; neLat: number; neLng: number } | null;
   discoverMode: boolean;
@@ -16,11 +17,13 @@ export interface DiscoverSlice {
   setDiscoverMode: (active: boolean) => void;
   setSearchProgress: (msg: string) => void;
   selectAllDiscover: () => void;
+  setHoveredDiscoverId: (id: string | null) => void;
 }
 
 export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
   discoverResults: [],
   selectedDiscoverIds: new Set(),
+  hoveredDiscoverId: null,
   isDrawing: false,
   drawBounds: null,
   discoverMode: false,
@@ -36,7 +39,7 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
     }),
   setIsDrawing: (drawing) => set({ isDrawing: drawing }),
   clearDiscover: () =>
-    set({ discoverResults: [], selectedDiscoverIds: new Set(), drawBounds: null, isDrawing: false, discoverMode: false, searchProgress: '' }),
+    set({ discoverResults: [], selectedDiscoverIds: new Set(), hoveredDiscoverId: null, drawBounds: null, isDrawing: false, discoverMode: false, searchProgress: '' }),
   setDiscoverMode: (active) => set({ discoverMode: active }),
   setSearchProgress: (msg) => set({ searchProgress: msg }),
   selectAllDiscover: () =>
@@ -45,4 +48,5 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
       const next = new Set(s.discoverResults.slice(0, max).map((r) => r.placeId));
       return { selectedDiscoverIds: next };
     }),
+  setHoveredDiscoverId: (id) => set({ hoveredDiscoverId: id }),
 });
