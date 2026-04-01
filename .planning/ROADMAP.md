@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: Pins** - Full pin CRUD, status-colored markers, sidebar list with search/filter, localStorage persistence
 - [ ] **Phase 3: Supabase Sync** - Cloud sync for pins with merge semantics, debounced upsert, pull-on-load
 - [x] **Phase 4: Discover** - Draw-to-search rectangle, Places (New) multi-query, dedup, quick-save, mobile touch (completed 2026-04-01)
-- [ ] **Phase 5: Route** - Stop list, Directions optimization, map polyline, shareable Google Maps link
+- [x] **Phase 5: Route** - Stop list, Directions optimization, map polyline, shareable Google Maps link (completed 2026-04-01)
 
 ## Phase Details
 
@@ -110,7 +110,7 @@ Plans:
 - [x] 05-02-PLAN.md — route-service.ts (Route class computeRoute), route-url.ts (api=1 shareable URL), route-markers.ts (numbered circles), geocoding.ts extended
 - [x] 05-03-PLAN.md — RouteLayer.tsx (two-layer polyline + AdvancedMarkerElement pool, imperative)
 - [x] 05-04-PLAN.md — RouteConfirmPanel.tsx (@dnd-kit sortable, start picker, mobile warning, Build Route, Open Maps)
-- [ ] 05-05-PLAN.md — Wiring: pin InfoWindow Route button, sidebar PinList, discover InfoWindow + batch
+- [x] 05-05-PLAN.md — Wiring: pin InfoWindow Route button, sidebar PinList, discover InfoWindow + batch
 - [x] 05-06-PLAN.md — Map.tsx mounts RouteLayer + RouteConfirmPanel + directions button; human-verify checkpoint
 **UI hint**: yes
 
@@ -125,4 +125,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 2/3 | In Progress|  |
 | 4. Discover | 5/5 | Complete   | 2026-04-01 |
-| 5. Route | 6/7 | In Progress|  |
+| 5. Route | 7/7 | Complete   | 2026-04-01 |
