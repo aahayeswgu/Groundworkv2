@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Power Features
 status: executing
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-04-01T20:27:48.568Z"
-last_activity: 2026-04-01 -- Phase 07 execution started
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-04-01T20:35:35.315Z"
+last_activity: 2026-04-01
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 7
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 07 (marathon-mode) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 07
-Last activity: 2026-04-01 -- Phase 07 execution started
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-planner P03 | 5min | 3 tasks | 3 files |
 | Phase 06-planner P04 | 3min | 2 tasks | 2 files |
 | Phase 06-planner P05 | 5 | 3 tasks | 4 files |
+| Phase 07-marathon-mode P02 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 06-planner]: + Plan button in PinListItem uses same opacity-0 group-hover:opacity-100 pattern as + Route button
 - [Phase 06-planner]: MarkerLayer plan button mutates DOM in-place per D-11 — no infoWindow.setContent() call
 - [Phase 06-planner]: Route It uses ps.pinId ?? ps.id as RouteStop id to maintain pin dedup consistency in route store
+- [Phase 07-marathon-mode]: globalThis.Map used for zone rect pool ref to avoid TypeScript ambiguity with google.maps.Map
+- [Phase 07-marathon-mode]: Zone rects survive exitDiscoverMode in marathon mode; resetMarathon only called when marathonMode is false at exit time
 
 ### Pending Todos
 
@@ -115,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T18:57:40.743Z
-Stopped at: Completed 06-05-PLAN.md
+Last session: 2026-04-01T20:35:35.312Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None

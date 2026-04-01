@@ -144,8 +144,8 @@ Plans:
   6. User can select businesses from the full accumulated pool and build one optimized route from them
 **Plans**: 3 plans
 Plans:
-- [ ] 07-01-PLAN.md — MarathonZone type + DiscoverSlice marathon state and actions
-- [ ] 07-02-PLAN.md — discover-search.ts accumulation + Map.tsx zone rectangle management
+- [x] 07-01-PLAN.md — MarathonZone type + DiscoverSlice marathon state and actions
+- [x] 07-02-PLAN.md — discover-search.ts accumulation + Map.tsx zone rectangle management
 - [ ] 07-03-PLAN.md — DiscoverPanel marathon UI (toggle, session header, zone tags, clear controls) + Map.tsx Marathon button
 **UI hint**: yes
 
@@ -174,5 +174,5 @@ Phases execute in numeric order: 6 → 7 → 8
 | 4. Discover | v1.0 | 5/5 | Complete | 2026-04-01 |
 | 5. Route | v1.0 | 7/7 | Complete | 2026-04-01 |
 | 6. Planner | v1.1 | 2/5 | In Progress|  |
-| 7. Marathon Mode | v1.1 | 0/TBD | Not started | - |
+| 7. Marathon Mode | v1.1 | 2/3 | In Progress|  |
 | 8. Ask AI | v1.1 | 0/TBD | Not started | - |
