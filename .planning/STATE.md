@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-04-01T05:06:45.474Z"
+stopped_at: "Checkpoint: 05-06 awaiting human-verify"
+last_updated: "2026-04-01T05:13:15.570Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 
 <<<<<<< HEAD
 Phase: 05 (route) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 =======
 Phase: 02 (pins) — EXECUTING
@@ -80,6 +80,7 @@ Progress: [░░░░░░░░░░] 0%
 >>>>>>> worktree-agent-a2942c73
 | Phase 05-route P02 | 8 minutes | 2 tasks | 5 files |
 | Phase 05-route P03 | 4 | 1 tasks | 4 files |
+| Phase 05-route P06 | 3 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,8 @@ Recent decisions affecting current work:
 - [Phase 05-route]: Vitest v4 requires function() not arrow function for vi.fn() constructor mocks
 - [Phase 05-route]: clearOverlays defined inside component (not useCallback) — only accesses stable refs, no closure dependencies
 - [Phase 05-route]: routeMarkerPoolRef is useRef array (not Map) — numbered markers need only bulk cleanup, not keyed lookup
+- [Phase 05-route]: RouteLayer rendered conditionally on mapState (same pattern as MarkerLayer and DiscoverLayer)
+- [Phase 05-route]: RouteConfirmPanel rendered unconditionally — panel handles its own visibility via open prop
 
 ### Pending Todos
 
@@ -152,8 +155,8 @@ None yet.
 ## Session Continuity
 
 <<<<<<< HEAD
-Last session: 2026-04-01T05:06:45.472Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-04-01T05:13:15.568Z
+Stopped at: Checkpoint: 05-06 awaiting human-verify
 =======
 Last session: 2026-04-01T04:56:05.206Z
 Stopped at: Completed 05-route-00-PLAN.md
