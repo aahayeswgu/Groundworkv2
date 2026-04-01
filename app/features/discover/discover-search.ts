@@ -32,16 +32,31 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   const store = useStore.getState() as ReturnType<typeof useStore.getState> & {
     setSearchProgress?: (msg: string) => void;
   };
-  const { setDiscoverResults, setIsDrawing } = store;
+  const {
+    setDiscoverResults,
+    setIsDrawing,
+    marathonMode,
+    discoverResults: existingResults,
+    addMarathonZone,
+    incrementMarathonCount,
+  } = store;
   const setSearchProgress: (msg: string) => void = store.setSearchProgress ?? (() => {});
 
-  // Clear old results before starting new search
-  setDiscoverResults([]);
+  // In normal mode clear old results; in marathon mode accumulate
+  if (!marathonMode) {
+    setDiscoverResults([]);
+  }
   setIsDrawing(false);
   setSearchProgress("Starting search...");
 
   const seen = new Set<string>();
-  const results: DiscoverResult[] = [];
+
+  // Pre-seed seen with existing results to avoid cross-zone duplicates
+  if (marathonMode) {
+    existingResults.forEach((r) => seen.add(r.placeId));
+  }
+
+  const newResults: DiscoverResult[] = [];
 
   for (let i = 0; i < DISCOVER_QUERIES.length; i++) {
     if (cancelToken) {
@@ -50,7 +65,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     }
 
     const query = DISCOVER_QUERIES[i];
-    setSearchProgress(`Searching: ${query}... (${results.length} found) [${i + 1}/${DISCOVER_QUERIES.length}]`);
+    setSearchProgress(`Searching: ${query}... (${newResults.length} found) [${i + 1}/${DISCOVER_QUERIES.length}]`);
     try {
       const { places } = await Place.searchByText({
         textQuery: query,
@@ -76,7 +91,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
           bounds,
           seen,
         );
-        if (result) results.push(result);
+        if (result) newResults.push(result);
       }
     } catch (err) {
       console.error(`[Discover] Query "${query}" failed:`, err);
@@ -89,8 +104,25 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     return;
   }
 
-  results.sort((a, b) => a.displayName.localeCompare(b.displayName));
-  setDiscoverResults(results);
+  const combined = marathonMode
+    ? [...existingResults, ...newResults]
+    : newResults;
+  combined.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  setDiscoverResults(combined);
+
+  // Register the zone after search completes (marathon mode only)
+  if (marathonMode) {
+    const zoneCount = useStore.getState().marathonSearchCount + 1;
+    addMarathonZone({
+      id: crypto.randomUUID(),
+      label: `Zone ${zoneCount}`,
+      bounds,
+      results: newResults,
+      resultCount: newResults.length,
+    });
+    incrementMarathonCount();
+  }
+
   setSearchProgress("");
 }
 
