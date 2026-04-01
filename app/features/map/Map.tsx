@@ -34,6 +34,8 @@ export default function Map({ onEditPin }: MapProps) {
   const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
+  const marathonMode = useStore((s) => s.marathonMode);
+  const toggleMarathonMode = useStore((s) => s.toggleMarathonMode);
   const areaRectRef = useRef<google.maps.Rectangle | null>(null);
   const drawListenersRef = useRef<(() => void)[]>([]);
 
@@ -333,6 +335,17 @@ export default function Map({ onEditPin }: MapProps) {
           <path d="M21 21l-4.35-4.35" />
           <line x1="11" y1="8" x2="11" y2="14" />
           <line x1="8" y1="11" x2="14" y2="11" />
+        </MapButton>
+        <MapButton
+          title="Marathon Mode — accumulate results across multiple draws"
+          active={marathonMode}
+          onClick={toggleMarathonMode}
+        >
+          {/* Repeat/loop icon — two curved arrows */}
+          <path d="M17 1l4 4-4 4" />
+          <path d="M3 11V9a4 4 0 014-4h14" />
+          <path d="M7 23l-4-4 4-4" />
+          <path d="M21 13v2a4 4 0 01-4 4H3" />
         </MapButton>
         <MapButton title="Show/hide pins">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
