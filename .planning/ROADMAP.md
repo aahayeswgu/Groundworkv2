@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - Map context, Zustand store skeleton, AdvancedMarkerElement init, shared MapButton component (completed 2026-03-31)
 - [ ] **Phase 2: Pins** - Full pin CRUD, status-colored markers, sidebar list with search/filter, localStorage persistence
 - [ ] **Phase 3: Supabase Sync** - Cloud sync for pins with merge semantics, debounced upsert, pull-on-load
-- [ ] **Phase 4: Discover** - Draw-to-search rectangle, Places (New) multi-query, dedup, quick-save, mobile touch
+- [x] **Phase 4: Discover** - Draw-to-search rectangle, Places (New) multi-query, dedup, quick-save, mobile touch (completed 2026-04-01)
 - [ ] **Phase 5: Route** - Stop list, Directions optimization, map polyline, shareable Google Maps link
 
 ## Phase Details
@@ -88,8 +88,8 @@ Plans:
 - [x] 04-01-PLAN.md — DiscoverSlice extension (discoverMode, searchProgress, selectAllDiscover, hoveredDiscoverId), query config, discover-filters.ts
 - [x] 04-02-PLAN.md — discover-search.ts: Place.searchByText() sequential 19-query orchestrator with 200ms delay
 - [x] 04-03-PLAN.md — discover-marker.ts (3 SVG states), discover-info.ts (DOM InfoWindow + quick-save builder)
-- [ ] 04-04-PLAN.md — DiscoverLayer.tsx (marker pool + InfoWindow), Map.tsx draw mode + Discover button wiring
-- [ ] 04-05-PLAN.md — DiscoverPanel.tsx (3-step UI), DiscoverResultItem.tsx, Sidebar.tsx swap
+- [x] 04-04-PLAN.md — DiscoverLayer.tsx (marker pool + InfoWindow), Map.tsx draw mode + Discover button wiring
+- [x] 04-05-PLAN.md — DiscoverPanel.tsx (3-step UI), DiscoverResultItem.tsx, Sidebar.tsx swap
 **UI hint**: yes
 
 ### Phase 5: Route
@@ -116,5 +116,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation | 2/2 | Complete   | 2026-03-31 |
 | 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 2/3 | In Progress|  |
-| 4. Discover | 3/5 | In Progress|  |
+| 4. Discover | 5/5 | Complete   | 2026-04-01 |
 | 5. Route | 0/? | Not started | - |
