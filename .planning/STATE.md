@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Power Features
-status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-04-01T18:14:32.198Z"
-last_activity: 2026-03-31 — v1.1 roadmap revised, Phase 9 merged into Phase 6, now 3 phases (6-8)
+milestone: v1.0
+milestone_name: milestone
+status: verifying
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-04-01T18:42:41.121Z"
+last_activity: 2026-04-01
 progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 5
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 8
   percent: 0
 ---
 
@@ -18,37 +18,48 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-01)
+See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
-**Current focus:** Phase 6 — Planner (v1.1 start)
+**Current focus:** Phase 02 — pins
 
 ## Current Position
 
-Phase: 6 of 8 (Planner)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-31 — v1.1 roadmap revised, Phase 9 merged into Phase 6, now 3 phases (6-8)
+Phase: 02 (pins) — EXECUTING
+Plan: 6 of 6
+Status: Phase complete — ready for verification
+Last activity: 2026-04-01
 
-Progress: [░░░░░░░░░░] 0% (v1.1 milestone)
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Velocity (v1.0 reference):**
+**Velocity:**
 
-- Total plans completed (v1.0): 23
-- Average duration: ~6 min/plan
-- Total execution time: ~2.3 hours
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: 0 hours
 
-**v1.1 By Phase:**
+**By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 6. Planner | TBD | - | - |
-| 7. Marathon Mode | TBD | - | - |
-| 8. Ask AI | TBD | - | - |
+| - | - | - | - |
+
+**Recent Trend:**
+
+- Last 5 plans: —
+- Trend: —
 
 *Updated after each plan completion*
+| Phase 01-foundation P01 | 10 | 3 tasks | 11 files |
+| Phase 01-foundation P02 | 5 | 3 tasks | 2 files |
+| Phase 02-pins P01 | 5 | 2 tasks | 4 files |
+| Phase 02-pins P02 | 8 | 2 tasks | 2 files |
+| Phase 02-pins P03 | 8 | 2 tasks | 2 files |
+| Phase 02-pins P05 | 10 | 2 tasks | 4 files |
+| Phase 02-pins P06 | 2 | 2 tasks | 2 files |
+| Phase 06-planner P01 | 15min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -57,14 +68,26 @@ Progress: [░░░░░░░░░░] 0% (v1.1 milestone)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Phase 05-route]: addStop returns boolean — callers check return value to handle 25-stop cap at UI layer
-- [Phase 04-discover]: Save button in buildDiscoverInfoContent updates textContent in-place — never calls infoWindow.setContent() per D-11 to prevent re-render loop
-- [v1.1 research]: Marathon Mode must use `marathonZones: MarathonZone[]` not flat append — preserves zone context, enables per-zone clear
-- [v1.1 research]: Gemini calls must go through `app/api/ask-ai/route.ts` server-side proxy — GEMINI_API_KEY (no NEXT_PUBLIC_ prefix)
-- [v1.1 research]: Use `gemini-2.5-flash` model string in a single config constant — gemini-2.0 shuts down June 1, 2026
-- [v1.1 research]: Store ISO date strings in Zustand, not Date objects — Date objects don't deserialize correctly from persist
-- [v1.1 research]: Zustand persist version must bump to 2 with migration when PlannerSlice added — prevents silent hydration failures
-- [v1.1 roadmap revision]: Phase 6 (Planner Foundation) and Phase 9 (Planner Tab UI) merged into single Phase 6 (Planner) — store migration and UI ship together
+- — see PROJECT.md Key Decisions table for pending decisions
+- [Phase 01-foundation]: Zustand v5 slice composition with StateCreator for feature-colocated stores
+- [Phase 01-foundation]: PinStatus as lowercase string literals matching four sales workflow statuses
+- [Phase 01-foundation]: selectedDiscoverIds as Set<string> — Zustand v5 handles Set correctly
+- [Phase 01-foundation]: mapState useState used instead of ref.current in MapContext.Provider to comply with react-hooks/refs lint rule and ensure correct re-renders
+- [Phase 01-foundation]: DEMO_MAP_ID as default env value for NEXT_PUBLIC_GOOGLE_MAP_ID — Google built-in constant enables AdvancedMarkerElement in dev without a real Map ID
+- [Phase 02-pins]: Persist only pins to localStorage — discover results and route state are ephemeral by design
+- [Phase 02-pins]: skipHydration: true with client-side StoreHydration component prevents SSR localStorage access crash
+- [Phase 02-pins]: activeStatusFilter initialized with all 4 statuses enabled — show-all is the safe default
+- [Phase 02-pins]: Used useContext(MapContext) directly in MarkerLayer to allow null map during initialization without throwing
+- [Phase 02-pins]: SVG gradient IDs scoped per status name to prevent defs conflicts at high pin density
+- [Phase 02-pins]: InfoWindow content built as DOM element tree (not string) for reliable click event delegation
+- [Phase 02-pins]: exitDropMode/enterDropMode defined before map init useEffect to satisfy TypeScript block-scoped variable rules
+- [Phase 02-pins]: reverseGeocode uses lazy Geocoder singleton initialized on first call via importLibrary('geocoding') — separate from maps and marker libraries
+- [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
+- [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
+- [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
+- [Phase 06-planner]: PlannerSlice uses string dates throughout (addedAt, visitedAt as ISO strings, not Date objects)
+- [Phase 06-planner]: Store name 'groundwork-pins-v1' kept unchanged to preserve all existing pin data; version bumped to 2 with migration branch for v0/v1 upgrades
+- [Phase 06-planner]: session-only planner state (activeNotesPage, calendarOpen, monthViewOpen) not persisted — only plannerDays/activePlannerDate/trackingEnabled in partialize
 
 ### Pending Todos
 
@@ -72,12 +95,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 7 — Marathon]: Per-zone clear UX (single zone vs. clear all) needs a product decision before implementation begins
-- [Phase 8 — Ask AI]: Gemini 2.5 Flash free tier (250 RPD) needs validation against realistic rep session size before launch
-- [Phase 8 — Ask AI]: Session cache design (Map<placeId, string>) must be implemented before wiring the UI trigger — cache-first is non-negotiable
+- Phase 4 (Discover): Places (New) multi-query concurrency pattern has limited community examples — needs research during plan-phase before implementation sprint
+- Phase 5 (Route): Route class `computeRoutes` field masks and response shape need verification before sprint — `@dnd-kit/sortable` v10 breaking changes also need checking
 
 ## Session Continuity
 
-Last session: 2026-04-01T18:14:32.195Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-planner/06-CONTEXT.md
+Last session: 2026-04-01T18:42:41.118Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None
