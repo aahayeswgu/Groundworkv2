@@ -7,6 +7,7 @@ import PlannerNotes from "@/app/features/planner/PlannerNotes";
 import PlannerActivityLog from "@/app/features/planner/PlannerActivityLog";
 import PlannerCalendar from "@/app/features/planner/PlannerCalendar";
 import type { PlannerStopStatus } from "@/app/types/planner.types";
+import type { RouteStop } from "@/app/types/route.types";
 
 export default function PlannerPanel() {
   const plannerDays = useStore((s) => s.plannerDays);
@@ -22,6 +23,8 @@ export default function PlannerPanel() {
   const deleteNotesPage = useStore((s) => s.deleteNotesPage);
   const setActiveNotesPage = useStore((s) => s.setActiveNotesPage);
   const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
+  const addStop = useStore((s) => s.addStop);
+  const clearRoute = useStore((s) => s.clearRoute);
   const calendarOpen = useStore((s) => s.calendarOpen);
   const monthViewOpen = useStore((s) => s.monthViewOpen);
   const setCalendarOpen = useStore((s) => s.setCalendarOpen);
@@ -68,6 +71,25 @@ export default function PlannerPanel() {
       const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
       if (status === "visited") addActivityEntry({ time, text: `Visited ${label}` });
       if (status === "skipped") addActivityEntry({ time, text: `Skipped ${label}` });
+    }
+  }
+
+  function handleRouteIt() {
+    if (day.stops.length === 0) return;
+    clearRoute();
+    day.stops.forEach((ps) => {
+      const routeStop: RouteStop = {
+        id: ps.pinId ?? ps.id,
+        label: ps.label,
+        address: ps.address,
+        lat: ps.lat,
+        lng: ps.lng,
+      };
+      addStop(routeStop);
+    });
+    if (trackingEnabled) {
+      const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      addActivityEntry({ time, text: `Route started with ${day.stops.length} stops` });
     }
   }
 
@@ -192,6 +214,15 @@ export default function PlannerPanel() {
             <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
               Stops {day.stops.length > 0 ? `(${day.stops.length})` : ""}
             </span>
+            {day.stops.length > 0 && (
+              <button
+                onClick={handleRouteIt}
+                className="text-[10px] font-bold text-orange border border-orange/30 hover:border-orange hover:bg-orange-dim rounded px-2 py-1 transition-colors"
+                title="Send to route and optimize"
+              >
+                Route It
+              </button>
+            )}
           </div>
           {day.stops.length === 0 ? (
             <div className="px-4 py-6 text-center text-sm text-text-muted">
