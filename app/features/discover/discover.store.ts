@@ -6,11 +6,16 @@ export interface DiscoverSlice {
   selectedDiscoverIds: Set<string>;
   isDrawing: boolean;
   drawBounds: { swLat: number; swLng: number; neLat: number; neLng: number } | null;
+  discoverMode: boolean;
+  searchProgress: string;
   setDiscoverResults: (results: DiscoverResult[]) => void;
   setDrawBounds: (bounds: DiscoverSlice["drawBounds"]) => void;
   toggleDiscoverSelected: (placeId: string) => void;
   setIsDrawing: (drawing: boolean) => void;
   clearDiscover: () => void;
+  setDiscoverMode: (active: boolean) => void;
+  setSearchProgress: (msg: string) => void;
+  selectAllDiscover: () => void;
 }
 
 export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
@@ -18,6 +23,8 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
   selectedDiscoverIds: new Set(),
   isDrawing: false,
   drawBounds: null,
+  discoverMode: false,
+  searchProgress: '',
   setDiscoverResults: (results) => set({ discoverResults: results }),
   setDrawBounds: (bounds) => set({ drawBounds: bounds }),
   toggleDiscoverSelected: (placeId) =>
@@ -29,5 +36,13 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
     }),
   setIsDrawing: (drawing) => set({ isDrawing: drawing }),
   clearDiscover: () =>
-    set({ discoverResults: [], selectedDiscoverIds: new Set(), drawBounds: null, isDrawing: false }),
+    set({ discoverResults: [], selectedDiscoverIds: new Set(), drawBounds: null, isDrawing: false, discoverMode: false, searchProgress: '' }),
+  setDiscoverMode: (active) => set({ discoverMode: active }),
+  setSearchProgress: (msg) => set({ searchProgress: msg }),
+  selectAllDiscover: () =>
+    set((s) => {
+      const max = Math.min(s.discoverResults.length, 20);
+      const next = new Set(s.discoverResults.slice(0, max).map((r) => r.placeId));
+      return { selectedDiscoverIds: next };
+    }),
 });
