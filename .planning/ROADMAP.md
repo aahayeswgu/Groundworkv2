@@ -108,8 +108,8 @@ Plans:
 - [x] 05-00-PLAN.md — Wave 0: TDD test scaffolds (route-url, route-store, route-service test files)
 - [x] 05-01-PLAN.md — RouteSlice expansion (startMode, routeActive, shareableUrl, 25-cap addStop, RouteStop[] reorderStops), StartMode type
 - [x] 05-02-PLAN.md — route-service.ts (Route class computeRoute), route-url.ts (api=1 shareable URL), route-markers.ts (numbered circles), geocoding.ts extended
-- [ ] 05-03-PLAN.md — RouteLayer.tsx (two-layer polyline + AdvancedMarkerElement pool, imperative)
-- [ ] 05-04-PLAN.md — RouteConfirmPanel.tsx (@dnd-kit sortable, start picker, mobile warning, Build Route, Open Maps)
+- [x] 05-03-PLAN.md — RouteLayer.tsx (two-layer polyline + AdvancedMarkerElement pool, imperative)
+- [x] 05-04-PLAN.md — RouteConfirmPanel.tsx (@dnd-kit sortable, start picker, mobile warning, Build Route, Open Maps)
 - [ ] 05-05-PLAN.md — Wiring: pin InfoWindow Route button, sidebar PinList, discover InfoWindow + batch
 - [ ] 05-06-PLAN.md — Map.tsx mounts RouteLayer + RouteConfirmPanel + directions button; human-verify checkpoint
 **UI hint**: yes
@@ -125,4 +125,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Pins | 4/6 | In Progress|  |
 | 3. Supabase Sync | 2/3 | In Progress|  |
 | 4. Discover | 5/5 | Complete   | 2026-04-01 |
-| 5. Route | 3/7 | In Progress|  |
+| 5. Route | 5/7 | In Progress|  |
