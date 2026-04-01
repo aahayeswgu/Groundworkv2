@@ -35,10 +35,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DISC-01**: User can click Discover button to enter discovery mode
 - [ ] **DISC-02**: User draws a rectangle on the map via click+drag to define the search area
 - [ ] **DISC-03**: Search area is validated (min 200m, max 30km)
-- [ ] **DISC-04**: App searches Google Places (New API) using configurable query categories (default: 18 construction/trade queries)
-- [ ] **DISC-05**: Results are filtered by chain/residential/irrelevant-type exclusion rules
-- [ ] **DISC-06**: Results are deduplicated by place_id, normalized name, and coordinate proximity
-- [ ] **DISC-07**: Results are strictly filtered to the drawn rectangle bounds (client-side containment check)
+- [x] **DISC-04**: App searches Google Places (New API) using configurable query categories (default: 18 construction/trade queries)
+- [x] **DISC-05**: Results are filtered by chain/residential/irrelevant-type exclusion rules
+- [x] **DISC-06**: Results are deduplicated by place_id, normalized name, and coordinate proximity
+- [x] **DISC-07**: Results are strictly filtered to the drawn rectangle bounds (client-side containment check)
 - [ ] **DISC-08**: Results display in a scrollable list with business name, type classification, rating, and address
 - [ ] **DISC-09**: Results display as markers on the map (orange default, green selected, yellow hover)
 - [ ] **DISC-10**: Clicking a discover marker shows an info bubble with photo, name, type, rating, address, and action buttons
@@ -122,10 +122,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISC-01 | Phase 4 | Pending |
 | DISC-02 | Phase 4 | Pending |
 | DISC-03 | Phase 4 | Pending |
-| DISC-04 | Phase 4 | Pending |
-| DISC-05 | Phase 4 | Pending |
-| DISC-06 | Phase 4 | Pending |
-| DISC-07 | Phase 4 | Pending |
+| DISC-04 | Phase 4 | Complete |
+| DISC-05 | Phase 4 | Complete |
+| DISC-06 | Phase 4 | Complete |
+| DISC-07 | Phase 4 | Complete |
 | DISC-08 | Phase 4 | Pending |
 | DISC-09 | Phase 4 | Pending |
 | DISC-10 | Phase 4 | Pending |

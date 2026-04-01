@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-04-01T00:18:41.168Z"
-last_activity: 2026-03-31
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-04-01T01:45:41.674Z"
+last_activity: 2026-04-01
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 16
+  completed_plans: 12
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
-**Current focus:** Phase 03 — supabase-sync
+**Current focus:** Phase 04 — discover
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (discover) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-03-31
+Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-supabase-sync P01 | 1 | 1 tasks | 4 files |
 | Phase 03-supabase-sync P02 | 10 | 2 tasks | 3 files |
 | Phase 03-supabase-sync P03 | 5min | 2 tasks | 3 files |
+| Phase 04-discover P01 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [Phase 03-supabase-sync]: vitest.config.ts @ alias maps to project root via path.resolve(__dirname, '.') — consistent with tsconfig paths
 - [Phase 03-supabase-sync]: merge.ts is a pure module with no use client directive — enables isolated unit testing without browser/React setup
 - [Phase 03-supabase-sync]: Plain useStore.subscribe (1-arg) instead of subscribeWithSelector — avoids middleware overhead, uses prevPinIdsRef for deletion detection
+- [Phase 04-discover]: classifyGooglePlace takes (types, displayName) directly — callable at render time without full place object
+- [Phase 04-discover]: filterAndMapPlace accepts seen: Set<string> by reference — accumulates dedup across multiple query batches
+- [Phase 04-discover]: isInBounds uses strict inequality to reject boundary-touching results per D-17 strict containment
 
 ### Pending Todos
 
@@ -102,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T00:18:41.163Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-discover/04-CONTEXT.md
+Last session: 2026-04-01T01:45:41.672Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
