@@ -9,6 +9,8 @@ import { reverseGeocode } from "@/app/lib/geocoding";
 import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/PinModal";
 import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
+import RouteLayer from "@/app/features/route/RouteLayer";
+import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
 import { searchBusinessesInArea, validateBounds, type DrawBounds } from "@/app/features/discover/discover-search";
 import { useStore } from "@/app/store";
 
@@ -29,6 +31,7 @@ export default function Map({ onEditPin }: MapProps) {
   const [dropMode, setDropMode] = useState(false);
   const dropListener = useRef<google.maps.MapsEventListener | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
+  const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
   const areaRectRef = useRef<google.maps.Rectangle | null>(null);
@@ -309,7 +312,11 @@ export default function Map({ onEditPin }: MapProps) {
           <circle cx="12" cy="12" r="4" />
           <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
         </MapButton>
-        <MapButton title="Get directions">
+        <MapButton
+          title="Get directions"
+          active={routePanelOpen}
+          onClick={() => setRoutePanelOpen((prev) => !prev)}
+        >
           <polygon points="3 11 22 2 13 21 11 13 3 11" />
         </MapButton>
         <MapButton
@@ -368,6 +375,8 @@ export default function Map({ onEditPin }: MapProps) {
 
     {mapState && <MarkerLayer onEditPin={onEditPin} />}
     {mapState && <DiscoverLayer />}
+    {mapState && <RouteLayer />}
+    <RouteConfirmPanel open={routePanelOpen} onClose={() => setRoutePanelOpen(false)} />
     {pendingPin && (
       <PinModal
         mode="create"
