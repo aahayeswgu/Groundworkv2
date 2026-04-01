@@ -3,11 +3,13 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { createPinsSlice } from "@/app/features/pins/pins.store";
 import { createDiscoverSlice } from "@/app/features/discover/discover.store";
 import { createRouteSlice } from "@/app/features/route/route.store";
+import { createPlannerSlice } from "@/app/features/planner/planner.store";
 import type { PinsSlice } from "@/app/features/pins/pins.store";
 import type { DiscoverSlice } from "@/app/features/discover/discover.store";
 import type { RouteSlice } from "@/app/features/route/route.store";
+import type { PlannerSlice } from "@/app/types/planner.types";
 
-export type AppStore = PinsSlice & DiscoverSlice & RouteSlice;
+export type AppStore = PinsSlice & DiscoverSlice & RouteSlice & PlannerSlice;
 
 export const useStore = create<AppStore>()(
   persist(
@@ -15,13 +17,21 @@ export const useStore = create<AppStore>()(
       ...createPinsSlice(...a),
       ...createDiscoverSlice(...a),
       ...createRouteSlice(...a),
+      ...createPlannerSlice(...a),
     }),
     {
-      name: "groundwork-pins-v1",
+      name: "groundwork-pins-v1",   // DO NOT change this name — would lose all pin data
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ pins: state.pins }),
+      partialize: (state) => ({
+        pins: state.pins,
+        planner: {
+          plannerDays: state.plannerDays,
+          activePlannerDate: state.activePlannerDate,
+          trackingEnabled: state.trackingEnabled,
+        },
+      }),
       skipHydration: true,
-      version: 1,
+      version: 2,
       migrate: (persisted, version) => {
         if (version === 0) {
           const s = persisted as { pins?: Array<{ notes: unknown }> };
@@ -30,6 +40,15 @@ export const useStore = create<AppStore>()(
               p.notes = p.notes ? [{ text: p.notes, date: new Date().toISOString() }] : [];
             }
           });
+        }
+        if (version < 2) {
+          // planner key didn't exist in v0 or v1 — initialize it
+          const s = persisted as Record<string, unknown>;
+          s.planner = {
+            plannerDays: {},
+            activePlannerDate: new Date().toISOString().slice(0, 10),
+            trackingEnabled: true,
+          };
         }
         return persisted as AppStore;
       },
