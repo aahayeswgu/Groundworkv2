@@ -8,6 +8,9 @@ import { MapContext } from "./MapContext";
 import { reverseGeocode } from "@/app/lib/geocoding";
 import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/PinModal";
+import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
+import { searchBusinessesInArea, validateBounds, type DrawBounds } from "@/app/features/discover/discover-search";
+import { useStore } from "@/app/store";
 
 const DEFAULT_CENTER = { lat: 27.9506, lng: -82.4572 };
 const DEFAULT_ZOOM = 12;
@@ -26,6 +29,10 @@ export default function Map({ onEditPin }: MapProps) {
   const [dropMode, setDropMode] = useState(false);
   const dropListener = useRef<google.maps.MapsEventListener | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
+  const discoverMode = useStore((s) => s.discoverMode);
+  const setDiscoverMode = useStore((s) => s.setDiscoverMode);
+  const areaRectRef = useRef<google.maps.Rectangle | null>(null);
+  const drawListenersRef = useRef<(() => void)[]>([]);
 
   const getTheme = useCallback(
     () => document.body.getAttribute("data-theme") || "dark",
@@ -55,6 +62,169 @@ export default function Map({ onEditPin }: MapProps) {
       }
     );
   }, [exitDropMode]);
+
+  const exitDiscoverMode = useCallback(() => {
+    mapInstance.current?.setOptions({ draggableCursor: "", draggable: true });
+    drawListenersRef.current.forEach((fn) => fn());
+    drawListenersRef.current = [];
+    setDiscoverMode(false);
+    // Keep areaRect visible until user clears results (clearDiscover from panel close)
+  }, [setDiscoverMode]);
+
+  const enterDiscoverMode = useCallback(() => {
+    if (!mapInstance.current) return;
+    setDiscoverMode(true);
+    mapInstance.current.setOptions({ draggableCursor: "crosshair", draggable: false });
+
+    const map = mapInstance.current;
+    const isMobile = window.matchMedia("(pointer: coarse)").matches;
+
+    if (isMobile) {
+      let holdTimer: ReturnType<typeof setTimeout> | null = null;
+      let touchStarted = false;
+      let areaStartLatLng: google.maps.LatLng | null = null;
+
+      const onTouchStart = (e: TouchEvent) => {
+        holdTimer = setTimeout(() => {
+          touchStarted = true;
+          const touch = e.touches[0];
+          const mapBounds = map.getBounds()!;
+          const ne = mapBounds.getNorthEast();
+          const sw = mapBounds.getSouthWest();
+          const mapDiv = map.getDiv();
+          const rect = mapDiv.getBoundingClientRect();
+          const x = (touch.clientX - rect.left) / rect.width;
+          const y = (touch.clientY - rect.top) / rect.height;
+          const lat = ne.lat() - y * (ne.lat() - sw.lat());
+          const lng = sw.lng() + x * (ne.lng() - sw.lng());
+          areaStartLatLng = new google.maps.LatLng(lat, lng);
+          if (areaRectRef.current) areaRectRef.current.setMap(null);
+          areaRectRef.current = new google.maps.Rectangle({
+            bounds: new google.maps.LatLngBounds(areaStartLatLng, areaStartLatLng),
+            strokeColor: "#D4712A",
+            strokeWeight: 2,
+            fillColor: "#D4712A",
+            fillOpacity: 0.08,
+            map,
+            editable: false,
+            clickable: false,
+          });
+        }, 300);
+      };
+
+      const onTouchMove = (e: TouchEvent) => {
+        if (!touchStarted) {
+          if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+          return;
+        }
+        if (!areaRectRef.current || !areaStartLatLng) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mapBounds = map.getBounds()!;
+        const ne = mapBounds.getNorthEast();
+        const sw = mapBounds.getSouthWest();
+        const mapDiv = map.getDiv();
+        const rect = mapDiv.getBoundingClientRect();
+        const x = (touch.clientX - rect.left) / rect.width;
+        const y = (touch.clientY - rect.top) / rect.height;
+        const lat = ne.lat() - y * (ne.lat() - sw.lat());
+        const lng = sw.lng() + x * (ne.lng() - sw.lng());
+        areaRectRef.current.setBounds(
+          new google.maps.LatLngBounds(
+            { lat: Math.min(areaStartLatLng.lat(), lat), lng: Math.min(areaStartLatLng.lng(), lng) },
+            { lat: Math.max(areaStartLatLng.lat(), lat), lng: Math.max(areaStartLatLng.lng(), lng) },
+          ),
+        );
+      };
+
+      const onTouchEnd = () => {
+        if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+        const mapDiv = map.getDiv();
+        mapDiv.removeEventListener("touchstart", onTouchStart);
+        mapDiv.removeEventListener("touchmove", onTouchMove);
+        mapDiv.removeEventListener("touchend", onTouchEnd);
+        if (!touchStarted || !areaRectRef.current) {
+          exitDiscoverMode();
+          return;
+        }
+        touchStarted = false;
+        const rectBounds = areaRectRef.current.getBounds()!;
+        const ne = rectBounds.getNorthEast();
+        const sw = rectBounds.getSouthWest();
+        const bounds: DrawBounds = {
+          swLat: sw.lat(), swLng: sw.lng(),
+          neLat: ne.lat(), neLng: ne.lng(),
+        };
+        const validation = validateBounds(bounds);
+        if (!validation.valid) {
+          alert(validation.error);
+          if (areaRectRef.current) { areaRectRef.current.setMap(null); areaRectRef.current = null; }
+          exitDiscoverMode();
+          return;
+        }
+        exitDiscoverMode();
+        searchBusinessesInArea(bounds);
+      };
+
+      const mapDiv = map.getDiv();
+      mapDiv.addEventListener("touchstart", onTouchStart, { passive: false });
+      mapDiv.addEventListener("touchmove", onTouchMove, { passive: false });
+      mapDiv.addEventListener("touchend", onTouchEnd, { passive: false });
+      drawListenersRef.current = [
+        () => mapDiv.removeEventListener("touchstart", onTouchStart),
+        () => mapDiv.removeEventListener("touchmove", onTouchMove),
+        () => mapDiv.removeEventListener("touchend", onTouchEnd),
+      ];
+    } else {
+      // Desktop: mousedown starts, mousemove updates, mouseup triggers search
+      const onMouseDown = (e: google.maps.MapMouseEvent) => {
+        const areaStartLL = e.latLng!;
+        if (areaRectRef.current) areaRectRef.current.setMap(null);
+        areaRectRef.current = new google.maps.Rectangle({
+          bounds: new google.maps.LatLngBounds(areaStartLL, areaStartLL),
+          strokeColor: "#D4712A",
+          strokeWeight: 2,
+          fillColor: "#D4712A",
+          fillOpacity: 0.08,
+          map,
+          editable: false,
+          clickable: false,
+        });
+        const moveListener = map.addListener("mousemove", (e2: google.maps.MapMouseEvent) => {
+          if (!e2.latLng) return;
+          areaRectRef.current?.setBounds(
+            new google.maps.LatLngBounds(
+              { lat: Math.min(areaStartLL.lat(), e2.latLng.lat()), lng: Math.min(areaStartLL.lng(), e2.latLng.lng()) },
+              { lat: Math.max(areaStartLL.lat(), e2.latLng.lat()), lng: Math.max(areaStartLL.lng(), e2.latLng.lng()) },
+            ),
+          );
+        });
+        google.maps.event.addListenerOnce(map, "mouseup", (e3: google.maps.MapMouseEvent) => {
+          google.maps.event.removeListener(moveListener);
+          if (!e3.latLng) return;
+          const finalBounds = new google.maps.LatLngBounds(
+            { lat: Math.min(areaStartLL.lat(), e3.latLng.lat()), lng: Math.min(areaStartLL.lng(), e3.latLng.lng()) },
+            { lat: Math.max(areaStartLL.lat(), e3.latLng.lat()), lng: Math.max(areaStartLL.lng(), e3.latLng.lng()) },
+          );
+          const ne = finalBounds.getNorthEast();
+          const sw = finalBounds.getSouthWest();
+          const bounds: DrawBounds = {
+            swLat: sw.lat(), swLng: sw.lng(),
+            neLat: ne.lat(), neLng: ne.lng(),
+          };
+          const validation = validateBounds(bounds);
+          exitDiscoverMode();
+          if (!validation.valid) {
+            alert(validation.error);
+            if (areaRectRef.current) { areaRectRef.current.setMap(null); areaRectRef.current = null; }
+            return;
+          }
+          searchBusinessesInArea(bounds);
+        });
+      };
+      google.maps.event.addListenerOnce(map, "mousedown", onMouseDown);
+    }
+  }, [setDiscoverMode, exitDiscoverMode]);
 
   useEffect(() => {
     setOptions({
@@ -89,6 +259,10 @@ export default function Map({ onEditPin }: MapProps) {
         google.maps.event.clearInstanceListeners(mapInstance.current);
         mapInstance.current = null;
         setMapState(null);
+      }
+      if (areaRectRef.current) {
+        areaRectRef.current.setMap(null);
+        areaRectRef.current = null;
       }
     };
   }, [getTheme, exitDropMode]);
@@ -132,7 +306,11 @@ export default function Map({ onEditPin }: MapProps) {
         <MapButton title="Get directions">
           <polygon points="3 11 22 2 13 21 11 13 3 11" />
         </MapButton>
-        <MapButton title="Discover businesses">
+        <MapButton
+          title="Discover businesses"
+          active={discoverMode}
+          onClick={discoverMode ? exitDiscoverMode : enterDiscoverMode}
+        >
           <circle cx="11" cy="11" r="8" />
           <path d="M21 21l-4.35-4.35" />
           <line x1="11" y1="8" x2="11" y2="14" />
@@ -183,6 +361,7 @@ export default function Map({ onEditPin }: MapProps) {
     </div>
 
     {mapState && <MarkerLayer onEditPin={onEditPin} />}
+    {mapState && <DiscoverLayer />}
     {pendingPin && (
       <PinModal
         mode="create"
