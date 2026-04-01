@@ -1,33 +1,35 @@
 import type { StateCreator } from "zustand";
 import type { DiscoverResult } from "@/app/types/discover.types";
+import type { MarathonZone } from "@/app/types/discover.types";
 
 export interface DiscoverSlice {
   discoverResults: DiscoverResult[];
   selectedDiscoverIds: Set<string>;
-  hoveredDiscoverId: string | null;
   isDrawing: boolean;
   drawBounds: { swLat: number; swLng: number; neLat: number; neLng: number } | null;
-  discoverMode: boolean;
-  searchProgress: string;
+  marathonMode: boolean;
+  marathonZones: MarathonZone[];
+  marathonSearchCount: number;
   setDiscoverResults: (results: DiscoverResult[]) => void;
   setDrawBounds: (bounds: DiscoverSlice["drawBounds"]) => void;
   toggleDiscoverSelected: (placeId: string) => void;
   setIsDrawing: (drawing: boolean) => void;
   clearDiscover: () => void;
-  setDiscoverMode: (active: boolean) => void;
-  setSearchProgress: (msg: string) => void;
-  selectAllDiscover: () => void;
-  setHoveredDiscoverId: (id: string | null) => void;
+  toggleMarathonMode: () => void;
+  addMarathonZone: (zone: MarathonZone) => void;
+  clearMarathonZone: (zoneId: string) => void;
+  resetMarathon: () => void;
+  incrementMarathonCount: () => void;
 }
 
 export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
   discoverResults: [],
   selectedDiscoverIds: new Set(),
-  hoveredDiscoverId: null,
   isDrawing: false,
   drawBounds: null,
-  discoverMode: false,
-  searchProgress: '',
+  marathonMode: false,
+  marathonZones: [],
+  marathonSearchCount: 0,
   setDiscoverResults: (results) => set({ discoverResults: results }),
   setDrawBounds: (bounds) => set({ drawBounds: bounds }),
   toggleDiscoverSelected: (placeId) =>
@@ -39,14 +41,22 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
     }),
   setIsDrawing: (drawing) => set({ isDrawing: drawing }),
   clearDiscover: () =>
-    set({ discoverResults: [], selectedDiscoverIds: new Set(), hoveredDiscoverId: null, drawBounds: null, isDrawing: false, discoverMode: false, searchProgress: '' }),
-  setDiscoverMode: (active) => set({ discoverMode: active }),
-  setSearchProgress: (msg) => set({ searchProgress: msg }),
-  selectAllDiscover: () =>
-    set((s) => {
-      const max = Math.min(s.discoverResults.length, 20);
-      const next = new Set(s.discoverResults.slice(0, max).map((r) => r.placeId));
-      return { selectedDiscoverIds: next };
+    set({
+      discoverResults: [],
+      selectedDiscoverIds: new Set(),
+      drawBounds: null,
+      isDrawing: false,
+      marathonMode: false,
+      marathonZones: [],
+      marathonSearchCount: 0,
     }),
-  setHoveredDiscoverId: (id) => set({ hoveredDiscoverId: id }),
+  toggleMarathonMode: () => set((s) => ({ marathonMode: !s.marathonMode })),
+  addMarathonZone: (zone) => set((s) => ({ marathonZones: [...s.marathonZones, zone] })),
+  clearMarathonZone: (zoneId) =>
+    set((s) => ({
+      marathonZones: s.marathonZones.filter((z) => z.id !== zoneId),
+      marathonSearchCount: Math.max(0, s.marathonSearchCount - 1),
+    })),
+  resetMarathon: () => set({ marathonZones: [], marathonSearchCount: 0 }),
+  incrementMarathonCount: () => set((s) => ({ marathonSearchCount: s.marathonSearchCount + 1 })),
 });
