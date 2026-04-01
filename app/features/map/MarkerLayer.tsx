@@ -284,7 +284,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
     }
   }, [map, pins, activeStatusFilter, deletePin, onEditPin, handleMarkerClick]);
 
-  // Listen for sidebar pin clicks to open InfoWindow
+  // Listen for sidebar pin clicks to pan, bounce, and open InfoWindow
   useEffect(() => {
     function handleOpenPinInfo(e: Event) {
       const pinId = (e as CustomEvent).detail?.pinId;
@@ -292,6 +292,17 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       const pin = pins.find((p) => p.id === pinId);
       const marker = markerPool.current.get(pinId);
       if (pin && marker) {
+        // Smooth pan to pin
+        map.panTo({ lat: pin.lat, lng: pin.lng });
+        const currentZoom = map.getZoom() ?? 12;
+        if (currentZoom < 14) map.setZoom(14);
+        // Bounce the marker
+        const el = marker.content as HTMLElement;
+        if (el) {
+          el.classList.add("marker-bounce");
+          setTimeout(() => el.classList.remove("marker-bounce"), 700);
+        }
+        // Open InfoWindow
         handleMarkerClick(pin, marker);
       }
     }

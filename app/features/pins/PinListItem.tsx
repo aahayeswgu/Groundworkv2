@@ -1,7 +1,5 @@
 "use client";
 
-import { useContext } from "react";
-import { MapContext } from "@/app/features/map/MapContext";
 import { useStore } from "@/app/store";
 import type { Pin } from "@/app/types/pins.types";
 import type { RouteStop } from "@/app/types/route.types";
@@ -33,20 +31,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const isPlanned = todayStops.some((s) => s.pinId === pin.id);
 
   function handleClick() {
-    if (!map) return;
-    // Smooth pan — no jarky snap
-    map.panTo({ lat: pin.lat, lng: pin.lng });
-    const currentZoom = map.getZoom() ?? 12;
-    if (currentZoom < 14) {
-      map.setZoom(14);
-    }
-    // Find marker element by data-pin-id, bounce it, and open InfoWindow via custom event
-    const markerEl = document.querySelector<HTMLElement>(`[data-pin-id="${pin.id}"]`);
-    if (markerEl) {
-      markerEl.classList.add("marker-bounce");
-      setTimeout(() => markerEl.classList.remove("marker-bounce"), 700);
-    }
-    // Dispatch custom event for MarkerLayer to open the InfoWindow
+    // Dispatch custom event — MarkerLayer handles pan, bounce, and InfoWindow
     window.dispatchEvent(new CustomEvent("open-pin-info", { detail: { pinId: pin.id } }));
   }
 
