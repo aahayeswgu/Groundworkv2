@@ -78,37 +78,37 @@ Deferred beyond v1.1.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-05 | — | Pending |
-| FOUN-06 | — | Pending |
-| MARA-01 | — | Pending |
-| MARA-02 | — | Pending |
-| MARA-03 | — | Pending |
-| MARA-04 | — | Pending |
-| MARA-05 | — | Pending |
-| MARA-06 | — | Pending |
-| MARA-07 | — | Pending |
-| ASKI-01 | — | Pending |
-| ASKI-02 | — | Pending |
-| ASKI-03 | — | Pending |
-| ASKI-04 | — | Pending |
-| ASKI-05 | — | Pending |
-| ASKI-06 | — | Pending |
-| PLAN-01 | — | Pending |
-| PLAN-02 | — | Pending |
-| PLAN-03 | — | Pending |
-| PLAN-04 | — | Pending |
-| PLAN-05 | — | Pending |
-| PLAN-06 | — | Pending |
-| PLAN-07 | — | Pending |
-| PLAN-08 | — | Pending |
-| PLAN-09 | — | Pending |
-| PLAN-10 | — | Pending |
+| FOUN-05 | Phase 6 | Pending |
+| FOUN-06 | Phase 6 | Pending |
+| PLAN-01 | Phase 6 | Pending |
+| PLAN-02 | Phase 6 | Pending |
+| PLAN-03 | Phase 6 | Pending |
+| PLAN-04 | Phase 6 | Pending |
+| PLAN-05 | Phase 6 | Pending |
+| PLAN-06 | Phase 6 | Pending |
+| PLAN-07 | Phase 6 | Pending |
+| PLAN-08 | Phase 6 | Pending |
+| PLAN-09 | Phase 6 | Pending |
+| PLAN-10 | Phase 6 | Pending |
+| MARA-01 | Phase 7 | Pending |
+| MARA-02 | Phase 7 | Pending |
+| MARA-03 | Phase 7 | Pending |
+| MARA-04 | Phase 7 | Pending |
+| MARA-05 | Phase 7 | Pending |
+| MARA-06 | Phase 7 | Pending |
+| MARA-07 | Phase 7 | Pending |
+| ASKI-01 | Phase 8 | Pending |
+| ASKI-02 | Phase 8 | Pending |
+| ASKI-03 | Phase 8 | Pending |
+| ASKI-04 | Phase 8 | Pending |
+| ASKI-05 | Phase 8 | Pending |
+| ASKI-06 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-01*
-*Last updated: 2026-04-01 after milestone v1.1 definition*
+*Last updated: 2026-03-31 — traceability updated after roadmap revision (Phase 9 merged into Phase 6)*

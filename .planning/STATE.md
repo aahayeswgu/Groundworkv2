@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: power-features
 status: planning
-stopped_at: Defining requirements
-last_updated: "2026-04-01T18:00:00.000Z"
-last_activity: 2026-04-01
+stopped_at: Roadmap revised — Phase 9 merged into Phase 6, v1.1 is now 3 phases (6-8)
+last_updated: "2026-03-31T00:00:00.000Z"
+last_activity: 2026-03-31
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,70 +18,36 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-31)
+See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
-**Current focus:** Phase 05 — route
+**Current focus:** Phase 6 — Planner (v1.1 start)
 
 ## Current Position
 
-<<<<<<< HEAD
-Phase: 05
+Phase: 6 of 8 (Planner)
 Plan: Not started
-Status: Ready to execute
-=======
-Phase: 02 (pins) — EXECUTING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
->>>>>>> worktree-agent-a2942c73
-Last activity: 2026-04-01
+Status: Ready to plan
+Last activity: 2026-03-31 — v1.1 roadmap revised, Phase 9 merged into Phase 6, now 3 phases (6-8)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░] 0% (v1.1 milestone)
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v1.0 reference):**
+- Total plans completed (v1.0): 23
+- Average duration: ~6 min/plan
+- Total execution time: ~2.3 hours
 
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
-
-**By Phase:**
+**v1.1 By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: —
-- Trend: —
+| 6. Planner | TBD | - | - |
+| 7. Marathon Mode | TBD | - | - |
+| 8. Ask AI | TBD | - | - |
 
 *Updated after each plan completion*
-| Phase 01-foundation P01 | 10 | 3 tasks | 11 files |
-| Phase 01-foundation P02 | 5 | 3 tasks | 2 files |
-| Phase 02-pins P01 | 5 | 2 tasks | 4 files |
-| Phase 02-pins P02 | 8 | 2 tasks | 2 files |
-| Phase 02-pins P03 | 8 | 2 tasks | 2 files |
-| Phase 02-pins P05 | 10 | 2 tasks | 4 files |
-| Phase 02-pins P06 | 2 | 2 tasks | 2 files |
-<<<<<<< HEAD
-| Phase 03-supabase-sync P01 | 1 | 1 tasks | 4 files |
-| Phase 03-supabase-sync P02 | 10 | 2 tasks | 3 files |
-| Phase 03-supabase-sync P03 | 5min | 2 tasks | 3 files |
-| Phase 04-discover P01 | 8 | 2 tasks | 3 files |
-| Phase 04-discover P02 | 8 | 1 tasks | 3 files |
-| Phase 04-discover P03 | 5 | 2 tasks | 3 files |
-| Phase 04-discover P04 | 3 | 2 tasks | 3 files |
-| Phase 04-discover P05 | 2 | 2 tasks | 3 files |
-| Phase 05-route P01 | 54s | 2 tasks | 2 files |
-=======
-| Phase 05-route P00 | 14 | 2 tasks | 3 files |
->>>>>>> worktree-agent-a2942c73
-| Phase 05-route P02 | 8 minutes | 2 tasks | 5 files |
-| Phase 05-route P03 | 4 | 1 tasks | 4 files |
-| Phase 05-route P06 | 3 | 1 tasks | 3 files |
-| Phase 05-route P05 | 4 minutes | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -90,61 +56,14 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- — see PROJECT.md Key Decisions table for pending decisions
-- [Phase 01-foundation]: Zustand v5 slice composition with StateCreator for feature-colocated stores
-- [Phase 01-foundation]: PinStatus as lowercase string literals matching four sales workflow statuses
-- [Phase 01-foundation]: selectedDiscoverIds as Set<string> — Zustand v5 handles Set correctly
-- [Phase 01-foundation]: mapState useState used instead of ref.current in MapContext.Provider to comply with react-hooks/refs lint rule and ensure correct re-renders
-- [Phase 01-foundation]: DEMO_MAP_ID as default env value for NEXT_PUBLIC_GOOGLE_MAP_ID — Google built-in constant enables AdvancedMarkerElement in dev without a real Map ID
-- [Phase 02-pins]: Persist only pins to localStorage — discover results and route state are ephemeral by design
-- [Phase 02-pins]: skipHydration: true with client-side StoreHydration component prevents SSR localStorage access crash
-- [Phase 02-pins]: activeStatusFilter initialized with all 4 statuses enabled — show-all is the safe default
-- [Phase 02-pins]: Used useContext(MapContext) directly in MarkerLayer to allow null map during initialization without throwing
-- [Phase 02-pins]: SVG gradient IDs scoped per status name to prevent defs conflicts at high pin density
-- [Phase 02-pins]: InfoWindow content built as DOM element tree (not string) for reliable click event delegation
-- [Phase 02-pins]: exitDropMode/enterDropMode defined before map init useEffect to satisfy TypeScript block-scoped variable rules
-- [Phase 02-pins]: reverseGeocode uses lazy Geocoder singleton initialized on first call via importLibrary('geocoding') — separate from maps and marker libraries
-- [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
-- [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
-- [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
-
-<<<<<<< HEAD
-
-- [Phase 03-supabase-sync]: vitest.config.ts @ alias maps to project root via path.resolve(__dirname, '.') — consistent with tsconfig paths
-- [Phase 03-supabase-sync]: merge.ts is a pure module with no use client directive — enables isolated unit testing without browser/React setup
-- [Phase 03-supabase-sync]: Plain useStore.subscribe (1-arg) instead of subscribeWithSelector — avoids middleware overhead, uses prevPinIdsRef for deletion detection
-- [Phase 04-discover]: classifyGooglePlace takes (types, displayName) directly — callable at render time without full place object
-- [Phase 04-discover]: filterAndMapPlace accepts seen: Set<string> by reference — accumulates dedup across multiple query batches
-- [Phase 04-discover]: isInBounds uses strict inequality to reject boundary-touching results per D-17 strict containment
-- [Phase 04-discover]: Cast locationRestriction as any — @types/google.maps v3.58.1 types lag behind Places New API rectangle shape
-- [Phase 04-discover]: setSearchProgress accessed via optional chaining with no-op fallback for parallel Wave 1 TypeScript compatibility
-- [Phase 04-discover]: buildQuickSavePin uses Pin type field names (followUpDate, createdAt, updatedAt) not plan aliases — real types govern over stale plan references
-- [Phase 04-discover]: Save button in buildDiscoverInfoContent updates textContent in-place — never calls infoWindow.setContent() per D-11 to prevent Pitfall 5 re-render loop
-- [Phase 04-discover]: hoveredDiscoverId added to DiscoverSlice in plan 04 — enables DiscoverResultItem hover sync without cross-plan coupling
-- [Phase 04-discover]: Hover useEffect separate from main marker sync — avoids full pool re-sync on every hover event
-- [Phase 04-discover]: areaRect stays visible after draw until clearDiscover() — preserves visual context during result review
-- [Phase 04-discover]: DiscoverResultItem exported as named export — imported by DiscoverPanel in same feature folder
-- [Phase 04-discover]: Quick-save dedup reads useStore.getState().pins at click time — avoids stale closure from render
-- [Phase 05-route]: reorderStops accepts RouteStop[] directly (not index array) — aligns with dnd-kit arrayMove output, avoids index-mapping bug
-- [Phase 05-route]: clearRoute does NOT reset startMode/customStartAddress — user's home base preference persists between route sessions
-- [Phase 05-route]: addStop returns boolean — callers check the return value to handle 25-stop cap at UI layer
-
-=======
-
-- [Phase 05-route]: Route store test harness uses minimal StateCreator shim — no full AppStore needed for unit tests
-- [Phase 05-route]: route-service tests stub google.maps.importLibrary globally — avoids real API calls in test environment
-
->>>>>>> worktree-agent-a2942c73
-
-- [Phase 05-route]: Route class (routes library) used instead of deprecated DirectionsService — avoids deprecated-API debt from Feb 2026
-- [Phase 05-route]: api=1 URL format overrides D-05 path format — documented, stable, correct encoding via URLSearchParams
-- [Phase 05-route]: Vitest v4 requires function() not arrow function for vi.fn() constructor mocks
-- [Phase 05-route]: clearOverlays defined inside component (not useCallback) — only accesses stable refs, no closure dependencies
-- [Phase 05-route]: routeMarkerPoolRef is useRef array (not Map) — numbered markers need only bulk cleanup, not keyed lookup
-- [Phase 05-route]: RouteLayer rendered conditionally on mapState (same pattern as MarkerLayer and DiscoverLayer)
-- [Phase 05-route]: RouteConfirmPanel rendered unconditionally — panel handles its own visibility via open prop
-- [Phase 05-route]: onAddToRoute callback added to DiscoverInfoOptions interface — keeps DOM builder testable without store dependency
-- [Phase 05-route]: addStop added to DiscoverLayer main effect dependency array — Zustand selector is stable but declared for correctness
+- [Phase 05-route]: addStop returns boolean — callers check return value to handle 25-stop cap at UI layer
+- [Phase 04-discover]: Save button in buildDiscoverInfoContent updates textContent in-place — never calls infoWindow.setContent() per D-11 to prevent re-render loop
+- [v1.1 research]: Marathon Mode must use `marathonZones: MarathonZone[]` not flat append — preserves zone context, enables per-zone clear
+- [v1.1 research]: Gemini calls must go through `app/api/ask-ai/route.ts` server-side proxy — GEMINI_API_KEY (no NEXT_PUBLIC_ prefix)
+- [v1.1 research]: Use `gemini-2.5-flash` model string in a single config constant — gemini-2.0 shuts down June 1, 2026
+- [v1.1 research]: Store ISO date strings in Zustand, not Date objects — Date objects don't deserialize correctly from persist
+- [v1.1 research]: Zustand persist version must bump to 2 with migration when PlannerSlice added — prevents silent hydration failures
+- [v1.1 roadmap revision]: Phase 6 (Planner Foundation) and Phase 9 (Planner Tab UI) merged into single Phase 6 (Planner) — store migration and UI ship together
 
 ### Pending Todos
 
@@ -152,16 +71,12 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 4 (Discover): Places (New) multi-query concurrency pattern has limited community examples — needs research during plan-phase before implementation sprint
-- Phase 5 (Route): Route class `computeRoutes` field masks and response shape need verification before sprint — `@dnd-kit/sortable` v10 breaking changes also need checking
+- [Phase 7 — Marathon]: Per-zone clear UX (single zone vs. clear all) needs a product decision before implementation begins
+- [Phase 8 — Ask AI]: Gemini 2.5 Flash free tier (250 RPD) needs validation against realistic rep session size before launch
+- [Phase 8 — Ask AI]: Session cache design (Map<placeId, string>) must be implemented before wiring the UI trigger — cache-first is non-negotiable
 
 ## Session Continuity
 
-<<<<<<< HEAD
-Last session: 2026-04-01T05:16:16.862Z
-Stopped at: Completed 05-05-PLAN.md
-=======
-Last session: 2026-04-01T04:56:05.206Z
-Stopped at: Completed 05-route-00-PLAN.md
->>>>>>> worktree-agent-a2942c73
+Last session: 2026-03-31
+Stopped at: v1.1 roadmap revised — Phase 9 merged into Phase 6, now 3 phases (6-8)
 Resume file: None
