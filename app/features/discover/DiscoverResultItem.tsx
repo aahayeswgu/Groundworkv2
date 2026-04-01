@@ -13,6 +13,7 @@ interface DiscoverResultItemProps {
   onQuickSave: (result: DiscoverResult) => void;
   onUnsave: (result: DiscoverResult) => void;
   alreadySaved: boolean;
+  zoneLabel?: string;
 }
 
 export function DiscoverResultItem({
@@ -25,6 +26,7 @@ export function DiscoverResultItem({
   onQuickSave,
   onUnsave,
   alreadySaved,
+  zoneLabel,
 }: DiscoverResultItemProps) {
   const type = classifyGooglePlace(result.types, result.displayName);
 
@@ -51,7 +53,14 @@ export function DiscoverResultItem({
 
       {/* Business info */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-bold text-text-primary truncate">{result.displayName}</div>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="text-sm font-bold text-text-primary truncate">{result.displayName}</div>
+          {zoneLabel && (
+            <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-orange/10 text-orange font-medium">
+              {zoneLabel}
+            </span>
+          )}
+        </div>
         <div className="text-xs text-orange truncate mt-0.5">
           {type}
           {result.rating ? ` · ★ ${result.rating}` : ""}
