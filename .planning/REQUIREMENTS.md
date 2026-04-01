@@ -42,7 +42,7 @@ Requirements for milestone v1.1: Power Features.
 - [ ] **PLAN-03**: User can add stops to planner from pin info window, route confirm panel ("Send to Planner"), or sidebar
 - [x] **PLAN-04**: User can mark stops as visited, skipped, or pending
 - [x] **PLAN-05**: Daily notes text area for free-form notes about the day
-- [ ] **PLAN-06**: Date navigation — prev/next day arrows, today button, calendar date picker
+- [x] **PLAN-06**: Date navigation — prev/next day arrows, today button, calendar date picker
 - [x] **PLAN-07**: Activity log per day — timestamped entries for stop visits, route starts, notes added
 - [x] **PLAN-08**: Stats display — planned count, visited count, skipped count for the current day
 - [x] **PLAN-09**: Planner stops persist to localStorage via Zustand persist (keyed by date)
@@ -85,7 +85,7 @@ Deferred beyond v1.1.
 | PLAN-03 | Phase 6 | Pending |
 | PLAN-04 | Phase 6 | Complete |
 | PLAN-05 | Phase 6 | Complete |
-| PLAN-06 | Phase 6 | Pending |
+| PLAN-06 | Phase 6 | Complete |
 | PLAN-07 | Phase 6 | Complete |
 | PLAN-08 | Phase 6 | Complete |
 | PLAN-09 | Phase 6 | Complete |

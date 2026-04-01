@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Power Features
 status: verifying
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-04-01T18:51:49.209Z"
+stopped_at: Completed 06-04-PLAN.md
+last_updated: "2026-04-01T18:53:08.312Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06-planner P01 | 15min | 3 tasks | 4 files |
 | Phase 06-planner P02 | 8 | 3 tasks | 3 files |
 | Phase 06-planner P03 | 5min | 3 tasks | 3 files |
+| Phase 06-planner P04 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Recent decisions affecting current work:
 - [Phase 06-planner]: PlannerNotes uses local useState with optimistic update; store write deferred 800ms via debounceRef
 - [Phase 06-planner]: PlannerActivityLog collapse state is component-local (session-only per D-02, not in Zustand)
 - [Phase 06-planner]: handleAddNotesPage wraps addNotesPage in PlannerPanel to keep PlannerNotes pure of activity log concerns
+- [Phase 06-planner]: PlannerCalendar uses vanilla JS Date math only — no external calendar library
+- [Phase 06-planner]: calendarOpen and monthViewOpen both mount the same PlannerCalendar component — distinction is only in which toggle triggers them
+- [Phase 06-planner]: en-CA locale gives YYYY-MM-DD in local time — use for all ISO date string construction
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T18:51:49.207Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-04-01T18:53:08.310Z
+Stopped at: Completed 06-04-PLAN.md
 Resume file: None
