@@ -21,6 +21,8 @@ interface PinListItemProps {
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const map = useContext(MapContext);
   const addStop = useStore((s) => s.addStop);
+  const addPlannerStop = useStore((s) => s.addPlannerStop);
+  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
 
   function handleClick() {
     if (!map) return;
@@ -69,6 +71,28 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
         title="Add to Route"
       >
         + Route
+      </button>
+      <button
+        className="opacity-0 group-hover:opacity-100 shrink-0 text-[#3B8CB5] hover:text-[#3B8CB5]/80 text-xs font-bold px-2 py-1 rounded border border-[#3B8CB5]/30 hover:border-[#3B8CB5] transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          const today = new Date().toISOString().slice(0, 10);
+          setActivePlannerDate(today);
+          addPlannerStop({
+            id: crypto.randomUUID(),
+            pinId: pin.id,
+            label: pin.title,
+            address: pin.address ?? "",
+            lat: pin.lat,
+            lng: pin.lng,
+            status: "planned",
+            addedAt: new Date().toISOString(),
+            visitedAt: null,
+          });
+        }}
+        title="Add to Planner"
+      >
+        + Plan
       </button>
       <button
         className="opacity-0 group-hover:opacity-100 shrink-0 text-text-muted hover:text-orange transition-opacity"

@@ -91,11 +91,38 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
   const setCustomStartAddress = useStore((s) => s.setCustomStartAddress);
   const setShareableUrl = useStore((s) => s.setShareableUrl);
   const clearRoute = useStore((s) => s.clearRoute);
+  const addPlannerStop = useStore((s) => s.addPlannerStop);
+  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
+  const addActivityEntry = useStore((s) => s.addActivityEntry);
+  const trackingEnabled = useStore((s) => s.trackingEnabled);
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
+
+  function handleSendToPlanner() {
+    if (routeStops.length === 0) return;
+    const today = new Date().toISOString().slice(0, 10);
+    setActivePlannerDate(today);
+    routeStops.forEach((rs) => {
+      addPlannerStop({
+        id: crypto.randomUUID(),
+        pinId: rs.id,
+        label: rs.label,
+        address: rs.address,
+        lat: rs.lat,
+        lng: rs.lng,
+        status: "planned",
+        addedAt: new Date().toISOString(),
+        visitedAt: null,
+      });
+    });
+    if (trackingEnabled) {
+      const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      addActivityEntry({ time, text: `Added ${routeStops.length} stops from route` });
+    }
+  }
 
   const resolveOrigin = useCallback(async (): Promise<{ address?: string; lat?: number; lng?: number } | null> => {
     if (startMode === "home") {
@@ -295,7 +322,15 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       )}
 
       {/* Action buttons */}
-      <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex gap-2">
+      <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
+        <button
+          onClick={handleSendToPlanner}
+          disabled={routeStops.length === 0}
+          className="w-full py-2.5 rounded-lg border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Send to Planner
+        </button>
+        <div className="flex gap-2">
         <button
           onClick={() => { clearRoute(); onClose(); }}
           className="px-4 py-2.5 rounded-xl border border-border text-text-muted text-sm font-semibold hover:border-red-400 hover:text-red-400 transition-colors"
@@ -319,6 +354,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
           </svg>
           Open Maps
         </button>
+        </div>
       </div>
     </div>
   );
