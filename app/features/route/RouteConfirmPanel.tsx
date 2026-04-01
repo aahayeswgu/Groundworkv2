@@ -20,6 +20,7 @@ import { useStore } from "@/app/store";
 import { computeRoute } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
+import PlacesAutocomplete from "@/app/components/PlacesAutocomplete";
 import type { RouteStop } from "@/app/types/route.types";
 
 interface RouteConfirmPanelProps {
@@ -134,18 +135,12 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       const oldIndex = routeStops.findIndex((s) => s.id === active.id);
       const newIndex = routeStops.findIndex((s) => s.id === over.id);
       const newOrder = arrayMove(routeStops, oldIndex, newIndex);
-      reorderStops(newOrder); // accepts RouteStop[] per Plan 01
-      // ROUT-06: drag-to-reorder triggers route recalculation
-      const origin = await resolveOrigin();
-      if (!origin) return;
-      const returnToStart = startMode === "home";
-      const result = await computeRoute(origin, newOrder, returnToStart);
-      if (result) {
-        setRouteResult(result);
-        setRouteActive(true);
-      }
+      reorderStops(newOrder);
+      // Clear stale route display — polyline no longer matches stop order
+      setRouteResult(null);
+      setRouteActive(false);
     },
-    [routeStops, reorderStops, resolveOrigin, startMode, setRouteResult, setRouteActive],
+    [routeStops, reorderStops, setRouteResult, setRouteActive],
   );
 
   const handleBuildRoute = useCallback(async () => {
@@ -161,34 +156,48 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       return;
     }
 
-    const returnToStart = startMode === "home";
-    const result = await computeRoute(origin, routeStops, returnToStart);
+    const result = await computeRoute(origin, routeStops);
     setIsBuilding(false);
 
     if (!result) {
       setBuildError("Could not calculate route. Check your connection and try again.");
       return;
     }
+
+    // Reorder the stop list to match Google's optimized order
+    if (result.optimizedOrder.length > 0) {
+      const optimized = result.optimizedOrder.map((idx) => routeStops[idx]).filter(Boolean);
+      if (optimized.length === routeStops.length) {
+        reorderStops(optimized);
+      }
+    }
+
     setRouteResult(result);
     setRouteActive(true);
-  }, [routeStops, resolveOrigin, startMode, setRouteResult, setRouteActive]);
+  }, [routeStops, resolveOrigin, setRouteResult, setRouteActive, reorderStops]);
 
-  const handleOpenMaps = useCallback(() => {
+  const handleOpenMaps = useCallback(async () => {
     if (routeStops.length === 0) return;
-    // Build a synthetic RouteStop for the origin based on startMode
-    const originLabel =
-      startMode === "home" ? "Home" : startMode === "gps" ? "My Location" : "Start";
+    // Resolve actual origin coordinates for the URL
+    const origin = await resolveOrigin();
+    if (!origin) {
+      // Fallback: just use stops without an origin
+      const url = buildGoogleMapsUrl(routeStops[0], routeStops.slice(1));
+      setShareableUrl(url);
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
     const originStop: RouteStop = {
       id: "origin",
-      label: originLabel,
-      address: customStartAddress || "",
-      lat: 0,
-      lng: 0,
+      label: startMode === "home" ? "Home" : startMode === "gps" ? "My Location" : "Start",
+      address: origin.address ?? customStartAddress ?? "",
+      lat: origin.lat ?? 0,
+      lng: origin.lng ?? 0,
     };
     const url = buildGoogleMapsUrl(originStop, routeStops);
     setShareableUrl(url);
     window.open(url, "_blank", "noopener,noreferrer");
-  }, [routeStops, startMode, customStartAddress, setShareableUrl]);
+  }, [routeStops, startMode, customStartAddress, setShareableUrl, resolveOrigin]);
 
   const distanceMi = routeResult
     ? (routeResult.totalDistanceMeters / 1609.34).toFixed(1)
@@ -243,10 +252,9 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
           ))}
         </div>
         {(startMode === "home" || startMode === "custom") && (
-          <input
-            type="text"
+          <PlacesAutocomplete
             value={customStartAddress}
-            onChange={(e) => setCustomStartAddress(e.target.value)}
+            onChange={setCustomStartAddress}
             placeholder={startMode === "home" ? "Enter home address" : "Enter start address"}
             className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-secondary text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
           />
@@ -256,17 +264,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
         )}
       </div>
 
-      {/* Mobile truncation warning */}
-      {showMobileWarning && (
-        <div className="mx-4 mt-3 px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg shrink-0">
-          <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
-            Mobile Maps may show only 3&#8211;5 stops
-          </div>
-          <div className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-0.5">
-            Google Maps on mobile supports limited waypoints. All stops will be in the link — tap again on desktop for the full route.
-          </div>
-        </div>
-      )}
+      {/* Mobile truncation warning — removed per user request */}
 
       {/* Stop list */}
       {routeStops.length === 0 ? (

@@ -35,7 +35,10 @@ export const createRouteSlice: StateCreator<RouteSlice> = (set, get) => ({
   shareableUrl: null,
 
   addStop: (stop) => {
-    if (get().routeStops.length >= MAX_STOPS) return false;
+    const current = get().routeStops;
+    if (current.length >= MAX_STOPS) return false;
+    // Dedup by ID only — coordinate proximity was too aggressive
+    if (current.some((s) => s.id === stop.id)) return true;
     set((s) => ({ routeStops: [...s.routeStops, stop] }));
     return true;
   },

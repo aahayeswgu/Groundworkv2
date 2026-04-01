@@ -16,6 +16,8 @@ export default function RouteLayer() {
   const routeLineRef = useRef<google.maps.Polyline | null>(null);
   // Numbered marker pool — array because we only need bulk cleanup, not keyed access
   const routeMarkerPoolRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  // Single shared InfoWindow for route stop details
+  const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
 
   const clearOverlays = () => {
     if (routeBorderRef.current) { routeBorderRef.current.setMap(null); routeBorderRef.current = null; }
@@ -51,10 +53,15 @@ export default function RouteLayer() {
       zIndex: 2,
     });
 
-    // Numbered markers in optimized order (or array order if no optimization result)
-    const orderedStops = optimizedOrder.length > 0
-      ? optimizedOrder.map((idx) => routeStops[idx]).filter(Boolean)
-      : [...routeStops];
+    // Place numbered markers at each stop position (always use routeStops array order —
+    // the polyline already shows the optimized path, markers just label the stops)
+    const orderedStops = [...routeStops];
+
+    // Lazy-init shared InfoWindow
+    if (!infoWindowRef.current) {
+      infoWindowRef.current = new google.maps.InfoWindow();
+    }
+    const infoWindow = infoWindowRef.current;
 
     orderedStops.forEach((stop, i) => {
       const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -63,6 +70,22 @@ export default function RouteLayer() {
         content: createNumberedMarkerElement(String(i + 1)),
         zIndex: 1001 + i,
       });
+
+      // Click to show business info
+      const markerContent = marker.content as HTMLElement;
+      if (markerContent) markerContent.style.cursor = "pointer";
+      marker.addListener("click", () => {
+        const content = document.createElement("div");
+        content.style.cssText = "font-family:DM Sans,sans-serif;padding:8px 12px;min-width:200px;";
+        content.innerHTML = `
+          <div style="font-size:14px;font-weight:700;color:#1A1A1A;">Stop ${i + 1}: ${stop.label}</div>
+          <div style="font-size:12px;color:#666;margin-top:4px;">${stop.address}</div>
+          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(stop.address || `${stop.lat},${stop.lng}`)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:12px;color:#4285F4;font-weight:600;text-decoration:none;">View on Google Maps</a>
+        `;
+        infoWindow.setContent(content);
+        infoWindow.open({ map, anchor: marker });
+      });
+
       routeMarkerPoolRef.current.push(marker);
     });
 

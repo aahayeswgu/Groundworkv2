@@ -24,8 +24,12 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
 
   function handleClick() {
     if (!map) return;
+    // Smooth pan — no jarky snap
     map.panTo({ lat: pin.lat, lng: pin.lng });
-    map.setZoom(15);
+    const currentZoom = map.getZoom() ?? 12;
+    if (currentZoom < 14) {
+      map.setZoom(14);
+    }
     // Find marker element by data-pin-id attribute and bounce it
     const markerEl = document.querySelector<HTMLElement>(`[data-pin-id="${pin.id}"]`);
     if (markerEl) {
