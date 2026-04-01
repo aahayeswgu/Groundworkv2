@@ -17,6 +17,8 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
   const deletePin = useStore((s) => s.deletePin);
   const addStop = useStore((s) => s.addStop);
+  const addPlannerStop = useStore((s) => s.addPlannerStop);
+  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
 
   const markerPool = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
   const infoWindow = useRef<google.maps.InfoWindow | null>(null);
@@ -92,9 +94,16 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       routeBtn.style.cssText =
         "padding:4px 12px;background:transparent;color:#D4712A;border:1px solid #D4712A;border-radius:6px;cursor:pointer;font-size:12px";
 
+      const planBtn = document.createElement("button");
+      planBtn.dataset.action = "plan";
+      planBtn.textContent = "+ Plan";
+      planBtn.style.cssText =
+        "padding:4px 12px;background:transparent;color:#3B82F6;border:1px solid #3B82F6;border-radius:6px;cursor:pointer;font-size:12px";
+
       buttonRow.appendChild(editBtn);
       buttonRow.appendChild(deleteBtn);
       buttonRow.appendChild(routeBtn);
+      buttonRow.appendChild(planBtn);
       container.appendChild(buttonRow);
 
       container.addEventListener("click", (e) => {
@@ -127,11 +136,29 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
             (target as HTMLButtonElement).disabled = true;
           }
         }
+        if (action === "plan") {
+          const today = new Date().toISOString().slice(0, 10);
+          setActivePlannerDate(today);
+          addPlannerStop({
+            id: crypto.randomUUID(),
+            pinId: pin.id,
+            label: pin.title,
+            address: pin.address ?? "",
+            lat: pin.lat,
+            lng: pin.lng,
+            status: "planned",
+            addedAt: new Date().toISOString(),
+            visitedAt: null,
+          });
+          // Mutate in-place — DO NOT call infoWindow.setContent()
+          target.textContent = "✓ Planned";
+          (target as HTMLButtonElement).disabled = true;
+        }
       });
 
       return container;
     },
-    [deletePin, onEditPin, addStop],
+    [deletePin, onEditPin, addStop, addPlannerStop, setActivePlannerDate],
   );
 
   const handleMarkerClick = useCallback(
