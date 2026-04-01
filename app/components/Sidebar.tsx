@@ -1,12 +1,16 @@
 "use client";
 
 import PinList from "@/app/features/pins/PinList";
+import { useStore } from "@/app/store/index";
+import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 
 interface SidebarProps {
   onEditPin?: (pinId: string) => void;
 }
 
 export default function Sidebar({ onEditPin }: SidebarProps) {
+  const discoverMode = useStore((s) => s.discoverMode);
+
   return (
     <div className="sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20">
       {/* Collapse toggle */}
@@ -75,9 +79,12 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
         </button>
       </div>
 
-      {/* PinList — replaces static search, filters, pin list, and stats placeholder content */}
+      {/* Content area — swaps between PinList and DiscoverPanel based on mode */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <PinList onEditPin={onEditPin ?? (() => {})} />
+        {discoverMode
+          ? <DiscoverPanel />
+          : <PinList onEditPin={onEditPin ?? (() => {})} />
+        }
       </div>
     </div>
   );
