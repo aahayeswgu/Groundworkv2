@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import PinList from "@/app/features/pins/PinList";
 import { useStore } from "@/app/store/index";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
@@ -10,11 +11,13 @@ interface SidebarProps {
 
 export default function Sidebar({ onEditPin }: SidebarProps) {
   const discoverMode = useStore((s) => s.discoverMode);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20">
+    <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${collapsed ? "collapsed" : ""}`}>
       {/* Collapse toggle */}
       <button
+        onClick={() => setCollapsed((prev) => !prev)}
         className="sidebar-toggle absolute z-21 flex items-center justify-center cursor-pointer bg-bg-card border border-border text-text-secondary transition-all duration-200 hover:text-orange hover:bg-orange-dim"
         title="Toggle sidebar"
       >
