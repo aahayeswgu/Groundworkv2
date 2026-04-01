@@ -26,8 +26,11 @@ A sales rep can discover businesses in an area, pin the ones worth visiting, bui
 - ✓ localStorage persistence via Zustand persist middleware — Phase 2
 - ✓ Supabase cloud sync with merge semantics and soft-delete — Phase 3
 - ✓ Draw-to-search business discovery with Places API (New), filters, dedup, quick-save — Phase 4
+- ✓ Multi-stop route optimization with Google Directions, reorderable stops, Google Maps shareable link — Phase 5
 
 ### Active
+
+(All v1 requirements complete)
 - [ ] Draw-to-search: click+drag rectangle on map to define search area
 - [ ] Configurable query categories (default: 18 construction/trade queries, swappable via config)
 - [ ] Google Places API search with chain/residential/irrelevant-type exclusion filters
@@ -115,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-01 after Phase 4 completion*
+*Last updated: 2026-04-01 after Phase 5 completion — v1 milestone complete*
