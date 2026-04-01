@@ -32,14 +32,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Discover
 
-- [ ] **DISC-01**: User can click Discover button to enter discovery mode
+- [x] **DISC-01**: User can click Discover button to enter discovery mode
 - [x] **DISC-02**: User draws a rectangle on the map via click+drag to define the search area
 - [x] **DISC-03**: Search area is validated (min 200m, max 30km)
 - [x] **DISC-04**: App searches Google Places (New API) using configurable query categories (default: 18 construction/trade queries)
 - [x] **DISC-05**: Results are filtered by chain/residential/irrelevant-type exclusion rules
 - [x] **DISC-06**: Results are deduplicated by place_id, normalized name, and coordinate proximity
 - [x] **DISC-07**: Results are strictly filtered to the drawn rectangle bounds (client-side containment check)
-- [ ] **DISC-08**: Results display in a scrollable list with business name, type classification, rating, and address
+- [x] **DISC-08**: Results display in a scrollable list with business name, type classification, rating, and address
 - [x] **DISC-09**: Results display as markers on the map (orange default, green selected, yellow hover)
 - [x] **DISC-10**: Clicking a discover marker shows an info bubble with photo, name, type, rating, address, and action buttons
 - [x] **DISC-11**: User can select multiple discovered businesses via checkboxes
@@ -119,14 +119,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PINS-11 | Phase 2 | Complete |
 | PINS-12 | Phase 2 | Complete |
 | PINS-13 | Phase 3 | Complete |
-| DISC-01 | Phase 4 | Pending |
+| DISC-01 | Phase 4 | Complete |
 | DISC-02 | Phase 4 | Complete |
 | DISC-03 | Phase 4 | Complete |
 | DISC-04 | Phase 4 | Complete |
 | DISC-05 | Phase 4 | Complete |
 | DISC-06 | Phase 4 | Complete |
 | DISC-07 | Phase 4 | Complete |
-| DISC-08 | Phase 4 | Pending |
+| DISC-08 | Phase 4 | Complete |
 | DISC-09 | Phase 4 | Complete |
 | DISC-10 | Phase 4 | Complete |
 | DISC-11 | Phase 4 | Complete |
