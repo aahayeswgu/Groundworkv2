@@ -3,6 +3,7 @@
 import { useStore } from "@/app/store/index";
 import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
+import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
 
 export default function DiscoverPanel() {
   const discoverResults = useStore((s) => s.discoverResults);
@@ -40,8 +41,18 @@ export default function DiscoverPanel() {
       {/* Step 2: Searching progress */}
       {step === 2 && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
-          <div className="text-text-secondary text-sm text-center">{searchProgress}</div>
+          <div className="text-text-primary text-sm font-semibold text-center">{searchProgress}</div>
           <div className="text-text-muted text-xs">This may take a moment...</div>
+          <button
+            onClick={() => {
+              cancelDiscoverSearch();
+              setDiscoverMode(false);
+              clearDiscover();
+            }}
+            className="mt-2 px-4 py-1.5 rounded-lg border border-red-400 text-red-400 text-xs font-bold hover:bg-red-400/10 transition-colors"
+          >
+            Stop Search
+          </button>
         </div>
       )}
 

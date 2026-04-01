@@ -5,6 +5,13 @@ import type { DiscoverResult } from "@/app/types/discover.types";
 
 export type DrawBounds = { swLat: number; swLng: number; neLat: number; neLng: number };
 
+// Cancellation token — set to true to abort the current search
+let cancelToken = false;
+
+export function cancelDiscoverSearch(): void {
+  cancelToken = true;
+}
+
 export function validateBounds(bounds: DrawBounds): { valid: boolean; error?: string } {
   const ne = new google.maps.LatLng(bounds.neLat, bounds.neLng);
   const sw = new google.maps.LatLng(bounds.swLat, bounds.swLng);
@@ -15,6 +22,11 @@ export function validateBounds(bounds: DrawBounds): { valid: boolean; error?: st
 }
 
 export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> {
+  // Cancel any in-progress search
+  cancelToken = true;
+  await sleep(50);
+  cancelToken = false;
+
   const { Place } = (await google.maps.importLibrary("places")) as google.maps.PlacesLibrary;
 
   const store = useStore.getState() as ReturnType<typeof useStore.getState> & {
@@ -23,13 +35,22 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   const { setDiscoverResults, setIsDrawing } = store;
   const setSearchProgress: (msg: string) => void = store.setSearchProgress ?? (() => {});
 
+  // Clear old results before starting new search
+  setDiscoverResults([]);
+  setIsDrawing(false);
+  setSearchProgress("Starting search...");
+
   const seen = new Set<string>();
   const results: DiscoverResult[] = [];
 
-  setIsDrawing(false);
+  for (let i = 0; i < DISCOVER_QUERIES.length; i++) {
+    if (cancelToken) {
+      setSearchProgress("");
+      return;
+    }
 
-  for (const query of DISCOVER_QUERIES) {
-    setSearchProgress(`Searching: ${query}... (${results.length} found)`);
+    const query = DISCOVER_QUERIES[i];
+    setSearchProgress(`Searching: ${query}... (${results.length} found) [${i + 1}/${DISCOVER_QUERIES.length}]`);
     try {
       const { places } = await Place.searchByText({
         textQuery: query,
@@ -61,6 +82,11 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
       console.error(`[Discover] Query "${query}" failed:`, err);
     }
     await sleep(200);
+  }
+
+  if (cancelToken) {
+    setSearchProgress("");
+    return;
   }
 
   results.sort((a, b) => a.displayName.localeCompare(b.displayName));
