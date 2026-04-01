@@ -13,6 +13,7 @@ import {
   buildQuickSavePin,
 } from "./discover-info";
 import type { DiscoverResult } from "@/app/types/discover.types";
+import type { RouteStop } from "@/app/types/route.types";
 
 function getMarkerState(
   placeId: string,
@@ -29,6 +30,7 @@ export default function DiscoverLayer() {
   const discoverResults = useStore((s) => s.discoverResults);
   const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
   const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
+  const addStop = useStore((s) => s.addStop);
 
   const markerPool = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
   const infoWindow = useRef<google.maps.InfoWindow | null>(null);
@@ -124,6 +126,16 @@ export default function DiscoverLayer() {
             }
             // Button text updated in-place by buildDiscoverInfoContent — no setContent call needed
           },
+          onAddToRoute: () => {
+            const stop: RouteStop = {
+              id: `discover_${capturedResult.placeId}`,
+              label: capturedResult.displayName,
+              address: capturedResult.address ?? "",
+              lat: capturedResult.lat,
+              lng: capturedResult.lng,
+            };
+            addStop(stop);
+          },
         });
 
         infoWindow.current.setContent(content);
@@ -133,7 +145,7 @@ export default function DiscoverLayer() {
 
       markerPool.current.set(result.placeId, marker);
     }
-  }, [map, discoverResults, selectedDiscoverIds]);
+  }, [map, discoverResults, selectedDiscoverIds, addStop]);
 
   // Hover sync effect — update visual state when hovered ID changes
   useEffect(() => {

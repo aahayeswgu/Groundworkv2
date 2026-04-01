@@ -6,9 +6,10 @@ export interface DiscoverInfoOptions {
   result: DiscoverResult;
   alreadySaved: boolean;
   onSave: () => void; // Called when "Save as Pin" button is clicked
+  onAddToRoute: () => void; // Called when "Add to Route" is clicked
 }
 
-export function buildDiscoverInfoContent({ result, alreadySaved, onSave }: DiscoverInfoOptions): HTMLElement {
+export function buildDiscoverInfoContent({ result, alreadySaved, onSave, onAddToRoute }: DiscoverInfoOptions): HTMLElement {
   const container = document.createElement('div');
   container.style.cssText = 'width:300px;font-family:inherit';
 
@@ -90,12 +91,16 @@ export function buildDiscoverInfoContent({ result, alreadySaved, onSave }: Disco
   actionRow.appendChild(saveBtn);
   body.appendChild(actionRow);
 
-  // Add to Route placeholder button (per D-07, Phase 5 wiring)
+  // Add to Route button (wired in Phase 5)
   const routeBtn = document.createElement('button');
-  routeBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:7px;border-radius:6px;border:1px solid #D4712A;background:none;color:#D4712A;font-size:12px;font-weight:700;cursor:not-allowed;opacity:0.5;margin-top:8px';
+  routeBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:4px;width:100%;padding:7px;border-radius:6px;border:1px solid #D4712A;background:none;color:#D4712A;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px';
   routeBtn.textContent = '+ Add to Route';
-  routeBtn.disabled = true;
-  routeBtn.title = 'Coming in Phase 5';
+  routeBtn.addEventListener('click', () => {
+    onAddToRoute();
+    routeBtn.textContent = '✓ Added to Route';
+    routeBtn.disabled = true;
+    routeBtn.style.cssText = routeBtn.style.cssText + ';cursor:default;opacity:0.7';
+  });
   body.appendChild(routeBtn);
 
   container.appendChild(body);

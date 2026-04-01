@@ -5,6 +5,7 @@ import { MapContext } from "./MapContext";
 import { useStore } from "@/app/store";
 import { createPinMarkerElement } from "@/app/features/pins/pin-marker";
 import type { Pin } from "@/app/types/pins.types";
+import type { RouteStop } from "@/app/types/route.types";
 
 interface MarkerLayerProps {
   onEditPin: (pinId: string) => void;
@@ -15,6 +16,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const pins = useStore((s) => s.pins);
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
   const deletePin = useStore((s) => s.deletePin);
+  const addStop = useStore((s) => s.addStop);
 
   const markerPool = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
   const infoWindow = useRef<google.maps.InfoWindow | null>(null);
@@ -88,7 +90,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       routeBtn.dataset.action = "route";
       routeBtn.textContent = "+ Route";
       routeBtn.style.cssText =
-        "padding:4px 12px;background:transparent;color:#888;border:1px solid #ccc;border-radius:6px;font-size:12px;opacity:0.6;cursor:not-allowed";
+        "padding:4px 12px;background:transparent;color:#D4712A;border:1px solid #D4712A;border-radius:6px;cursor:pointer;font-size:12px";
 
       buttonRow.appendChild(editBtn);
       buttonRow.appendChild(deleteBtn);
@@ -108,12 +110,28 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
           openPinId.current = null;
           deletePin(pin.id);
         }
-        // 'route' is a placeholder — no action in Phase 2
+        if (action === "route") {
+          const stop: RouteStop = {
+            id: pin.id,
+            label: pin.title,
+            address: pin.address ?? "",
+            lat: pin.lat,
+            lng: pin.lng,
+          };
+          const added = addStop(stop);
+          if (!added) {
+            target.textContent = "Max 25";
+            (target as HTMLButtonElement).disabled = true;
+          } else {
+            target.textContent = "✓ Added";
+            (target as HTMLButtonElement).disabled = true;
+          }
+        }
       });
 
       return container;
     },
-    [deletePin, onEditPin],
+    [deletePin, onEditPin, addStop],
   );
 
   const handleMarkerClick = useCallback(
