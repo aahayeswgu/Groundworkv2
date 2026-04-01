@@ -153,27 +153,57 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       // Ask AI button (only for pins with placeId — discovered businesses)
       if (pin.placeId) {
         const aiBtn = document.createElement("button");
-        aiBtn.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:7px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px";
+        aiBtn.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px";
         aiBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI';
 
         const aiContainer = document.createElement("div");
-        aiContainer.style.cssText = "display:none;margin-top:8px;padding:10px;border-radius:8px;background:#f8f9fa;border:1px solid #e0e0e0;font-size:12px;line-height:1.5;color:#333;max-height:250px;overflow-y:auto";
+        aiContainer.style.cssText = "display:none;margin-top:8px;padding:12px;border-radius:8px;background:#f8f9fa;border:1px solid #e0e0e0;font-size:13px;line-height:1.6;color:#1A1A1A;max-height:300px;overflow-y:auto";
 
-        let aiBriefLoaded = false;
+        let briefText = "";
+        let briefLoaded = false;
+        let detailedLoaded = false;
+
+        function renderMd(text: string): string {
+          return text
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/^(\s*)\*\s+/gm, "$1• ")
+            .replace(/^(\s*)[-–]\s+/gm, "$1• ")
+            .replace(/\n{2,}/g, "<br><br>")
+            .replace(/\n/g, "<br>");
+        }
+
         aiBtn.addEventListener("click", async () => {
-          if (aiBriefLoaded) {
+          if (detailedLoaded) {
             aiContainer.style.display = aiContainer.style.display === "none" ? "block" : "none";
+            aiBtn.textContent = aiContainer.style.display === "none" ? "Show AI Brief" : "Hide AI Brief";
+            return;
+          }
+          if (briefLoaded) {
+            aiBtn.innerHTML = "Digging deeper...";
+            aiBtn.style.opacity = "0.7";
+            try {
+              const detailed = await fetchAiBrief(pin.placeId!, pin.title, pin.address, pin.status, "detailed", briefText);
+              aiContainer.innerHTML = renderMd(briefText + "\n\n---\n\n" + detailed);
+              detailedLoaded = true;
+              aiBtn.textContent = "Hide AI Brief";
+              aiBtn.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:6px;border:1.5px solid #4285F4;background:#4285F4;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px";
+              aiBtn.style.opacity = "1";
+            } catch {
+              aiBtn.innerHTML = "Learn More (retry)";
+              aiBtn.style.opacity = "1";
+            }
             return;
           }
           aiBtn.innerHTML = "Generating...";
           aiBtn.style.opacity = "0.7";
           try {
-            const brief = await fetchAiBrief(pin.placeId!, pin.title, pin.address, pin.status, "brief");
+            briefText = await fetchAiBrief(pin.placeId!, pin.title, pin.address, pin.status, "brief");
             aiContainer.style.display = "block";
-            aiContainer.innerHTML = brief.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
-            aiBriefLoaded = true;
-            aiBtn.innerHTML = "Hide AI Brief";
-            aiBtn.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:7px;border-radius:6px;border:1.5px solid #4285F4;background:#4285F4;color:#fff;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px";
+            aiContainer.innerHTML = renderMd(briefText);
+            briefLoaded = true;
+            aiBtn.innerHTML = "Learn More";
+            aiBtn.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:6px;border:1.5px solid #4285F4;background:#4285F4;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px";
+            aiBtn.style.opacity = "1";
           } catch {
             aiBtn.innerHTML = "Ask AI (retry)";
             aiBtn.style.opacity = "1";

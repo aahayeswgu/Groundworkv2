@@ -12,6 +12,7 @@ export async function fetchAiBrief(
   address: string,
   type: string,
   mode: "brief" | "detailed" = "brief",
+  previousBrief?: string,
 ): Promise<string> {
   const cacheKey = `${placeId}_${mode}`;
   const cached = cache.get(cacheKey);
@@ -20,7 +21,7 @@ export async function fetchAiBrief(
   const res = await fetch("/api/ask-ai", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, address, type, mode }),
+    body: JSON.stringify({ name, address, type, mode, previousBrief }),
   });
 
   if (!res.ok) {

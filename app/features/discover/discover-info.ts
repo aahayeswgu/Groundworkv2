@@ -106,57 +106,66 @@ export function buildDiscoverInfoContent({ result, alreadySaved, onSave, onAddTo
 
   // Ask AI button
   const aiBtn = document.createElement('button');
-  aiBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:7px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px;transition:all 0.15s';
+  aiBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px';
   aiBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI';
 
-  // AI response container (hidden until clicked)
   const aiContainer = document.createElement('div');
-  aiContainer.style.cssText = 'display:none;margin-top:8px;padding:10px;border-radius:8px;background:#f8f9fa;border:1px solid #e0e0e0;font-size:12px;line-height:1.5;color:#333;max-height:250px;overflow-y:auto';
+  aiContainer.style.cssText = 'display:none;margin-top:8px;padding:12px;border-radius:8px;background:#f8f9fa;border:1px solid #e0e0e0;font-size:13px;line-height:1.6;color:#1A1A1A;max-height:300px;overflow-y:auto';
 
   const aiType = classifyGooglePlace(result.types, result.displayName);
+  let briefText = '';
   let briefLoaded = false;
+  let detailedLoaded = false;
+
+  function renderMarkdown(text: string): string {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^(\s*)\*\s+/gm, '$1• ')
+      .replace(/^(\s*)[-–]\s+/gm, '$1• ')
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
 
   aiBtn.addEventListener('click', async () => {
-    if (briefLoaded) {
-      // Toggle visibility
+    // If detailed already loaded, just toggle
+    if (detailedLoaded) {
       aiContainer.style.display = aiContainer.style.display === 'none' ? 'block' : 'none';
+      aiBtn.textContent = aiContainer.style.display === 'none' ? 'Show AI Brief' : 'Hide AI Brief';
       return;
     }
 
-    // Loading state
-    aiBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10"/></svg> Generating...';
-    aiBtn.style.cssText = aiBtn.style.cssText + ';opacity:0.7;cursor:wait';
+    // If brief loaded, fetch detailed
+    if (briefLoaded) {
+      aiBtn.innerHTML = 'Digging deeper...';
+      aiBtn.style.opacity = '0.7';
+      try {
+        const detailed = await fetchAiBrief(result.placeId, result.displayName, result.address, aiType, 'detailed', briefText);
+        aiContainer.innerHTML = renderMarkdown(briefText + '\n\n---\n\n' + detailed);
+        detailedLoaded = true;
+        aiBtn.textContent = 'Hide AI Brief';
+        aiBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:6px;border:1.5px solid #4285F4;background:#4285F4;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px';
+        aiBtn.style.opacity = '1';
+      } catch {
+        aiBtn.innerHTML = 'Learn More (retry)';
+        aiBtn.style.opacity = '1';
+      }
+      return;
+    }
 
+    // First click — fetch brief
+    aiBtn.innerHTML = 'Generating...';
+    aiBtn.style.opacity = '0.7';
     try {
-      const brief = await fetchAiBrief(result.placeId, result.displayName, result.address, aiType, 'brief');
+      briefText = await fetchAiBrief(result.placeId, result.displayName, result.address, aiType, 'brief');
       aiContainer.style.display = 'block';
-      aiContainer.innerHTML = brief.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+      aiContainer.innerHTML = renderMarkdown(briefText);
       briefLoaded = true;
-
-      // Change button to show "Learn More" for detailed brief
-      aiBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Learn More';
-      aiBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:7px;border-radius:6px;border:1.5px solid #4285F4;background:#4285F4;color:#fff;font-size:12px;font-weight:700;cursor:pointer;margin-top:6px';
-
-      // Replace click handler for "Learn More"
-      const learnMoreHandler = async () => {
-        aiBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10"/></svg> Expanding...';
-        try {
-          const detailed = await fetchAiBrief(result.placeId, result.displayName, result.address, aiType, 'detailed');
-          aiContainer.innerHTML = detailed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-          aiBtn.innerHTML = 'Hide AI Brief';
-          aiBtn.removeEventListener('click', learnMoreHandler);
-          aiBtn.addEventListener('click', () => {
-            aiContainer.style.display = aiContainer.style.display === 'none' ? 'block' : 'none';
-          });
-        } catch {
-          aiBtn.innerHTML = 'Learn More (retry)';
-        }
-      };
-      aiBtn.removeEventListener('click', arguments.callee as EventListener);
-      aiBtn.addEventListener('click', learnMoreHandler);
+      aiBtn.innerHTML = 'Learn More';
+      aiBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border-radius:6px;border:1.5px solid #4285F4;background:#4285F4;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px';
+      aiBtn.style.opacity = '1';
     } catch (err) {
       aiBtn.innerHTML = 'Ask AI (retry)';
-      aiBtn.style.cssText = aiBtn.style.cssText.replace(';opacity:0.7;cursor:wait', '');
+      aiBtn.style.opacity = '1';
       aiContainer.style.display = 'block';
       aiContainer.textContent = err instanceof Error ? err.message : 'Failed to generate brief';
       aiContainer.style.color = '#EF4444';

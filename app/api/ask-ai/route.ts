@@ -7,61 +7,64 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
 
 /**
  * POST /api/ask-ai
- * Body: { name: string, address: string, type: string, mode: "brief" | "detailed" }
+ * Body: { name, address, type, mode, previousBrief? }
  * Returns: { text: string }
- *
- * Server-side only — GEMINI_API_KEY never exposed to browser.
  */
 export async function POST(req: NextRequest) {
   try {
     if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: "Gemini API key not configured" },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 });
     }
 
     const body = await req.json();
-    const { name, address, type, mode } = body as {
+    const { name, address, type, mode, previousBrief } = body as {
       name: string;
       address: string;
       type: string;
       mode: "brief" | "detailed";
+      previousBrief?: string;
     };
 
     if (!name) {
       return NextResponse.json({ error: "Business name is required" }, { status: 400 });
     }
 
-    const briefPrompt = `You are a field sales research assistant for a construction staffing company. Generate a concise sales brief for approaching this business:
+    const briefPrompt = `You are a pitch coach for Gillman Services, a construction staffing company in Tampa, FL. A veteran field sales rep is about to walk into this business. They already know what the business does — don't explain it to them. They need angles and intel.
 
 Business: ${name}
-Address: ${address || "Unknown"}
+Location: ${address || "Tampa area, FL"}
 Industry: ${type || "Construction/Trade"}
 
-Provide:
-1. **Angle** — One pain point relevant to construction staffing that this business likely faces
-2. **Quick Intel** — Estimated crew size, typical pay ranges for their trade, union vs non-union likelihood
-3. **Insider Tip** — One trade-specific insight that would impress them in a cold call
+Give exactly this, nothing else:
 
-Keep it under 150 words. Be specific to their trade, not generic.`;
+🎯 **Your angle** — One specific pain point this type of business likely has that Gillman solves. Be concrete (e.g. "They probably lose guys to bigger GCs mid-project" not "They may need staffing help"). 1-2 sentences max.
 
-    const detailedPrompt = `You are a field sales research assistant for a construction staffing company. Generate a detailed sales research brief for this business:
+📋 **Quick intel** — Estimate what you can: approximate crew size, typical pay range for their trade in the Tampa market, how long they've likely been operating if known, and whether they're likely union or non-union. Don't guess wildly — only include what's reasonable to infer. 2-3 sentences.
+
+💡 **Insider tip** — One piece of industry-specific knowledge about this trade that makes the rep sound like they understand the business. Could be seasonal patterns, common project pain, permit/inspection bottlenecks, supply chain issues, whatever is most relevant. 1-2 sentences.
+
+No fluff, no intros, no "Here's your briefing" — just the three bullets. Under 150 words total.`;
+
+    const detailedPrompt = `You are a sales intelligence researcher for Gillman Services, a construction staffing company in Tampa, FL. A field rep already got a quick pitch angle for this business and now wants deeper intel.
 
 Business: ${name}
-Address: ${address || "Unknown"}
+Location: ${address || "Tampa area, FL"}
 Industry: ${type || "Construction/Trade"}
 
-Provide:
-1. **Sales Angle** — Key pain point for their specific trade regarding staffing
-2. **Quick Intel** — Crew size estimates, pay ranges, union status, seasonal patterns
-3. **Insider Tip** — Trade-specific knowledge to build credibility
-4. **Company Profile** — What a company like this typically does, their clients, project types
-5. **Decision Maker** — Who typically makes staffing decisions (owner, PM, superintendent)
-6. **Competitive Landscape** — Other staffing companies likely serving this trade in the area
-7. **Conversation Starters** — 2-3 specific questions to open a cold call
+Previous briefing the rep already has:
+${previousBrief || "(No previous briefing)"}
 
-Keep it under 300 words. Be specific and actionable.`;
+Now provide ADDITIONAL detail they don't already have. Include:
+
+📊 **Company profile** — Estimated crew size, years in business if inferable, whether they're likely union or open shop, and approximate pay range for their core trade in the Tampa market.
+
+🔍 **Recent activity** — Any signals of growth, new projects, hiring, or challenges this type of company in this market would be facing right now.
+
+🤝 **Decision maker** — Who typically makes staffing decisions at this type of company (owner, project manager, superintendent, office manager) and the best way to get to them.
+
+🏆 **Competitive landscape** — Who else is likely calling on them for staffing, and what makes Gillman's pitch different.
+
+Do NOT repeat anything from the previous briefing. Under 300 words. No intros or fluff.`;
 
     const prompt = mode === "detailed" ? detailedPrompt : briefPrompt;
 
@@ -71,7 +74,6 @@ Keep it under 300 words. Be specific and actionable.`;
     });
 
     const text = response.text ?? "";
-
     return NextResponse.json({ text });
   } catch (err) {
     console.error("[ask-ai] Gemini API error:", err);
