@@ -30,44 +30,25 @@ A sales rep can discover businesses in an area, pin the ones worth visiting, bui
 
 ### Active
 
-(All v1 requirements complete)
-- [ ] Draw-to-search: click+drag rectangle on map to define search area
-- [ ] Configurable query categories (default: 18 construction/trade queries, swappable via config)
-- [ ] Google Places API search with chain/residential/irrelevant-type exclusion filters
-- [ ] Deduplication by place_id, normalized name, and coordinate proximity
-- [ ] Results list with checkboxes, business type classification, rating, address
-- [ ] Discover markers on map (orange default, green selected, yellow hover)
-- [ ] Info bubble on discover marker click (photo, name, type, rating, address, actions)
-- [ ] Quick-save discovered business as pin (default Prospect status)
-- [ ] Strict bounds filtering — results only within drawn rectangle
-- [ ] Mobile touch support — 300ms hold-to-draw
+## Current Milestone: v1.1 Power Features
 
-**Route Creation**
-- [ ] Add pins to today's stops from pin list, info window, or drag-to-planner
-- [ ] Route selected discovered businesses directly
-- [ ] Start point selection: home base, GPS location, or custom address
-- [ ] Route optimization via Google Directions API (optimizeWaypoints)
-- [ ] Route display: orange polyline with numbered stop markers on map
-- [ ] Route confirm panel with reorderable stop list and summary (distance, time)
-- [ ] Google Maps shareable link generation (addresses preferred, fallback to coordinates)
-- [ ] Open route in Google Maps for turn-by-turn navigation
-- [ ] 25-waypoint cap (Google API limit)
-- [ ] Drag-to-reorder stops in planner
-- [ ] Return-to-start when starting from home base
+**Goal:** Add Marathon mode, AI-powered business research, and daily planner to the field sales CRM.
+
+**Target features:**
+- [ ] Marathon Mode — multi-area discover + route accumulation
+- [ ] Ask AI (Gemini) — sales brief in discover info bubble
+- [ ] Planner — daily stop management, notes, activity log
 
 ### Out of Scope
 
-- Auth/login system — add after big 3 are perfected
+- Auth/login system — add after core features are perfected
 - User profiles — not needed without auth
-- Daily notes and activity logging — v2 feature
-- Marathon mode (multi-area routing) — v2 feature
-- AI research via Gemini — v2 feature
-- GPS background tracking and auto-visit detection — v2 feature
-- Route import (bulk paste / quick add) — v2 feature
-- Custom status creation — using fixed set for v1
-- >25 waypoint clustering fallback — capped at 25 for v1
-- Email integration from pins — v2 feature
-- Voice dictation for notes — v2 feature
+- GPS background tracking and auto-visit detection — future
+- Route import (bulk paste / quick add) — future
+- Custom status creation — using fixed set
+- >25 waypoint clustering fallback — capped at 25
+- Email integration from pins — future
+- Voice dictation for notes — future
 
 ## Context
 
@@ -118,4 +99,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-01 after Phase 5 completion — v1 milestone complete*
+*Last updated: 2026-04-01 after milestone v1.1 started*

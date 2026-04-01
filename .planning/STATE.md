@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-04-01T17:21:59.164Z"
+milestone: v1.1
+milestone_name: power-features
+status: planning
+stopped_at: Defining requirements
+last_updated: "2026-04-01T18:00:00.000Z"
 last_activity: 2026-04-01
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 23
-  completed_plans: 23
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
