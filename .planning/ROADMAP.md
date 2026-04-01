@@ -145,8 +145,13 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 07-01-PLAN.md — MarathonZone type + DiscoverSlice marathon state and actions
+<<<<<<< HEAD
 - [x] 07-02-PLAN.md — discover-search.ts accumulation + Map.tsx zone rectangle management
 - [ ] 07-03-PLAN.md — DiscoverPanel marathon UI (toggle, session header, zone tags, clear controls) + Map.tsx Marathon button
+=======
+- [ ] 07-02-PLAN.md — discover-search.ts accumulation + Map.tsx zone rectangle management
+- [x] 07-03-PLAN.md — DiscoverPanel marathon UI (toggle, session header, zone tags, clear controls) + Map.tsx Marathon button
+>>>>>>> worktree-agent-a0e5ca82
 **UI hint**: yes
 
 #### Phase 8: Ask AI

@@ -7,13 +7,20 @@ export interface DiscoverSlice {
   selectedDiscoverIds: Set<string>;
   isDrawing: boolean;
   drawBounds: { swLat: number; swLng: number; neLat: number; neLng: number } | null;
+  discoverMode: boolean;
+  hoveredDiscoverId: string | null;
+  searchProgress: string | null;
   marathonMode: boolean;
   marathonZones: MarathonZone[];
   marathonSearchCount: number;
   setDiscoverResults: (results: DiscoverResult[]) => void;
   setDrawBounds: (bounds: DiscoverSlice["drawBounds"]) => void;
   toggleDiscoverSelected: (placeId: string) => void;
+  selectAllDiscover: () => void;
   setIsDrawing: (drawing: boolean) => void;
+  setDiscoverMode: (mode: boolean) => void;
+  setHoveredDiscoverId: (id: string | null) => void;
+  setSearchProgress: (progress: string | null) => void;
   clearDiscover: () => void;
   toggleMarathonMode: () => void;
   addMarathonZone: (zone: MarathonZone) => void;
@@ -27,6 +34,9 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
   selectedDiscoverIds: new Set(),
   isDrawing: false,
   drawBounds: null,
+  discoverMode: false,
+  hoveredDiscoverId: null,
+  searchProgress: null,
   marathonMode: false,
   marathonZones: [],
   marathonSearchCount: 0,
@@ -39,13 +49,24 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
       else next.add(placeId);
       return { selectedDiscoverIds: next };
     }),
+  selectAllDiscover: () =>
+    set((s) => {
+      const selectable = s.discoverResults.slice(0, 20);
+      const allSelected = s.selectedDiscoverIds.size === selectable.length && selectable.length > 0;
+      return { selectedDiscoverIds: allSelected ? new Set() : new Set(selectable.map((r) => r.placeId)) };
+    }),
   setIsDrawing: (drawing) => set({ isDrawing: drawing }),
+  setDiscoverMode: (mode) => set({ discoverMode: mode }),
+  setHoveredDiscoverId: (id) => set({ hoveredDiscoverId: id }),
+  setSearchProgress: (progress) => set({ searchProgress: progress }),
   clearDiscover: () =>
     set({
       discoverResults: [],
       selectedDiscoverIds: new Set(),
       drawBounds: null,
       isDrawing: false,
+      discoverMode: false,
+      searchProgress: null,
       marathonMode: false,
       marathonZones: [],
       marathonSearchCount: 0,
