@@ -2,16 +2,21 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
-import { getStyleForTheme } from "./map-styles";
 import { MapContext } from "@/app/shared/lib/map/MapContext";
 import { reverseGeocode } from "@/app/shared/lib/geocoding";
-import { useTheme } from "@/app/shared/model/theme";
+import { useTheme, type AppTheme } from "@/app/shared/model/theme";
 import MapButton from "@/app/shared/ui/MapButton";
 import { useStore } from "@/app/shared/store";
+import { getMapColorScheme } from "./lib/get-map-color-scheme";
+import { MAP_CONFIG } from "./model/map-config";
+import { DEFAULT_CENTER, DEFAULT_MAP_ID, DEFAULT_ZOOM } from "./model/map.constants";
 import MarkerLayer from "./MarkerLayer";
 
-const DEFAULT_CENTER = { lat: 27.9506, lng: -82.4572 };
-const DEFAULT_ZOOM = 12;
+interface MapCameraState {
+  center: google.maps.LatLngLiteral;
+  zoom: number;
+  mapTypeId: string;
+}
 
 export interface PendingPinDraft {
   lat: number;
@@ -27,6 +32,7 @@ interface MapProps {
 export default function Map({ onEditPin, onCreatePin }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
+  const activeTheme = useRef<AppTheme | null>(null);
   const [satellite, setSatellite] = useState(false);
   const [mapState, setMapState] = useState<google.maps.Map | null>(null);
   const [dropMode, setDropMode] = useState(false);
@@ -61,7 +67,53 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
     );
   }, [exitDropMode, onCreatePin]);
 
+  const createMapInstance = useCallback((themeForMap: AppTheme, camera?: MapCameraState) => {
+    if (!mapRef.current) return null;
+
+    const nextMap = new google.maps.Map(mapRef.current, {
+      mapId: MAP_CONFIG.mapId,
+      colorScheme: getMapColorScheme(themeForMap),
+      center: camera?.center ?? DEFAULT_CENTER,
+      zoom: camera?.zoom ?? DEFAULT_ZOOM,
+      mapTypeId: camera?.mapTypeId ?? google.maps.MapTypeId.ROADMAP,
+      disableDefaultUI: true,
+      zoomControl: true,
+      zoomControlOptions: {
+        position: google.maps.ControlPosition.RIGHT_BOTTOM,
+      },
+      gestureHandling: "greedy",
+      clickableIcons: false,
+    });
+
+    mapInstance.current = nextMap;
+    activeTheme.current = themeForMap;
+    setMapState(nextMap);
+    return nextMap;
+  }, []);
+
+  const teardownMapInstance = useCallback(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+    exitDropMode();
+    google.maps.event.clearInstanceListeners(map);
+    mapInstance.current = null;
+    activeTheme.current = null;
+    setMapState(null);
+  }, [exitDropMode]);
+
+  const destroyMapForThemeRecreate = useCallback((map: google.maps.Map) => {
+    map.setOptions({ draggableCursor: "" });
+    if (dropListener.current) {
+      google.maps.event.removeListener(dropListener.current);
+      dropListener.current = null;
+    }
+    google.maps.event.clearInstanceListeners(map);
+    mapInstance.current = null;
+    activeTheme.current = null;
+  }, []);
+
   useEffect(() => {
+    let cancelled = false;
     setOptions({
       key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       v: "weekly",
@@ -69,40 +121,49 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
     });
 
     importLibrary("maps").then(async () => {
-      if (!mapRef.current) return;
-      mapInstance.current = new google.maps.Map(mapRef.current, {
-        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID",
-        center: DEFAULT_CENTER,
-        zoom: DEFAULT_ZOOM,
-        disableDefaultUI: true,
-        zoomControl: true,
-        zoomControlOptions: {
-          position: google.maps.ControlPosition.RIGHT_BOTTOM,
-        },
-        styles: getStyleForTheme(initialTheme.current),
-        gestureHandling: "greedy",
-        clickableIcons: false,
-      });
       await importLibrary("marker");
-      setMapState(mapInstance.current);
+      if (cancelled) return;
+      createMapInstance(initialTheme.current);
+
+      if (
+        process.env.NODE_ENV !== "production"
+        && MAP_CONFIG.mapId === DEFAULT_MAP_ID
+      ) {
+        console.info(
+          "Using DEMO_MAP_ID. Replace MAP_CONFIG.mapId in app/features/map/model/map-config.ts with your Cloud Map ID to apply custom brand styling.",
+        );
+      }
     });
 
     return () => {
-      if (mapInstance.current) {
-        exitDropMode();
-        google.maps.event.clearInstanceListeners(mapInstance.current);
-        mapInstance.current = null;
-        setMapState(null);
-      }
+      cancelled = true;
+      teardownMapInstance();
     };
-  }, [exitDropMode]);
+  }, [createMapInstance, teardownMapInstance]);
 
   useEffect(() => {
     const map = mapInstance.current;
-    if (!map || satellite) return;
-    map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-    map.setOptions({ styles: getStyleForTheme(theme) });
-  }, [theme, satellite]);
+    if (!map) return;
+    if (activeTheme.current === theme) return;
+
+    const nextCamera: MapCameraState = {
+      center: map.getCenter()?.toJSON() ?? DEFAULT_CENTER,
+      zoom: map.getZoom() ?? DEFAULT_ZOOM,
+      mapTypeId: map.getMapTypeId() ?? google.maps.MapTypeId.ROADMAP,
+    };
+
+    destroyMapForThemeRecreate(map);
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      createMapInstance(theme, nextCamera);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [createMapInstance, destroyMapForThemeRecreate, theme]);
 
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
@@ -112,14 +173,12 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
 
       if (next) {
         map.setMapTypeId(google.maps.MapTypeId.HYBRID);
-        map.setOptions({ styles: [] });
       } else {
         map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-        map.setOptions({ styles: getStyleForTheme(theme) });
       }
       return next;
     });
-  }, [theme]);
+  }, []);
 
   useEffect(() => {
     if (!selectedPinId) return;
