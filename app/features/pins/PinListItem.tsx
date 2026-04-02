@@ -22,8 +22,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
       onClick={handleClick}
     >
       <span
-        className="w-2.5 h-2.5 rounded-full shrink-0"
-        style={{ background: PIN_STATUS_META[pin.status].color }}
+        className={`w-2.5 h-2.5 rounded-full shrink-0 ${PIN_STATUS_META[pin.status].dotClassName}`}
       />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-text-primary truncate">
