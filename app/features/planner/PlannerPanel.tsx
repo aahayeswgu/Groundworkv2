@@ -33,10 +33,6 @@ export default function PlannerPanel() {
   const day = getOrCreateDay(plannerDays, activePlannerDate);
   const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;
 
-  // Stats — derived, not stored separately (per PLAN-08)
-  const planned = day.stops.filter((s) => s.status === "planned").length;
-  const visited = day.stops.filter((s) => s.status === "visited").length;
-  const skipped = day.stops.filter((s) => s.status === "skipped").length;
 
   // Date navigation helpers (D-15)
   const todayStr = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD" in local time
@@ -181,29 +177,6 @@ export default function PlannerPanel() {
             />
           </div>
         )}
-      </div>
-
-      {/* Stats bar (PLAN-08) */}
-      <div className="flex items-center gap-0 px-4 py-2.5 border-b border-border bg-bg-secondary shrink-0">
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-text-primary">{planned + visited + skipped}</div>
-          <div className="text-[10px] text-text-muted uppercase tracking-wide">Total</div>
-        </div>
-        <div className="w-px h-8 bg-border" />
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-green-400">{visited}</div>
-          <div className="text-[10px] text-text-muted uppercase tracking-wide">Visited</div>
-        </div>
-        <div className="w-px h-8 bg-border" />
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-amber-400">{skipped}</div>
-          <div className="text-[10px] text-text-muted uppercase tracking-wide">Skipped</div>
-        </div>
-        <div className="w-px h-8 bg-border" />
-        <div className="flex-1 text-center">
-          <div className="text-lg font-bold text-blue-400">{planned}</div>
-          <div className="text-[10px] text-text-muted uppercase tracking-wide">Planned</div>
-        </div>
       </div>
 
       {/* Scrollable content */}
