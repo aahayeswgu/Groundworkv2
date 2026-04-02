@@ -1,22 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { MapContext } from "@/app/shared/lib/map/MapContext";
 import { reverseGeocode } from "@/app/shared/lib/geocoding";
-import { useTheme, type AppTheme } from "@/app/shared/model/theme";
+import { useTheme } from "@/app/shared/model/theme";
 import MapButton from "@/app/shared/ui/MapButton";
 import { useStore } from "@/app/shared/store";
-import { getMapColorScheme } from "./lib/get-map-color-scheme";
-import { MAP_CONFIG } from "./model/map-config";
-import { DEFAULT_CENTER, DEFAULT_MAP_ID, DEFAULT_ZOOM } from "./model/map.constants";
+import { useCurrentLocation } from "./lib/use-current-location";
+import { useMapInstance } from "./lib/use-map-instance";
 import MarkerLayer from "./MarkerLayer";
-
-interface MapCameraState {
-  center: google.maps.LatLngLiteral;
-  zoom: number;
-  mapTypeId: string;
-}
 
 export interface PendingPinDraft {
   lat: number;
@@ -30,145 +22,46 @@ interface MapProps {
 }
 
 export default function Map({ onEditPin, onCreatePin }: MapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<google.maps.Map | null>(null);
-  const activeTheme = useRef<AppTheme | null>(null);
   const [satellite, setSatellite] = useState(false);
-  const [mapState, setMapState] = useState<google.maps.Map | null>(null);
   const [dropMode, setDropMode] = useState(false);
   const dropListener = useRef<google.maps.MapsEventListener | null>(null);
   const { theme } = useTheme();
-  const initialTheme = useRef(theme);
+  const exitDropMode = useCallback((mapToReset?: google.maps.Map) => {
+    setDropMode(false);
+    mapToReset?.setOptions({ draggableCursor: "" });
+    if (dropListener.current) {
+      google.maps.event.removeListener(dropListener.current);
+      dropListener.current = null;
+    }
+  }, []);
+
+  const { mapContainerRef, map } = useMapInstance({
+    theme,
+    onBeforeMapDispose: exitDropMode,
+  });
+  const { locating, moveToCurrentLocation } = useCurrentLocation({ map });
   const pins = useStore((s) => s.pins);
   const selectedPinId = useStore((s) => s.selectedPinId);
   const selectedPinNonce = useStore((s) => s.selectedPinNonce);
 
-  const exitDropMode = useCallback(() => {
-    setDropMode(false);
-    mapInstance.current?.setOptions({ draggableCursor: "" });
-    if (dropListener.current) {
-      google.maps.event.removeListener(dropListener.current);
-      dropListener.current = null;
-    }
-  }, []);
-
   const enterDropMode = useCallback(() => {
-    if (!mapInstance.current) return;
+    if (!map) return;
     setDropMode(true);
-    mapInstance.current.setOptions({ draggableCursor: "crosshair" });
-    dropListener.current = mapInstance.current.addListener(
+    map.setOptions({ draggableCursor: "crosshair" });
+    dropListener.current = map.addListener(
       "click",
       async (e: google.maps.MapMouseEvent) => {
         if (!e.latLng) return;
-        exitDropMode();
+        exitDropMode(map);
         const address = await reverseGeocode(e.latLng);
         onCreatePin({ lat: e.latLng.lat(), lng: e.latLng.lng(), address });
       }
     );
-  }, [exitDropMode, onCreatePin]);
-
-  const createMapInstance = useCallback((themeForMap: AppTheme, camera?: MapCameraState) => {
-    if (!mapRef.current) return null;
-
-    const nextMap = new google.maps.Map(mapRef.current, {
-      mapId: MAP_CONFIG.mapId,
-      colorScheme: getMapColorScheme(themeForMap),
-      center: camera?.center ?? DEFAULT_CENTER,
-      zoom: camera?.zoom ?? DEFAULT_ZOOM,
-      mapTypeId: camera?.mapTypeId ?? google.maps.MapTypeId.ROADMAP,
-      disableDefaultUI: true,
-      zoomControl: true,
-      zoomControlOptions: {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM,
-      },
-      gestureHandling: "greedy",
-      clickableIcons: false,
-    });
-
-    mapInstance.current = nextMap;
-    activeTheme.current = themeForMap;
-    setMapState(nextMap);
-    return nextMap;
-  }, []);
-
-  const teardownMapInstance = useCallback(() => {
-    const map = mapInstance.current;
-    if (!map) return;
-    exitDropMode();
-    google.maps.event.clearInstanceListeners(map);
-    mapInstance.current = null;
-    activeTheme.current = null;
-    setMapState(null);
-  }, [exitDropMode]);
-
-  const destroyMapForThemeRecreate = useCallback((map: google.maps.Map) => {
-    map.setOptions({ draggableCursor: "" });
-    if (dropListener.current) {
-      google.maps.event.removeListener(dropListener.current);
-      dropListener.current = null;
-    }
-    google.maps.event.clearInstanceListeners(map);
-    mapInstance.current = null;
-    activeTheme.current = null;
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    setOptions({
-      key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-      v: "weekly",
-      libraries: ["places", "geometry", "marker"],
-    });
-
-    importLibrary("maps").then(async () => {
-      await importLibrary("marker");
-      if (cancelled) return;
-      createMapInstance(initialTheme.current);
-
-      if (
-        process.env.NODE_ENV !== "production"
-        && MAP_CONFIG.mapId === DEFAULT_MAP_ID
-      ) {
-        console.info(
-          "Using DEMO_MAP_ID. Replace MAP_CONFIG.mapId in app/features/map/model/map-config.ts with your Cloud Map ID to apply custom brand styling.",
-        );
-      }
-    });
-
-    return () => {
-      cancelled = true;
-      teardownMapInstance();
-    };
-  }, [createMapInstance, teardownMapInstance]);
-
-  useEffect(() => {
-    const map = mapInstance.current;
-    if (!map) return;
-    if (activeTheme.current === theme) return;
-
-    const nextCamera: MapCameraState = {
-      center: map.getCenter()?.toJSON() ?? DEFAULT_CENTER,
-      zoom: map.getZoom() ?? DEFAULT_ZOOM,
-      mapTypeId: map.getMapTypeId() ?? google.maps.MapTypeId.ROADMAP,
-    };
-
-    destroyMapForThemeRecreate(map);
-
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      createMapInstance(theme, nextCamera);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [createMapInstance, destroyMapForThemeRecreate, theme]);
+  }, [exitDropMode, map, onCreatePin]);
 
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
       const next = !prev;
-      const map = mapInstance.current;
       if (!map) return next;
 
       if (next) {
@@ -178,11 +71,10 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
       }
       return next;
     });
-  }, []);
+  }, [map]);
 
   useEffect(() => {
     if (!selectedPinId) return;
-    const map = mapInstance.current;
     if (!map) return;
 
     const pin = pins.find((entry) => entry.id === selectedPinId);
@@ -190,24 +82,29 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
 
     map.panTo({ lat: pin.lat, lng: pin.lng });
     map.setZoom(15);
-  }, [pins, selectedPinId, selectedPinNonce]);
+  }, [map, pins, selectedPinId, selectedPinNonce]);
 
   return (
-    <MapContext.Provider value={mapState}>
+    <MapContext.Provider value={map}>
       <div className="flex-1 relative h-screen overflow-hidden">
-        <div ref={mapRef} className="w-full h-full z-[1]" />
+        <div ref={mapContainerRef} className="w-full h-full z-[1]" />
 
         {/* Floating controls */}
         <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
           <MapButton
             title="Drop a pin"
             active={dropMode}
-            onClick={dropMode ? exitDropMode : enterDropMode}
+            onClick={dropMode ? () => exitDropMode(map ?? undefined) : enterDropMode}
           >
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </MapButton>
-          <MapButton title="My location">
+          <MapButton
+            title={locating ? "Locating..." : "My location"}
+            active={locating}
+            disabled={locating}
+            onClick={moveToCurrentLocation}
+          >
             <circle cx="12" cy="12" r="4" />
             <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
           </MapButton>
@@ -263,7 +160,7 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
           {satellite ? "Road view" : "Satellite"}
         </button>
       </div>
-      {mapState && <MarkerLayer onEditPin={onEditPin} />}
+      {map && <MarkerLayer onEditPin={onEditPin} />}
     </MapContext.Provider>
   );
 }

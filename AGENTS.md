@@ -36,6 +36,18 @@ These rules are mandatory for all frontend work in this repository.
    1. Do not build UI with `document.createElement`, `innerHTML`, or manual `appendChild`.
    2. Do not wire UI interactions with `addEventListener` when React event props (`onClick`, etc.) can be used.
    3. When integrating imperative third-party APIs, isolate the imperative bridge and keep actual UI content React-rendered.
+10. Separation of concerns is required, not optional:
+   1. `ui` files must focus on rendering/composition and lightweight event wiring only.
+   2. Move reusable or stateful behavior into `lib` hooks/helpers (`use-*.ts`, pure utilities).
+   3. Move static config and tunable numbers (zoom levels, limits, labels, thresholds) into `model` constants.
+11. Extraction triggers (must refactor before finishing the task):
+   1. If a component mixes 3+ concerns (rendering + side effects + lifecycle integration + domain logic), extract.
+   2. If a file grows beyond ~200 lines and includes business logic, split into segment files.
+   3. If logic can be reused by another control/route/widget, extract immediately.
+12. Pre-completion architecture check (required for frontend edits):
+   1. Confirm each changed file belongs to the correct FSD layer and segment (`ui/model/api/lib`).
+   2. Confirm no new "god file" was created; extract into focused modules before finalizing.
+   3. In the final response, briefly list what was extracted and where.
 
 # General Code Style Principles
 

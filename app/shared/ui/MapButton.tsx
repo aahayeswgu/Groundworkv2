@@ -6,6 +6,7 @@ type MapButtonProps = {
   title: string;
   children: React.ReactNode;
   active?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
   className?: string;
   tone?: MapButtonTone;
@@ -15,6 +16,7 @@ export default function MapButton({
   title,
   children,
   active = false,
+  disabled = false,
   onClick,
   className = "",
   tone = "default",
@@ -30,8 +32,9 @@ export default function MapButton({
     <button
       type="button"
       title={title}
+      disabled={disabled}
       onClick={onClick}
-      className={`w-10 h-10 max-md:w-11 max-md:h-11 rounded-lg flex items-center justify-center transition-all duration-200 border ring-1 ring-black/45 shadow-[0_10px_22px_rgba(0,0,0,0.45)] ${stateClass} ${className}`}
+      className={`w-10 h-10 max-md:w-11 max-md:h-11 rounded-lg flex items-center justify-center transition-all duration-200 border ring-1 ring-black/45 shadow-[0_10px_22px_rgba(0,0,0,0.45)] disabled:cursor-not-allowed disabled:opacity-70 ${stateClass} ${className}`}
     >
       <svg
         width="20"
