@@ -1,9 +1,7 @@
 "use client";
 
-import { useContext } from "react";
-import { MapContext } from "@/app/features/map/MapContext";
-import { PIN_STATUS_META } from "@/app/features/pins/pin-status";
-import { useStore } from "@/app/store";
+import { PIN_STATUS_META } from "@/app/entities/pin/model/pin-status";
+import { useStore } from "@/app/shared/store";
 import type { Pin } from "@/app/types/pins.types";
 
 interface PinListItemProps {
@@ -12,13 +10,9 @@ interface PinListItemProps {
 }
 
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
-  const map = useContext(MapContext);
   const selectPin = useStore((s) => s.selectPin);
 
   function handleClick() {
-    if (!map) return;
-    map.panTo({ lat: pin.lat, lng: pin.lng });
-    map.setZoom(15);
     selectPin(pin.id);
   }
 

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { PIN_STATUS_OPTIONS } from "@/app/features/pins/pin-status";
+import { PIN_STATUS_OPTIONS } from "@/app/entities/pin/model/pin-status";
+import { useStore } from "@/app/shared/store";
 import type { Pin, PinStatus, NoteEntry } from "@/app/types/pins.types";
-import { useStore } from "@/app/store/index";
 
 export interface PinModalProps {
   mode: "create" | "edit";

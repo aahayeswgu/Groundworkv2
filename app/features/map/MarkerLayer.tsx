@@ -2,11 +2,11 @@
 
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { createPinMarkerElement } from "@/app/features/pins/pin-marker";
-import { PIN_STATUS_META } from "@/app/features/pins/pin-status";
-import { useStore } from "@/app/store";
+import { PIN_STATUS_META } from "@/app/entities/pin/model/pin-status";
+import { createPinMarkerElement } from "@/app/entities/pin/lib/pin-marker";
+import { MapContext } from "@/app/shared/lib/map/MapContext";
+import { useStore } from "@/app/shared/store";
 import type { Pin } from "@/app/types/pins.types";
-import { MapContext } from "./MapContext";
 
 interface MarkerLayerProps {
   onEditPin: (pinId: string) => void;

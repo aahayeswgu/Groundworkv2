@@ -1,12 +1,15 @@
 "use client";
 
 import PinList from "@/app/features/pins/PinList";
+import { useTheme } from "@/app/shared/model/theme";
 
 interface SidebarProps {
   onEditPin?: (pinId: string) => void;
 }
 
 export default function Sidebar({ onEditPin }: SidebarProps) {
+  const { theme, cycleTheme } = useTheme();
+
   return (
     <div className="sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20">
       {/* Collapse toggle */}
@@ -34,9 +37,20 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
               <polyline points="22,7 12,13 2,7" />
             </svg>
           </button>
-          <button className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange" title="Toggle dark mode">
+          <button
+            className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange"
+            title={`Switch theme (current: ${theme})`}
+            onClick={cycleTheme}
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+              {theme === "light" ? (
+                <>
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </>
+              ) : (
+                <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+              )}
             </svg>
           </button>
           <button className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange" title="Settings">
