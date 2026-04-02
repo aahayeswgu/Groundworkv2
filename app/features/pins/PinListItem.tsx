@@ -2,14 +2,9 @@
 
 import { useContext } from "react";
 import { MapContext } from "@/app/features/map/MapContext";
+import { PIN_STATUS_META } from "@/app/features/pins/pin-status";
+import { useStore } from "@/app/store";
 import type { Pin } from "@/app/types/pins.types";
-
-const STATUS_COLORS: Record<string, string> = {
-  prospect: "#3B82F6",
-  active: "#22C55E",
-  "follow-up": "#F59E0B",
-  lost: "#EF4444",
-};
 
 interface PinListItemProps {
   pin: Pin;
@@ -18,17 +13,13 @@ interface PinListItemProps {
 
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const map = useContext(MapContext);
+  const selectPin = useStore((s) => s.selectPin);
 
   function handleClick() {
     if (!map) return;
     map.panTo({ lat: pin.lat, lng: pin.lng });
     map.setZoom(15);
-    // Find marker element by data-pin-id attribute and bounce it
-    const markerEl = document.querySelector<HTMLElement>(`[data-pin-id="${pin.id}"]`);
-    if (markerEl) {
-      markerEl.classList.add("marker-bounce");
-      setTimeout(() => markerEl.classList.remove("marker-bounce"), 700);
-    }
+    selectPin(pin.id);
   }
 
   return (
@@ -38,7 +29,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
     >
       <span
         className="w-2.5 h-2.5 rounded-full shrink-0"
-        style={{ background: STATUS_COLORS[pin.status] }}
+        style={{ background: PIN_STATUS_META[pin.status].color }}
       />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-text-primary truncate">

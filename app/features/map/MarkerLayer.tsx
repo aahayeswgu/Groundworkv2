@@ -2,21 +2,15 @@
 
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { createPinMarkerElement, STATUS_COLORS } from "@/app/features/pins/pin-marker";
+import { createPinMarkerElement } from "@/app/features/pins/pin-marker";
+import { PIN_STATUS_META } from "@/app/features/pins/pin-status";
 import { useStore } from "@/app/store";
-import type { Pin, PinStatus } from "@/app/types/pins.types";
+import type { Pin } from "@/app/types/pins.types";
 import { MapContext } from "./MapContext";
 
 interface MarkerLayerProps {
   onEditPin: (pinId: string) => void;
 }
-
-const STATUS_LABELS: Record<PinStatus, string> = {
-  prospect: "Prospect",
-  active: "Active",
-  "follow-up": "Follow-Up",
-  lost: "Lost",
-};
 
 interface InfoWindowPinCardProps {
   pin: Pin;
@@ -33,14 +27,14 @@ function InfoWindowPinCard({ pin, onEditPin, onDeletePin }: InfoWindowPinCardPro
           display: "inline-block",
           padding: "2px 8px",
           borderRadius: 12,
-          background: STATUS_COLORS[pin.status],
+          background: PIN_STATUS_META[pin.status].color,
           color: "#fff",
           fontSize: 11,
           fontWeight: 600,
           marginBottom: 8,
         }}
       >
-        {STATUS_LABELS[pin.status]}
+        {PIN_STATUS_META[pin.status].label}
       </span>
 
       {pin.address ? (
@@ -111,6 +105,8 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const map = useContext(MapContext);
   const pins = useStore((s) => s.pins);
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
+  const selectedPinId = useStore((s) => s.selectedPinId);
+  const selectedPinNonce = useStore((s) => s.selectedPinNonce);
   const deletePin = useStore((s) => s.deletePin);
 
   const markerPool = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
@@ -150,6 +146,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const renderInfoWindowContent = useCallback(
     (pin: Pin): HTMLElement => {
       unmountInfoWindowContent();
+      // Google Maps InfoWindow expects an HTMLElement; mount a React root into this bridge node.
       const container = document.createElement("div");
       const root = createRoot(container);
 
@@ -253,6 +250,27 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       closeInfoWindow();
     }
   }, [activeStatusFilter, closeInfoWindow, handleMarkerClick, map, pins]);
+
+  useEffect(() => {
+    if (!selectedPinId) return;
+    const marker = markerPool.current.get(selectedPinId);
+    const markerEl = marker?.content;
+    if (!(markerEl instanceof HTMLElement)) return;
+
+    // Reset/restart animation so repeated selections on the same pin still pulse.
+    markerEl.classList.remove("marker-bounce");
+    void markerEl.offsetWidth;
+    markerEl.classList.add("marker-bounce");
+
+    const timeoutId = window.setTimeout(() => {
+      markerEl.classList.remove("marker-bounce");
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      markerEl.classList.remove("marker-bounce");
+    };
+  }, [selectedPinId, selectedPinNonce]);
 
   // Cleanup on unmount
   useEffect(() => {

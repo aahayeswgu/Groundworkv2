@@ -1,10 +1,11 @@
+import { PIN_STATUS_META } from "@/app/features/pins/pin-status";
 import type { PinStatus } from "@/app/types/pins.types";
 
 export const STATUS_COLORS: Record<PinStatus, string> = {
-  prospect: "#3B82F6",
-  active: "#22C55E",
-  "follow-up": "#F59E0B",
-  lost: "#EF4444",
+  prospect: PIN_STATUS_META.prospect.color,
+  active: PIN_STATUS_META.active.color,
+  "follow-up": PIN_STATUS_META["follow-up"].color,
+  lost: PIN_STATUS_META.lost.color,
 };
 
 function lightenColor(hex: string, amount: number): string {
@@ -48,6 +49,7 @@ export function createPinMarkerElement(status: PinStatus): HTMLElement {
     <ellipse cx="9.5" cy="7.5" rx="2.5" ry="1.8" fill="rgba(255,255,255,0.25)" transform="rotate(-15,12,10)"/>
   </svg>`;
 
+  // AdvancedMarkerElement content must be an HTMLElement; this node is the map bridge container.
   const el = document.createElement("div");
   el.innerHTML = svg;
   el.style.cursor = "pointer";
