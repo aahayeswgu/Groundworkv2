@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
+import { ThemeProvider } from "@/app/shared/model/theme";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -29,8 +30,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={dmSans.variable}>
-      <body data-theme="dark" className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300">{children}</body>
+    <html lang="en" className={dmSans.variable} data-theme="dark">
+      <body className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

@@ -1,3 +1,5 @@
+import type { AppTheme } from "@/app/shared/model/theme";
+
 export const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
   { elementType: "geometry", stylers: [{ color: "#212121" }] },
   { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
@@ -20,23 +22,7 @@ export const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
   { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#3d3d3d" }] },
 ];
 
-export const GRAY_MAP_STYLE: google.maps.MapTypeStyle[] = [
-  { elementType: "geometry", stylers: [{ color: "#303030" }] },
-  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#909090" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#303030" }] },
-  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#505050" }] },
-  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#B0B0B0" }] },
-  { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#404040" }] },
-  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#999999" }] },
-  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#4A4A4A" }] },
-  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#555555" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#1A1A1A" }] },
-  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#252525" }] },
-];
-
-export function getStyleForTheme(theme: string): google.maps.MapTypeStyle[] {
+export function getStyleForTheme(theme: AppTheme): google.maps.MapTypeStyle[] {
   if (theme === "dark") return DARK_MAP_STYLE;
-  if (theme === "gray") return GRAY_MAP_STYLE;
   return [];
 }

@@ -5,6 +5,7 @@ import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { getStyleForTheme } from "./map-styles";
 import { MapContext } from "@/app/shared/lib/map/MapContext";
 import { reverseGeocode } from "@/app/shared/lib/geocoding";
+import { useTheme } from "@/app/shared/model/theme";
 import MapButton from "@/app/shared/ui/MapButton";
 import { useStore } from "@/app/shared/store";
 import MarkerLayer from "./MarkerLayer";
@@ -30,14 +31,11 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
   const [mapState, setMapState] = useState<google.maps.Map | null>(null);
   const [dropMode, setDropMode] = useState(false);
   const dropListener = useRef<google.maps.MapsEventListener | null>(null);
+  const { theme } = useTheme();
+  const initialTheme = useRef(theme);
   const pins = useStore((s) => s.pins);
   const selectedPinId = useStore((s) => s.selectedPinId);
   const selectedPinNonce = useStore((s) => s.selectedPinNonce);
-
-  const getTheme = useCallback(
-    () => document.body.getAttribute("data-theme") || "dark",
-    [],
-  );
 
   const exitDropMode = useCallback(() => {
     setDropMode(false);
@@ -72,7 +70,6 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
 
     importLibrary("maps").then(async () => {
       if (!mapRef.current) return;
-      const theme = getTheme();
       mapInstance.current = new google.maps.Map(mapRef.current, {
         mapId: process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID",
         center: DEFAULT_CENTER,
@@ -82,7 +79,7 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
         zoomControlOptions: {
           position: google.maps.ControlPosition.RIGHT_BOTTOM,
         },
-        styles: getStyleForTheme(theme),
+        styles: getStyleForTheme(initialTheme.current),
         gestureHandling: "greedy",
         clickableIcons: false,
       });
@@ -98,7 +95,14 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
         setMapState(null);
       }
     };
-  }, [getTheme, exitDropMode]);
+  }, [exitDropMode]);
+
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || satellite) return;
+    map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+    map.setOptions({ styles: getStyleForTheme(theme) });
+  }, [theme, satellite]);
 
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
@@ -111,11 +115,11 @@ export default function Map({ onEditPin, onCreatePin }: MapProps) {
         map.setOptions({ styles: [] });
       } else {
         map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-        map.setOptions({ styles: getStyleForTheme(getTheme()) });
+        map.setOptions({ styles: getStyleForTheme(theme) });
       }
       return next;
     });
-  }, [getTheme]);
+  }, [theme]);
 
   useEffect(() => {
     if (!selectedPinId) return;
