@@ -20,79 +20,45 @@ interface InfoWindowPinCardProps {
 
 function InfoWindowPinCard({ pin, onEditPin, onDeletePin }: InfoWindowPinCardProps) {
   return (
-    <div style={{ padding: 12, minWidth: 200, fontFamily: "inherit" }}>
-      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{pin.title}</div>
+    <div className="p-3 min-w-[200px] font-[inherit]">
+      <div className="mb-1 text-sm font-bold text-text-primary">{pin.title}</div>
       <span
-        style={{
-          display: "inline-block",
-          padding: "2px 8px",
-          borderRadius: 12,
-          background: PIN_STATUS_META[pin.status].color,
-          color: "#fff",
-          fontSize: 11,
-          fontWeight: 600,
-          marginBottom: 8,
-        }}
+        className={`inline-block px-2 py-0.5 rounded-full mb-2 text-[11px] font-semibold ${PIN_STATUS_META[pin.status].badgeClassName}`}
       >
         {PIN_STATUS_META[pin.status].label}
       </span>
 
       {pin.address ? (
-        <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>{pin.address}</div>
+        <div className="mb-1 text-xs text-text-muted">{pin.address}</div>
       ) : null}
 
       {pin.contact ? (
-        <div style={{ fontSize: 12, marginBottom: 2 }}>Contact: {pin.contact}</div>
+        <div className="mb-0.5 text-xs text-text-primary">Contact: {pin.contact}</div>
       ) : null}
 
       {pin.phone ? (
-        <div style={{ fontSize: 12, marginBottom: 8 }}>Phone: {pin.phone}</div>
+        <div className="mb-2 text-xs text-text-primary">Phone: {pin.phone}</div>
       ) : null}
 
-      <div style={{ display: "flex", gap: 6 }}>
+      <div className="flex gap-1.5">
         <button
           type="button"
           onClick={() => onEditPin(pin.id)}
-          style={{
-            padding: "4px 12px",
-            background: "#D4712A",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            cursor: "pointer",
-            fontSize: 12,
-          }}
+          className="px-3 py-1 rounded-md text-xs bg-orange text-white hover:bg-orange-hover transition-colors"
         >
           Edit
         </button>
         <button
           type="button"
           onClick={() => onDeletePin(pin.id)}
-          style={{
-            padding: "4px 12px",
-            background: "transparent",
-            color: "#EF4444",
-            border: "1px solid #EF4444",
-            borderRadius: 6,
-            cursor: "pointer",
-            fontSize: 12,
-          }}
+          className="px-3 py-1 rounded-md text-xs bg-transparent text-gw-red border border-gw-red hover:bg-red-500/10 transition-colors"
         >
           Delete
         </button>
         <button
           type="button"
           disabled
-          style={{
-            padding: "4px 12px",
-            background: "transparent",
-            color: "#888",
-            border: "1px solid #ccc",
-            borderRadius: 6,
-            fontSize: 12,
-            opacity: 0.6,
-            cursor: "not-allowed",
-          }}
+          className="px-3 py-1 rounded-md text-xs bg-transparent text-text-muted border border-border opacity-60 cursor-not-allowed"
         >
           + Route
         </button>

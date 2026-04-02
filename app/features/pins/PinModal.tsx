@@ -146,12 +146,9 @@ export default function PinModal({ mode, initialData, onClose }: PinModalProps) 
                   <button
                     key={opt.value}
                     onClick={() => setStatus(opt.value)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
-                    style={
-                      isSelected
-                        ? { backgroundColor: opt.color, borderColor: opt.color, color: "#fff" }
-                        : { backgroundColor: "transparent", borderColor: opt.color, color: opt.color }
-                    }
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                      isSelected ? opt.chipSelectedClassName : opt.chipUnselectedClassName
+                    }`}
                   >
                     {opt.label}
                   </button>

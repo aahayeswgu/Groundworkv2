@@ -52,8 +52,6 @@ export function createPinMarkerElement(status: PinStatus): HTMLElement {
   // AdvancedMarkerElement content must be an HTMLElement; this node is the map bridge container.
   const el = document.createElement("div");
   el.innerHTML = svg;
-  el.style.cursor = "pointer";
-  el.style.display = "block";
-  el.style.lineHeight = "0";
+  el.className = "pin-marker-bridge";
   return el;
 }

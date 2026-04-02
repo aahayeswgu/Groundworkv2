@@ -55,13 +55,16 @@
 }
 
 /* ─── Base resets ─── */
-input, button, select, textarea { font-family: inherit; font-size: inherit; }
-button { cursor: pointer; font-family: inherit; border: none; background: none; }
+@layer base {
+  input, button, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; font-family: inherit; }
+}
 
 /* ─── Scrollbar styling (can't do with utilities) ─── */
 .scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .scrollbar-thin::-webkit-scrollbar { width: 5px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.pin-marker-bridge { cursor: pointer; display: block; line-height: 0; }
 
 /* ─── Sidebar collapse transition (stateful, needs custom CSS) ─── */
 .sidebar-wrap {
