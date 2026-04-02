@@ -34,8 +34,65 @@ export default function Map({ onEditPin }: MapProps) {
   const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
+  const addActivityEntry = useStore((s) => s.addActivityEntry);
+  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
+  const trackingEnabled = useStore((s) => s.trackingEnabled);
+  const setNotesPage = useStore((s) => s.setNotesPage);
+  const plannerDays = useStore((s) => s.plannerDays);
   const areaRectRef = useRef<google.maps.Rectangle | null>(null);
   const drawListenersRef = useRef<(() => void)[]>([]);
+  const [quickListening, setQuickListening] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const quickRecognitionRef = useRef<any>(null);
+
+  const toggleQuickEntry = useCallback(() => {
+    if (quickListening) {
+      quickRecognitionRef.current?.stop();
+      setQuickListening(false);
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      alert("Speech recognition is not supported in this browser. Try Chrome.");
+      return;
+    }
+
+    const recognition = new SR();
+    recognition.continuous = false; // Single utterance — stop after silence
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    quickRecognitionRef.current = recognition;
+
+    recognition.onresult = (event: { results: { [key: number]: { [key: number]: { transcript: string } } } }) => {
+      const transcript = event.results[0][0].transcript;
+      if (!transcript.trim()) return;
+
+      const today = new Date().toISOString().slice(0, 10);
+      const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+      // Set active date to today
+      setActivePlannerDate(today);
+
+      // Add as activity log entry with timestamp
+      if (trackingEnabled) {
+        addActivityEntry({ time, text: `🎤 ${transcript}` });
+      }
+
+      // Also append to today's notes (page 0)
+      const currentNotes = plannerDays[today]?.notes?.[0] ?? "";
+      const separator = currentNotes && !currentNotes.endsWith("\n") ? "\n" : "";
+      const newNote = `${currentNotes}${separator}[${time}] ${transcript}`;
+      setNotesPage(0, newNote);
+    };
+
+    recognition.onerror = () => setQuickListening(false);
+    recognition.onend = () => setQuickListening(false);
+
+    recognition.start();
+    setQuickListening(true);
+  }, [quickListening, addActivityEntry, setActivePlannerDate, trackingEnabled, setNotesPage, plannerDays]);
 
   const getTheme = useCallback(
     () => document.body.getAttribute("data-theme") || "dark",
@@ -336,8 +393,9 @@ export default function Map({ onEditPin }: MapProps) {
           <circle cx="12" cy="12" r="3" />
         </MapButton>
         <MapButton
-          title="Quick Entry"
-          className="!bg-orange !text-white !border-orange"
+          title={quickListening ? "Listening... tap to stop" : "Quick Entry — voice note to planner"}
+          active={quickListening}
+          onClick={toggleQuickEntry}
         >
           <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
           <path d="M19 10v2a7 7 0 01-14 0v-2" />
