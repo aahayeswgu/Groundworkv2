@@ -3,3 +3,90 @@
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+# Frontend Implementation Rules
+
+These rules are mandatory for all frontend work in `apps/frontend`.
+
+1. Frontend architecture must follow Feature-Sliced Design (FSD): `layers -> slices -> segments`.
+2. Organize by business domains, not by technical file-type buckets.
+3. The Next.js App Router lives in `apps/frontend/app` and route files (`page.tsx`, `layout.tsx`) must stay thin and mostly compose/import FSD view modules.
+4. FSD layers live under `apps/frontend/src` and must follow this hierarchy:
+   1. `src/views`
+   2. `src/widgets`
+   3. `src/features`
+   4. `src/entities`
+   5. `src/shared`
+5. Golden dependency rule: modules may only import from strictly lower layers; never upward.
+6. Standard slice segments must be used — do not dump everything into a single file:
+   1. `ui` — React components (JSX). No raw data arrays, no type-only files.
+   2. `model` — Types, constants, and static data arrays (e.g., tab definitions, table rows, directory listings).
+   3. `api` — Server-state hooks (TanStack Query wrappers).
+   4. `lib` — Pure helper functions, animation presets, formatters.
+   5. Rule of thumb: if a UI file exceeds ~300 lines, split data into `model/` and helpers into `lib/`.
+7. RSC boundary guidance:
+   1. `shared` and `entities` should default to Server Components and server-side data access.
+   2. `features` and `widgets` are the preferred client boundary when interaction is required (`use client`).
+8. Client/server decision rules:
+   1. Default `views`, route `page.tsx`, and `layout.tsx` to Server Components.
+   2. Do not add `use client` to an entire view/page when only part of it needs browser APIs, animation libraries, or hooks.
+   3. Extract the smallest possible client island (for example `*.client.tsx` or a focused `ui` helper) and keep the parent composition server-rendered.
+   4. Keep server-safe markup/data rendering in server files; keep `motion`, `useEffect`, and browser-only logic inside client islands.
+9. Use React patterns for UI rendering and interactions. Avoid imperative DOM manipulation in React modules:
+   1. Do not build UI with `document.createElement`, `innerHTML`, or manual `appendChild`.
+   2. Do not wire UI interactions with `addEventListener` when React event props (`onClick`, etc.) can be used.
+   3. When integrating imperative third-party APIs, isolate the imperative bridge and keep actual UI content React-rendered.
+
+# General Code Style Principles
+
+This document outlines general coding principles that apply across all languages and frameworks used in this project.
+
+## Readability
+
+- Code should be easy to read and understand by humans.
+- Avoid overly clever or obscure constructs.
+
+## Consistency
+
+- Follow existing patterns in the codebase.
+- Maintain consistent formatting, naming, and structure.
+
+## Simplicity
+
+- Prefer simple solutions over complex ones.
+- Break down complex problems into smaller, manageable parts.
+
+## Maintainability
+
+- Write code that is easy to modify and extend.
+- Minimize dependencies and coupling.
+
+## Documentation
+
+- Document why something is done, not just what.
+- Keep documentation up-to-date with code changes.
+
+## Usage Guidelines
+
+For AI Agents:
+
+- Read this file before implementing any code.
+- Follow all rules as written.
+- Prefer the more restrictive interpretation when uncertain.
+- Update this file when new non-obvious patterns are introduced.
+
+### Code Quality & Style Rules
+
+- Prioritize readability and maintainability over cleverness.
+- Follow existing file/folder patterns before introducing new structures.
+- Use `rg` for code discovery/search tasks.
+- Frontend architecture:
+  - Keep FSD layers and segment boundaries (`ui`, `model`, `api`, `lib`) intact.
+  - Keep route files thin; compose view modules.
+- Accessibility:
+  - Use semantic HTML where meaningful.
+
+### Language-Specific Rules
+
+- Treat TypeScript strictness as required:
+  - Frontend runs in strict mode.

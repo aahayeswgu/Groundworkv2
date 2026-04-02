@@ -1,13 +1,110 @@
 "use client";
 
-import { useEffect, useRef, useCallback, useContext } from "react";
-import { MapContext } from "./MapContext";
+import { useCallback, useContext, useEffect, useRef } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { createPinMarkerElement, STATUS_COLORS } from "@/app/features/pins/pin-marker";
 import { useStore } from "@/app/store";
-import { createPinMarkerElement } from "@/app/features/pins/pin-marker";
-import type { Pin } from "@/app/types/pins.types";
+import type { Pin, PinStatus } from "@/app/types/pins.types";
+import { MapContext } from "./MapContext";
 
 interface MarkerLayerProps {
   onEditPin: (pinId: string) => void;
+}
+
+const STATUS_LABELS: Record<PinStatus, string> = {
+  prospect: "Prospect",
+  active: "Active",
+  "follow-up": "Follow-Up",
+  lost: "Lost",
+};
+
+interface InfoWindowPinCardProps {
+  pin: Pin;
+  onEditPin: (pinId: string) => void;
+  onDeletePin: (pinId: string) => void;
+}
+
+function InfoWindowPinCard({ pin, onEditPin, onDeletePin }: InfoWindowPinCardProps) {
+  return (
+    <div style={{ padding: 12, minWidth: 200, fontFamily: "inherit" }}>
+      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{pin.title}</div>
+      <span
+        style={{
+          display: "inline-block",
+          padding: "2px 8px",
+          borderRadius: 12,
+          background: STATUS_COLORS[pin.status],
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 600,
+          marginBottom: 8,
+        }}
+      >
+        {STATUS_LABELS[pin.status]}
+      </span>
+
+      {pin.address ? (
+        <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>{pin.address}</div>
+      ) : null}
+
+      {pin.contact ? (
+        <div style={{ fontSize: 12, marginBottom: 2 }}>Contact: {pin.contact}</div>
+      ) : null}
+
+      {pin.phone ? (
+        <div style={{ fontSize: 12, marginBottom: 8 }}>Phone: {pin.phone}</div>
+      ) : null}
+
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => onEditPin(pin.id)}
+          style={{
+            padding: "4px 12px",
+            background: "#D4712A",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontSize: 12,
+          }}
+        >
+          Edit
+        </button>
+        <button
+          type="button"
+          onClick={() => onDeletePin(pin.id)}
+          style={{
+            padding: "4px 12px",
+            background: "transparent",
+            color: "#EF4444",
+            border: "1px solid #EF4444",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontSize: 12,
+          }}
+        >
+          Delete
+        </button>
+        <button
+          type="button"
+          disabled
+          style={{
+            padding: "4px 12px",
+            background: "transparent",
+            color: "#888",
+            border: "1px solid #ccc",
+            borderRadius: 6,
+            fontSize: 12,
+            opacity: 0.6,
+            cursor: "not-allowed",
+          }}
+        >
+          + Route
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
@@ -18,129 +115,90 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
 
   const markerPool = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
   const infoWindow = useRef<google.maps.InfoWindow | null>(null);
+  const infoWindowRoot = useRef<Root | null>(null);
+  const pinsById = useRef<Map<string, Pin>>(new Map());
   const openPinId = useRef<string | null>(null);
 
-  const buildInfoWindowContent = useCallback(
+  const unmountInfoWindowContent = useCallback(() => {
+    if (!infoWindowRoot.current) return;
+    infoWindowRoot.current.unmount();
+    infoWindowRoot.current = null;
+  }, []);
+
+  const closeInfoWindow = useCallback(() => {
+    infoWindow.current?.close();
+    openPinId.current = null;
+    unmountInfoWindowContent();
+  }, [unmountInfoWindowContent]);
+
+  const handleEditPinFromInfoWindow = useCallback(
+    (pinId: string) => {
+      closeInfoWindow();
+      onEditPin(pinId);
+    },
+    [closeInfoWindow, onEditPin],
+  );
+
+  const handleDeletePinFromInfoWindow = useCallback(
+    (pinId: string) => {
+      closeInfoWindow();
+      deletePin(pinId);
+    },
+    [closeInfoWindow, deletePin],
+  );
+
+  const renderInfoWindowContent = useCallback(
     (pin: Pin): HTMLElement => {
-      const statusColors: Record<string, string> = {
-        prospect: "#3B82F6",
-        active: "#22C55E",
-        "follow-up": "#F59E0B",
-        lost: "#EF4444",
-      };
-      const statusLabels: Record<string, string> = {
-        prospect: "Prospect",
-        active: "Active",
-        "follow-up": "Follow-Up",
-        lost: "Lost",
-      };
-
+      unmountInfoWindowContent();
       const container = document.createElement("div");
-      container.style.cssText = "padding:12px;min-width:200px;font-family:inherit";
+      const root = createRoot(container);
 
-      const title = document.createElement("div");
-      title.style.cssText = "font-weight:bold;font-size:14px;margin-bottom:4px";
-      title.textContent = pin.title;
-      container.appendChild(title);
+      root.render(
+        <InfoWindowPinCard
+          pin={pin}
+          onEditPin={handleEditPinFromInfoWindow}
+          onDeletePin={handleDeletePinFromInfoWindow}
+        />,
+      );
 
-      const badge = document.createElement("span");
-      badge.style.cssText = `display:inline-block;padding:2px 8px;border-radius:12px;background:${statusColors[pin.status]};color:white;font-size:11px;font-weight:600;margin-bottom:8px`;
-      badge.textContent = statusLabels[pin.status] ?? pin.status;
-      container.appendChild(badge);
-
-      if (pin.address) {
-        const address = document.createElement("div");
-        address.style.cssText = "font-size:12px;color:#888;margin-bottom:4px";
-        address.textContent = pin.address;
-        container.appendChild(address);
-      }
-
-      if (pin.contact) {
-        const contact = document.createElement("div");
-        contact.style.cssText = "font-size:12px;margin-bottom:2px";
-        contact.textContent = `\u{1F464} ${pin.contact}`;
-        container.appendChild(contact);
-      }
-
-      if (pin.phone) {
-        const phone = document.createElement("div");
-        phone.style.cssText = "font-size:12px;margin-bottom:8px";
-        phone.textContent = `\u{1F4DE} ${pin.phone}`;
-        container.appendChild(phone);
-      }
-
-      const buttonRow = document.createElement("div");
-      buttonRow.style.cssText = "display:flex;gap:6px";
-
-      const editBtn = document.createElement("button");
-      editBtn.dataset.action = "edit";
-      editBtn.textContent = "Edit";
-      editBtn.style.cssText =
-        "padding:4px 12px;background:#D4712A;color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px";
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.dataset.action = "delete";
-      deleteBtn.textContent = "Delete";
-      deleteBtn.style.cssText =
-        "padding:4px 12px;background:transparent;color:#EF4444;border:1px solid #EF4444;border-radius:6px;cursor:pointer;font-size:12px";
-
-      const routeBtn = document.createElement("button");
-      routeBtn.dataset.action = "route";
-      routeBtn.textContent = "+ Route";
-      routeBtn.style.cssText =
-        "padding:4px 12px;background:transparent;color:#888;border:1px solid #ccc;border-radius:6px;font-size:12px;opacity:0.6;cursor:not-allowed";
-
-      buttonRow.appendChild(editBtn);
-      buttonRow.appendChild(deleteBtn);
-      buttonRow.appendChild(routeBtn);
-      container.appendChild(buttonRow);
-
-      container.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-        const action = target.dataset.action;
-        if (action === "edit") {
-          infoWindow.current?.close();
-          openPinId.current = null;
-          onEditPin(pin.id);
-        }
-        if (action === "delete") {
-          infoWindow.current?.close();
-          openPinId.current = null;
-          deletePin(pin.id);
-        }
-        // 'route' is a placeholder — no action in Phase 2
-      });
-
+      infoWindowRoot.current = root;
       return container;
     },
-    [deletePin, onEditPin],
+    [handleDeletePinFromInfoWindow, handleEditPinFromInfoWindow, unmountInfoWindowContent],
   );
+
+  const ensureInfoWindow = useCallback(() => {
+    if (!infoWindow.current) {
+      const nextInfoWindow = new google.maps.InfoWindow();
+      nextInfoWindow.addListener("closeclick", () => {
+        openPinId.current = null;
+        unmountInfoWindowContent();
+      });
+      infoWindow.current = nextInfoWindow;
+    }
+    return infoWindow.current;
+  }, [unmountInfoWindowContent]);
 
   const handleMarkerClick = useCallback(
     (pin: Pin, marker: google.maps.marker.AdvancedMarkerElement) => {
       if (!map) return;
-      if (!infoWindow.current) {
-        infoWindow.current = new google.maps.InfoWindow();
-        infoWindow.current.addListener("closeclick", () => {
-          openPinId.current = null;
-        });
-      }
+      const infoWindowInstance = ensureInfoWindow();
       // Toggle behavior (D-10)
       if (openPinId.current === pin.id) {
-        infoWindow.current.close();
-        openPinId.current = null;
+        closeInfoWindow();
         return;
       }
-      infoWindow.current.setContent(buildInfoWindowContent(pin));
-      infoWindow.current.open({ anchor: marker, map });
+      infoWindowInstance.setContent(renderInfoWindowContent(pin));
+      infoWindowInstance.open({ anchor: marker, map });
       openPinId.current = pin.id;
     },
-    [map, buildInfoWindowContent],
+    [closeInfoWindow, ensureInfoWindow, map, renderInfoWindowContent],
   );
 
   // Main sync effect
   useEffect(() => {
     if (!map) return;
+    pinsById.current = new Map(pins.map((pin) => [pin.id, pin]));
 
     const visiblePins = pins.filter((p) => activeStatusFilter.has(p.status));
     const visibleIds = new Set(visiblePins.map((p) => p.id));
@@ -161,6 +219,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       if (existing && existingEl?.dataset?.status === pin.status) {
         // Status unchanged — just update position
         existing.position = { lat: pin.lat, lng: pin.lng };
+        existing.title = pin.title;
         continue;
       }
 
@@ -181,30 +240,31 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
         title: pin.title,
       });
 
-      marker.addListener("click", () => handleMarkerClick(pin, marker));
+      marker.addListener("click", () => {
+        const latestPin = pinsById.current.get(pin.id);
+        if (!latestPin) return;
+        handleMarkerClick(latestPin, marker);
+      });
       markerPool.current.set(pin.id, marker);
     }
 
     // Close info window if open pin was deleted
-    if (
-      openPinId.current !== null &&
-      !pins.some((p) => p.id === openPinId.current)
-    ) {
-      infoWindow.current?.close();
-      openPinId.current = null;
+    if (openPinId.current !== null && !pinsById.current.has(openPinId.current)) {
+      closeInfoWindow();
     }
-  }, [map, pins, activeStatusFilter, deletePin, onEditPin, handleMarkerClick]);
+  }, [activeStatusFilter, closeInfoWindow, handleMarkerClick, map, pins]);
 
   // Cleanup on unmount
   useEffect(() => {
+    const markers = markerPool.current;
     return () => {
-      for (const marker of markerPool.current.values()) {
+      for (const marker of markers.values()) {
         marker.map = null;
       }
-      markerPool.current.clear();
-      infoWindow.current?.close();
+      markers.clear();
+      closeInfoWindow();
     };
-  }, []);
+  }, [closeInfoWindow]);
 
   return null;
 }
