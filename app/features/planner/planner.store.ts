@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { DayPlan, PlannerSlice, PlannerStop, PlannerStopStatus, ActivityEntry } from "@/app/types/planner.types";
+import type { DayPlan, PlannerSlice, PlannerStop, PlannerStopStatus, ActivityEntry } from "@/app/features/planner/model/planner.types";
 
 export function getOrCreateDay(days: Record<string, DayPlan>, date: string): DayPlan {
   return days[date] ?? { stops: [], notes: [""], activityLog: [] };

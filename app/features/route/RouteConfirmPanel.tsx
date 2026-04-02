@@ -21,7 +21,7 @@ import { computeRoute } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
 import PlacesAutocomplete from "@/app/components/PlacesAutocomplete";
-import type { RouteStop } from "@/app/types/route.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {
   open: boolean;

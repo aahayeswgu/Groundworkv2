@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mergePins } from '@/app/features/pins/sync/merge';
-import type { Pin } from '@/app/types/pins.types';
+import type { Pin } from '@/app/features/pins/model/pin.types';
 import type { RemotePin } from '@/app/features/pins/sync/merge';
 
 const makePin = (overrides: Partial<Pin> = {}): Pin => ({

@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
+import { cookies } from "next/headers";
+import { ThemeProvider } from "@/app/features/theme/model/theme-context";
+import { isTheme } from "@/app/features/theme/model/theme.types";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -23,16 +26,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("gw-theme")?.value;
+  const initialTheme = isTheme(themeCookie) ? themeCookie : "dark";
+
   return (
     <html lang="en" className={dmSans.variable}>
-      <body data-theme="dark" className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300" suppressHydrationWarning>
-        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gw-theme');if(t==='gray'||t==='dark')document.body.setAttribute('data-theme',t)}catch(e){}` }} />
-        {children}
+      <body
+        data-theme={initialTheme}
+        className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300"
+      >
+        <ThemeProvider initialTheme={initialTheme}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

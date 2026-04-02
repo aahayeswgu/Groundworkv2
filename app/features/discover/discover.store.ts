@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
-import type { DiscoverResult } from "@/app/types/discover.types";
-import type { MarathonZone } from "@/app/types/discover.types";
+import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
+import type { MarathonZone } from "@/app/features/discover/model/discover.types";
 
 export interface DiscoverSlice {
   discoverResults: DiscoverResult[];

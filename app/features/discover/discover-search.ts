@@ -1,7 +1,7 @@
 import { DISCOVER_QUERIES } from "@/app/config/discover-queries";
 import { filterAndMapPlace } from "@/app/features/discover/discover-filters";
 import { useStore } from "@/app/store";
-import type { DiscoverResult } from "@/app/types/discover.types";
+import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 
 export type DrawBounds = { swLat: number; swLng: number; neLat: number; neLng: number };
 

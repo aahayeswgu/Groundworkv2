@@ -1,5 +1,3 @@
-// app/types/planner.types.ts
-
 export type PlannerStopStatus = "planned" | "visited" | "skipped";
 
 export interface PlannerStop {

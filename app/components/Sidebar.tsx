@@ -1,25 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import PinList from "@/app/features/pins/PinList";
-import { useStore } from "@/app/store/index";
+import { useState } from "react";
+import PinList from "@/app/features/pins/ui/PinList";
+import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
 import AuthModal from "@/app/features/auth/AuthModal";
+import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
-
-type Theme = "dark" | "gray";
-
-function getTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const saved = localStorage.getItem("gw-theme");
-  return saved === "gray" ? "gray" : "dark";
-}
-
-function applyTheme(theme: Theme) {
-  document.body.setAttribute("data-theme", theme);
-  localStorage.setItem("gw-theme", theme);
-}
 
 interface SidebarProps {
   onEditPin?: (pinId: string) => void;
@@ -32,31 +20,24 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
   const user = useStore((s) => s.user);
   const profile = useStore((s) => s.profile);
   const updateProfile = useStore((s) => s.updateProfile);
+  const { theme, setTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<"pins" | "planner">("pins");
   const [profileName, setProfileName] = useState("");
   const [profileCompany, setProfileCompany] = useState("");
   const [profileHomebase, setProfileHomebase] = useState("");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
-  const [theme, setTheme] = useState<Theme>("dark");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
-  // Hydrate theme from localStorage on mount
-  useEffect(() => {
-    const saved = getTheme();
-    setTheme(saved);
-    applyTheme(saved);
-  }, []);
-
-  // Sync profile fields when settings opens
-  useEffect(() => {
-    if (settingsOpen && profile) {
+  function openSettings() {
+    if (profile) {
       setProfileName(profile.name ?? "");
       setProfileCompany(profile.company ?? "");
       setProfileHomebase(profile.homebase ?? "");
     }
-  }, [settingsOpen, profile]);
+    setSettingsOpen(true);
+  }
 
   function handleSaveProfile() {
     updateProfile({ name: profileName, company: profileCompany, homebase: profileHomebase });
@@ -97,7 +78,13 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
             </svg>
           </button>
           <button
-            onClick={() => setSettingsOpen((v) => !v)}
+            onClick={() => {
+              if (settingsOpen) {
+                setSettingsOpen(false);
+              } else {
+                openSettings();
+              }
+            }}
             className={`icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 hover:bg-orange-dim hover:text-orange ${settingsOpen ? "text-orange bg-orange-dim" : "text-text-secondary"}`}
             title="Settings"
           >
@@ -112,7 +99,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
       {/* Profile */}
       {user ? (
         <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
-          onClick={() => setSettingsOpen(true)}
+          onClick={openSettings}
         >
           <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
             {(profile?.name?.[0] || user.email?.[0] || "?").toUpperCase()}
@@ -259,7 +246,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
                 {([["dark", "Dark"], ["gray", "Graphite"]] as const).map(([value, label]) => (
                   <button
                     key={value}
-                    onClick={() => { setTheme(value); applyTheme(value); }}
+                    onClick={() => setTheme(value)}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${theme === value ? "bg-orange text-white" : "bg-bg-input text-text-secondary hover:text-text-primary hover:bg-bg-card"}`}
                   >
                     {label}

@@ -3,18 +3,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import MapButton from "@/app/components/MapButton";
-import { MapContext } from "./MapContext";
+import { MapContext } from "../MapContext";
 import { reverseGeocode } from "@/app/lib/geocoding";
 import MarkerLayer from "./MarkerLayer";
-import PinModal from "@/app/features/pins/PinModal";
+import PinModal from "@/app/features/pins/ui/PinModal";
 import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
 import RouteLayer from "@/app/features/route/RouteLayer";
 import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
 import { searchBusinessesInArea, validateBounds, type DrawBounds } from "@/app/features/discover/discover-search";
 import { useStore } from "@/app/store";
-
-const DEFAULT_CENTER = { lat: 27.9506, lng: -82.4572 };
-const DEFAULT_ZOOM = 12;
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "../model/map.constants";
 
 interface PendingPin { lat: number; lng: number; address: string; }
 
@@ -303,8 +301,8 @@ export default function Map({ onEditPin }: MapProps) {
       if (!mapRef.current) return;
       mapInstance.current = new google.maps.Map(mapRef.current, {
         mapId: process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID",
-        center: DEFAULT_CENTER,
-        zoom: DEFAULT_ZOOM,
+        center: DEFAULT_MAP_CENTER,
+        zoom: DEFAULT_MAP_ZOOM,
         disableDefaultUI: true,
         zoomControl: true,
         zoomControlOptions: {

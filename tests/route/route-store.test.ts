@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 // RED: route.store.ts exists as skeleton but createRouteSlice may not export correctly yet
 import { createRouteSlice } from '@/app/features/route/route.store';
-import type { RouteStop } from '@/app/types/route.types';
+import type { RouteStop } from '@/app/features/route/model/route.types';
 
 // Build a minimal store around just the RouteSlice for testing
 function makeStore() {

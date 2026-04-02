@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { RouteStop, RouteResult, StartMode } from "@/app/types/route.types";
+import type { RouteStop, RouteResult, StartMode } from "@/app/features/route/model/route.types";
 
 const MAX_STOPS = 25;
 

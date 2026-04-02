@@ -1,4 +1,4 @@
-import type { PinStatus } from "@/app/types/pins.types";
+import type { PinStatus } from "@/app/features/pins/model/pin.types";
 
 export const STATUS_COLORS: Record<PinStatus, string> = {
   prospect: "#3B82F6",
