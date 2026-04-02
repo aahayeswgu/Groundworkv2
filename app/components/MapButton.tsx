@@ -4,17 +4,24 @@ export default function MapButton({
   title,
   children,
   active = false,
+  badge,
   onClick,
   className = "",
 }: {
   title: string;
   children: React.ReactNode;
   active?: boolean;
+  badge?: number;
   onClick?: () => void;
   className?: string;
 }) {
   return (
     <div className="relative group">
+      {badge != null && badge > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 z-10 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: "#C4692A" }}>
+          {badge}
+        </span>
+      )}
       <button
         title={title}
         onClick={onClick}

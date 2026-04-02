@@ -5,6 +5,8 @@ import PinList from "@/app/features/pins/PinList";
 import { useStore } from "@/app/store/index";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
+import AuthModal from "@/app/features/auth/AuthModal";
+import { supabase } from "@/app/lib/supabase";
 
 type Theme = "dark" | "gray";
 
@@ -25,28 +27,41 @@ interface SidebarProps {
 
 export default function Sidebar({ onEditPin }: SidebarProps) {
   const discoverMode = useStore((s) => s.discoverMode);
+  const trackingEnabled = useStore((s) => s.trackingEnabled);
+  const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
+  const user = useStore((s) => s.user);
+  const profile = useStore((s) => s.profile);
+  const updateProfile = useStore((s) => s.updateProfile);
   const [collapsed, setCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<"pins" | "planner">("pins");
+  const [profileName, setProfileName] = useState("");
+  const [profileCompany, setProfileCompany] = useState("");
+  const [profileHomebase, setProfileHomebase] = useState("");
+  const [settingsToast, setSettingsToast] = useState<string | null>(null);
   const [theme, setTheme] = useState<Theme>("dark");
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [mapStyle, setMapStyle] = useState<"light" | "dark" | "graphite">("light");
+  const [authOpen, setAuthOpen] = useState(false);
 
-  // Hydrate theme + map style from localStorage on mount
+  // Hydrate theme from localStorage on mount
   useEffect(() => {
     const saved = getTheme();
     setTheme(saved);
     applyTheme(saved);
-    const savedMap = localStorage.getItem("gw-map-style") as "light" | "dark" | "graphite" | null;
-    if (savedMap) {
-      setMapStyle(savedMap);
-      window.dispatchEvent(new CustomEvent("gw-map-style", { detail: savedMap }));
-    }
   }, []);
 
-  function setMapStyleAndDispatch(value: "light" | "dark" | "graphite") {
-    setMapStyle(value);
-    localStorage.setItem("gw-map-style", value);
-    window.dispatchEvent(new CustomEvent("gw-map-style", { detail: value }));
+  // Sync profile fields when settings opens
+  useEffect(() => {
+    if (settingsOpen && profile) {
+      setProfileName(profile.name ?? "");
+      setProfileCompany(profile.company ?? "");
+      setProfileHomebase(profile.homebase ?? "");
+    }
+  }, [settingsOpen, profile]);
+
+  function handleSaveProfile() {
+    updateProfile({ name: profileName, company: profileCompany, homebase: profileHomebase });
+    setSettingsToast("Profile saved");
+    setTimeout(() => setSettingsToast(null), 2500);
   }
 
   return (
@@ -71,7 +86,11 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
           <div className="text-lg font-bold text-text-primary tracking-tight">Groundwork</div>
         </div>
         <div className="flex gap-1.5 items-center">
-          <button className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange relative" title="Email">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("gw-open-email"))}
+            className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange relative"
+            title="Email"
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="2" y="4" width="20" height="16" rx="2" />
               <polyline points="22,7 12,13 2,7" />
@@ -91,21 +110,50 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
       </div>
 
       {/* Profile */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim">
-        <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0 bg-cover bg-center overflow-hidden">
-          ?
+      {user ? (
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
+          onClick={() => setSettingsOpen(true)}
+        >
+          <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
+            {(profile?.name?.[0] || user.email?.[0] || "?").toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-text-primary truncate">{profile?.name || "Set up profile"}</div>
+            <div className="text-[11px] text-text-secondary mt-px truncate">{profile?.company || user.email}</div>
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); supabase.auth.signOut(); }}
+            className="text-text-muted hover:text-gw-red transition-colors shrink-0"
+            title="Sign out"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-text-primary truncate">Set up your profile</div>
-          <div className="text-[11px] text-text-secondary mt-px">Tap to get started</div>
+      ) : (
+        <div
+          className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
+          onClick={() => setAuthOpen(true)}
+        >
+          <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
+            ?
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-text-primary truncate">Sign in</div>
+            <div className="text-[11px] text-text-secondary mt-px">Tap to log in or create account</div>
+          </div>
+          <div className="text-text-muted shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+          </div>
         </div>
-        <div className="text-text-muted shrink-0">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-        </div>
-      </div>
+      )}
 
       {/* Nav Tabs */}
       <div className="flex border-b border-border bg-bg-card">
@@ -127,6 +175,13 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {settingsOpen ? (
           <div className="flex-1 flex flex-col overflow-y-auto scrollbar-thin">
+            {/* Toast */}
+            {settingsToast && (
+              <div className="mx-5 mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white text-center" style={{ backgroundColor: "#C4692A", animation: "fadeInOut 2.5s ease" }}>
+                {settingsToast}
+              </div>
+            )}
+
             {/* Settings header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
               <button
@@ -141,21 +196,61 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
               <span className="text-base font-bold text-text-primary">Settings</span>
             </div>
 
-            {/* Map Style */}
+            {/* GPS Auto Check-in */}
             <div className="px-5 py-4 border-b border-border">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-3">Map Style</div>
-              <div className="flex gap-2">
-                {([["light", "Light"], ["dark", "Dark"], ["graphite", "Graphite"]] as const).map(([value, label]) => (
-                  <button
-                    key={value}
-                    onClick={() => setMapStyleAndDispatch(value)}
-                    className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${mapStyle === value ? "bg-orange text-white" : "bg-bg-input text-text-secondary hover:text-text-primary hover:bg-bg-card"}`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted">GPS Auto Check-in</div>
+                  <div className="text-[11px] text-text-secondary mt-1">Auto-mark stops visited when nearby (~200ft)</div>
+                </div>
+                <button
+                  onClick={() => setTrackingEnabled(!trackingEnabled)}
+                  style={{ backgroundColor: trackingEnabled ? "#C4692A" : "#555", borderColor: trackingEnabled ? "#C4692A" : "#666" }}
+                  className="relative w-11 h-6 rounded-full transition-colors duration-200 border"
+                >
+                  <span
+                    style={{ backgroundColor: trackingEnabled ? "#fff" : "#999" }}
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${trackingEnabled ? "translate-x-5" : ""}`}
+                  />
+                </button>
               </div>
             </div>
+
+            {/* Profile (only when logged in) */}
+            {user && (
+              <div className="px-5 py-4 border-b border-border">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-3">Profile</div>
+                <div className="flex flex-col gap-2.5">
+                  <input
+                    type="text"
+                    placeholder="Your name"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Company"
+                    value={profileCompany}
+                    onChange={(e) => setProfileCompany(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Home base address"
+                    value={profileHomebase}
+                    onChange={(e) => setProfileHomebase(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
+                  />
+                  <button
+                    onClick={handleSaveProfile}
+                    className="w-full py-2 rounded-lg bg-orange text-white font-bold text-sm hover:bg-orange-hover transition-colors"
+                  >
+                    Save Profile
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* UI Theme */}
             <div className="px-5 py-4 border-b border-border">
@@ -180,6 +275,8 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
             : <PinList onEditPin={onEditPin ?? (() => {})} />
         }
       </div>
+
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
     </div>
   );
 }

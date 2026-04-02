@@ -4,12 +4,14 @@ import { createPinsSlice } from "@/app/features/pins/pins.store";
 import { createDiscoverSlice } from "@/app/features/discover/discover.store";
 import { createRouteSlice } from "@/app/features/route/route.store";
 import { createPlannerSlice } from "@/app/features/planner/planner.store";
+import { createAuthSlice } from "@/app/features/auth/auth.store";
 import type { PinsSlice } from "@/app/features/pins/pins.store";
 import type { DiscoverSlice } from "@/app/features/discover/discover.store";
 import type { RouteSlice } from "@/app/features/route/route.store";
 import type { PlannerSlice } from "@/app/types/planner.types";
+import type { AuthSlice } from "@/app/features/auth/auth.store";
 
-export type AppStore = PinsSlice & DiscoverSlice & RouteSlice & PlannerSlice;
+export type AppStore = PinsSlice & DiscoverSlice & RouteSlice & PlannerSlice & AuthSlice;
 
 export const useStore = create<AppStore>()(
   persist(
@@ -18,6 +20,7 @@ export const useStore = create<AppStore>()(
       ...createDiscoverSlice(...a),
       ...createRouteSlice(...a),
       ...createPlannerSlice(...a),
+      ...createAuthSlice(...a),
     }),
     {
       name: "groundwork-pins-v1",   // DO NOT change this name — would lose all pin data

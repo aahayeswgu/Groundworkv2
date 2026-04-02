@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
-import { getStyleForTheme } from "./map-styles";
 import MapButton from "@/app/components/MapButton";
 import { MapContext } from "./MapContext";
 import { reverseGeocode } from "@/app/lib/geocoding";
@@ -41,8 +40,10 @@ export default function Map({ onEditPin }: MapProps) {
   const plannerDays = useStore((s) => s.plannerDays);
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);
+  const routeStops = useStore((s) => s.routeStops);
+  const [toast, setToast] = useState<string | null>(null);
+  const prevStopCount = useRef(0);
   const areaRectRef = useRef<google.maps.Rectangle | null>(null);
-  const mapStyleRef = useRef("light");
   const drawListenersRef = useRef<(() => void)[]>([]);
   const [quickListening, setQuickListening] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -300,9 +301,8 @@ export default function Map({ onEditPin }: MapProps) {
 
     importLibrary("maps").then(async () => {
       if (!mapRef.current) return;
-      const savedMapStyle = localStorage.getItem("gw-map-style") || "light";
-      mapStyleRef.current = savedMapStyle;
       mapInstance.current = new google.maps.Map(mapRef.current, {
+        mapId: process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID",
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
         disableDefaultUI: true,
@@ -310,7 +310,6 @@ export default function Map({ onEditPin }: MapProps) {
         zoomControlOptions: {
           position: google.maps.ControlPosition.RIGHT_BOTTOM,
         },
-        styles: getStyleForTheme(savedMapStyle === "graphite" ? "gray" : savedMapStyle),
         gestureHandling: "greedy",
         clickableIcons: false,
       });
@@ -337,38 +336,22 @@ export default function Map({ onEditPin }: MapProps) {
     };
   }, [exitDropMode]);
 
-  // Listen for map style changes from settings
+  // Show toast when route stops are added
   useEffect(() => {
-    function handleMapStyle(e: Event) {
-      const style = (e as CustomEvent).detail as string;
-      const map = mapInstance.current;
-      if (!map || map.getMapTypeId() === "hybrid") return;
-      map.setOptions({ styles: getStyleForTheme(style === "graphite" ? "gray" : style) });
+    if (routeStops.length > 0 && routeStops.length > prevStopCount.current) {
+      setToast(`${routeStops.length} stop${routeStops.length === 1 ? "" : "s"} routed`);
+      const t = setTimeout(() => setToast(null), 2500);
+      return () => clearTimeout(t);
     }
-    window.addEventListener("gw-map-style", handleMapStyle);
-    return () => window.removeEventListener("gw-map-style", handleMapStyle);
-  }, []);
-
-  // Keep ref in sync for satellite toggle
-  useEffect(() => {
-    function syncRef(e: Event) { mapStyleRef.current = (e as CustomEvent).detail; }
-    window.addEventListener("gw-map-style", syncRef);
-    return () => window.removeEventListener("gw-map-style", syncRef);
-  }, []);
+    prevStopCount.current = routeStops.length;
+  }, [routeStops.length]);
 
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
       const next = !prev;
       const map = mapInstance.current;
       if (!map) return next;
-      if (next) {
-        map.setMapTypeId(google.maps.MapTypeId.HYBRID);
-        map.setOptions({ styles: [] });
-      } else {
-        map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
-        const s = mapStyleRef.current;
-        map.setOptions({ styles: getStyleForTheme(s === "graphite" ? "gray" : s) });
-      }
+      map.setMapTypeId(next ? google.maps.MapTypeId.HYBRID : google.maps.MapTypeId.ROADMAP);
       return next;
     });
   }, []);
@@ -391,6 +374,7 @@ export default function Map({ onEditPin }: MapProps) {
         <MapButton
           title="Get directions"
           active={routePanelOpen}
+          badge={routeStops.length || undefined}
           onClick={() => setRoutePanelOpen((prev) => !prev)}
         >
           <polygon points="3 11 22 2 13 21 11 13 3 11" />
@@ -424,6 +408,13 @@ export default function Map({ onEditPin }: MapProps) {
           <line x1="8" y1="23" x2="16" y2="23" />
         </MapButton>
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg bg-charcoal text-white text-sm font-semibold shadow-gw-lg animate-[fadeInOut_2.5s_ease]">
+          {toast}
+        </div>
+      )}
 
       {/* Floating satellite label (bottom-left, Google Maps style) */}
       <button

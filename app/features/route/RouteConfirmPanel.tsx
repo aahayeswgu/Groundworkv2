@@ -83,6 +83,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
   const routeResult = useStore((s) => s.routeResult);
   const startMode = useStore((s) => s.startMode);
   const customStartAddress = useStore((s) => s.customStartAddress);
+  const profile = useStore((s) => s.profile);
   const reorderStops = useStore((s) => s.reorderStops);
   const removeStop = useStore((s) => s.removeStop);
   const setRouteResult = useStore((s) => s.setRouteResult);
@@ -126,12 +127,13 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
 
   const resolveOrigin = useCallback(async (): Promise<{ address?: string; lat?: number; lng?: number } | null> => {
     if (startMode === "home") {
-      // v1 has no profile system — use customStartAddress as home base proxy
-      if (!customStartAddress.trim()) {
-        setBuildError("Enter a home base address or switch to GPS / Custom start.");
+      // Use profile homebase first, fall back to customStartAddress
+      const homeAddr = profile?.homebase?.trim() || customStartAddress.trim();
+      if (!homeAddr) {
+        setBuildError("Set a home base address in Settings > Profile, or switch to Custom start.");
         return null;
       }
-      return { address: customStartAddress.trim() };
+      return { address: homeAddr };
     }
     if (startMode === "gps") {
       try {
@@ -153,7 +155,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       return null;
     }
     return coords;
-  }, [startMode, customStartAddress]);
+  }, [startMode, customStartAddress, profile?.homebase]);
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
