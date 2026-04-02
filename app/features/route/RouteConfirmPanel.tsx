@@ -139,8 +139,8 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       try {
         const pos = await getCurrentGpsPosition();
         return { lat: pos.lat, lng: pos.lng };
-      } catch {
-        setBuildError("Could not get GPS location. Check location permissions.");
+      } catch (err) {
+        setBuildError(err instanceof Error ? err.message : "Could not get GPS location.");
         return null;
       }
     }
