@@ -35,8 +35,11 @@ At repo root, add:
 
 ```bash
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_key_here
-NEXT_PUBLIC_GOOGLE_MAP_ID=your_map_id_here
 ```
+
+Map IDs are configured in source (not env) at:
+
+- `app/features/map/model/map-config.ts`
 
 ### 3. Run the app
 
@@ -112,7 +115,7 @@ app/
     map/
       Map.tsx                     # Google map, controls, drop-pin flow
       MarkerLayer.tsx             # marker rendering + info window behavior
-      map-styles.ts
+      model/map-config.ts         # map config (public map ID for cloud styling)
     pins/
       PinList.tsx                 # search/filter/list/stats UI
       PinListItem.tsx
