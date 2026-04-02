@@ -6,17 +6,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Frontend Implementation Rules
 
-These rules are mandatory for all frontend work in `apps/frontend`.
+These rules are mandatory for all frontend work in this repository.
 
 1. Frontend architecture must follow Feature-Sliced Design (FSD): `layers -> slices -> segments`.
 2. Organize by business domains, not by technical file-type buckets.
-3. The Next.js App Router lives in `apps/frontend/app` and route files (`page.tsx`, `layout.tsx`) must stay thin and mostly compose/import FSD view modules.
-4. FSD layers live under `apps/frontend/src` and must follow this hierarchy:
-   1. `src/views`
-   2. `src/widgets`
-   3. `src/features`
-   4. `src/entities`
-   5. `src/shared`
+3. The Next.js App Router lives in `app/` and route files (`page.tsx`, `layout.tsx`) must stay thin and mostly compose/import FSD view modules.
+4. FSD layers live under `app/` and must follow this hierarchy:
+   1. `app/views`
+   2. `app/widgets`
+   3. `app/features`
+   4. `app/entities`
+   5. `app/shared`
 5. Golden dependency rule: modules may only import from strictly lower layers; never upward.
 6. Standard slice segments must be used — do not dump everything into a single file:
    1. `ui` — React components (JSX). No raw data arrays, no type-only files.
@@ -83,6 +83,7 @@ For AI Agents:
 - Frontend architecture:
   - Keep FSD layers and segment boundaries (`ui`, `model`, `api`, `lib`) intact.
   - Keep route files thin; compose view modules.
+  - Avoid technical-type buckets like generic `components/`; place modules in `views/widgets/features/entities/shared` based on ownership.
 - Accessibility:
   - Use semantic HTML where meaningful.
 

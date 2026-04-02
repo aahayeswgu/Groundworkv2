@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { PIN_STATUS_OPTIONS } from "@/app/features/pins/pin-status";
-import { useStore } from "@/app/store";
+import { PIN_STATUS_OPTIONS } from "@/app/entities/pin/model/pin-status";
+import { useStore } from "@/app/shared/store";
 import type { PinStatus } from "@/app/types/pins.types";
 import { PinListItem } from "./PinListItem";
 

@@ -1,4 +1,4 @@
-import { createDefaultPinStatusFilter } from "@/app/features/pins/pin-status";
+import { createDefaultPinStatusFilter } from "@/app/entities/pin/model/pin-status";
 import type { StateCreator } from "zustand";
 import type { Pin, PinStatus } from "@/app/types/pins.types";
 

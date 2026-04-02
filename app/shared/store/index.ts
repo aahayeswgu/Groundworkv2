@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { createPinsSlice } from "@/app/features/pins/pins.store";
-import { createDiscoverSlice } from "@/app/features/discover/discover.store";
-import { createRouteSlice } from "@/app/features/route/route.store";
-import type { PinsSlice } from "@/app/features/pins/pins.store";
-import type { DiscoverSlice } from "@/app/features/discover/discover.store";
-import type { RouteSlice } from "@/app/features/route/route.store";
+import { createDiscoverSlice } from "@/app/entities/discover/model/discover.store";
+import { createPinsSlice } from "@/app/entities/pin/model/pins.store";
+import { createRouteSlice } from "@/app/entities/route/model/route.store";
+import type { DiscoverSlice } from "@/app/entities/discover/model/discover.store";
+import type { PinsSlice } from "@/app/entities/pin/model/pins.store";
+import type { RouteSlice } from "@/app/entities/route/model/route.store";
 
 export type AppStore = PinsSlice & DiscoverSlice & RouteSlice;
 
