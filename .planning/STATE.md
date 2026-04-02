@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
+milestone: v1.1
+milestone_name: Power Features
 status: executing
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-03-31T20:29:33.386Z"
-last_activity: 2026-03-31
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-04-01T21:16:23.051Z"
+last_activity: 2026-04-01
 progress:
-  total_phases: 5
+  total_phases: 3
   completed_phases: 2
   total_plans: 8
   completed_plans: 8
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
-**Current focus:** Phase 02 — pins
+**Current focus:** Phase 07 — marathon-mode
 
 ## Current Position
 
-Phase: 02 (pins) — EXECUTING
-Plan: 6 of 6
+Phase: 08
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-03-31
+Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,12 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-pins P03 | 8 | 2 tasks | 2 files |
 | Phase 02-pins P05 | 10 | 2 tasks | 4 files |
 | Phase 02-pins P06 | 2 | 2 tasks | 2 files |
+| Phase 06-planner P01 | 15min | 3 tasks | 4 files |
+| Phase 06-planner P02 | 8 | 3 tasks | 3 files |
+| Phase 06-planner P03 | 5min | 3 tasks | 3 files |
+| Phase 06-planner P04 | 3min | 2 tasks | 2 files |
+| Phase 06-planner P05 | 5 | 3 tasks | 4 files |
+| Phase 07 P03 | 15 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -84,6 +90,22 @@ Recent decisions affecting current work:
 - [Phase 02-pins]: Used useContext(MapContext) directly in PinListItem — useMapInstance throws on null, breaking render before map init
 - [Phase 02-pins]: onEditPin optional on Sidebar with no-op default — plan 06 wires the prop; avoids TypeScript error at page.tsx call site
 - [Phase 02-pins]: Lifted editPinId state to page.tsx for Sidebar+Map siblings to share openEditModal via prop; create-mode PinModal stays in Map.tsx internal to pin-drop flow
+- [Phase 06-planner]: PlannerSlice uses string dates throughout (addedAt, visitedAt as ISO strings, not Date objects)
+- [Phase 06-planner]: Store name 'groundwork-pins-v1' kept unchanged to preserve all existing pin data; version bumped to 2 with migration branch for v0/v1 upgrades
+- [Phase 06-planner]: session-only planner state (activeNotesPage, calendarOpen, monthViewOpen) not persisted — only plannerDays/activePlannerDate/trackingEnabled in partialize
+- [Phase 06-planner]: activeTab state lives in Sidebar component local state — no store needed since only Sidebar uses it
+- [Phase 06-planner]: Date display appends T00:00:00 when constructing Date object to prevent UTC offset shifting display by one day
+- [Phase 06-planner]: PlannerNotes uses local useState with optimistic update; store write deferred 800ms via debounceRef
+- [Phase 06-planner]: PlannerActivityLog collapse state is component-local (session-only per D-02, not in Zustand)
+- [Phase 06-planner]: handleAddNotesPage wraps addNotesPage in PlannerPanel to keep PlannerNotes pure of activity log concerns
+- [Phase 06-planner]: PlannerCalendar uses vanilla JS Date math only — no external calendar library
+- [Phase 06-planner]: calendarOpen and monthViewOpen both mount the same PlannerCalendar component — distinction is only in which toggle triggers them
+- [Phase 06-planner]: en-CA locale gives YYYY-MM-DD in local time — use for all ISO date string construction
+- [Phase 06-planner]: + Plan button in PinListItem uses same opacity-0 group-hover:opacity-100 pattern as + Route button
+- [Phase 06-planner]: MarkerLayer plan button mutates DOM in-place per D-11 — no infoWindow.setContent() call
+- [Phase 06-planner]: Route It uses ps.pinId ?? ps.id as RouteStop id to maintain pin dedup consistency in route store
+- [Phase 07]: clearDiscover now also resets discoverMode and searchProgress for consistent state reset
+- [Phase 07]: selectAllDiscover implemented in DiscoverSlice — caps at 20 selectable results matching existing UI logic
 
 ### Pending Todos
 
@@ -96,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T20:29:33.383Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-04-01T20:38:36.569Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None

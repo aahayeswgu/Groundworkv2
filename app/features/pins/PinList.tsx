@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { PIN_STATUS_OPTIONS } from "@/app/entities/pin/model/pin-status";
-import { useStore } from "@/app/shared/store";
+import { useStore } from "@/app/store";
 import type { PinStatus } from "@/app/types/pins.types";
 import { PinListItem } from "./PinListItem";
+
+const STATUS_CHIPS: { status: PinStatus; label: string; color: string }[] = [
+  { status: "prospect", label: "Prospect", color: "#3B82F6" },
+  { status: "active", label: "Active", color: "#22C55E" },
+  { status: "follow-up", label: "Follow-Up", color: "#F59E0B" },
+  { status: "lost", label: "Lost", color: "#EF4444" },
+];
 
 interface EmptyStateProps {
   searchText: string;
@@ -105,17 +111,6 @@ export function PinList({ onEditPin }: PinListProps) {
     return { totalPins, activeCount, thisWeekCount, overdueCount };
   }, [pins]);
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<PinStatus, number> = {
-      prospect: 0,
-      active: 0,
-      "follow-up": 0,
-      lost: 0,
-    };
-    for (const pin of pins) counts[pin.status] += 1;
-    return counts;
-  }, [pins]);
-
   function toggleStatus(status: PinStatus) {
     const next = new Set(activeStatusFilter);
     if (next.has(status)) {
@@ -163,8 +158,8 @@ export function PinList({ onEditPin }: PinListProps) {
       {/* Status filter chips */}
       <div className="px-3 py-2 border-b border-border bg-bg-card">
         <div className="flex flex-wrap gap-[5px]">
-          {PIN_STATUS_OPTIONS.map(({ value: status, label, color }) => {
-            const count = statusCounts[status];
+          {STATUS_CHIPS.map(({ status, label, color }) => {
+            const count = pins.filter((p) => p.status === status).length;
             const isActive = activeStatusFilter.has(status);
             return (
               <button
@@ -172,7 +167,7 @@ export function PinList({ onEditPin }: PinListProps) {
                 onClick={() => toggleStatus(status)}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all duration-150 border-[1.5px] ${
                   isActive
-                    ? "border-orange bg-orange-dim text-orange"
+                    ? "border-orange bg-orange-dim text-text-primary"
                     : "border-border text-text-secondary bg-bg-input hover:border-text-muted"
                 }`}
               >

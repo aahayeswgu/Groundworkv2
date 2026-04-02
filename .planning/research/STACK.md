@@ -1,7 +1,7 @@
 # Stack Research
 
 **Domain:** Map-centric field sales CRM — pin management, Google Places discovery, route optimization
-**Researched:** 2026-03-31
+**Researched:** 2026-03-31 (initial) / 2026-04-01 (v1.1 Power Features update)
 **Confidence:** HIGH (core libraries verified against official docs and npm; versions spot-checked)
 
 ---
@@ -18,176 +18,128 @@ feature areas being built this milestone.
 | `tailwindcss` | ^4 | CSS custom properties via `@theme inline` |
 | `@googlemaps/js-api-loader` | ^2.0.2 | `importLibrary()` pattern already in use |
 | `@types/google.maps` | ^3.58.1 | Maps types already present |
+| `@supabase/supabase-js` | ^2.101.1 | Database CRUD, cloud sync |
+| `zustand` | ^5.0.12 | Feature slices: pins, discover, route |
+| `@dnd-kit/core` | ^6.3.1 | Drag-and-drop primitives (route reorder) |
+| `@dnd-kit/sortable` | ^10.0.0 | Sortable preset with `useSortable` + `arrayMove` |
+| `@dnd-kit/utilities` | ^3.2.2 | CSS transform utilities for dnd-kit |
+| `sonner` | ^2.0.7 | Toast notifications |
 
 ---
 
-## Recommended Additions
+## Recommended Additions for v1.1 Power Features
 
-### Core: Supabase Backend
+### 1. Gemini AI Integration (Ask AI feature)
 
 | Technology | Version | Purpose | Why Recommended |
 |---|---|---|---|
-| `@supabase/supabase-js` | ^2.101.1 | Database CRUD, Realtime, Storage | Only client needed — auth is out of scope for this milestone, so `@supabase/ssr` is unnecessary overhead. Direct client with anon key is correct for the localStorage + cloud sync pattern described in PROJECT.md. |
+| `@google/genai` | ^1.x (latest) | Gemini API SDK for generating sales briefs | The only current official Google GenAI SDK. The previous `@google/generative-ai` package was deprecated and **all support ends August 31, 2025**. `@google/genai` reached GA in May 2025 and is the unified SDK for Gemini 2.x+ models. |
 
 **Install:**
 ```bash
-npm install @supabase/supabase-js
+npm install @google/genai
 ```
 
-**Why NOT `@supabase/ssr`:** That package exists to manage cookie-based auth sessions in Next.js server components. Since auth is explicitly out of scope (`PROJECT.md` → Out of Scope), using `@supabase/ssr` adds complexity (middleware, server client, browser client split) with zero benefit right now. Add it when auth is introduced.
+**Do NOT use `@google/generative-ai`** — deprecated, archived GitHub repo, no Gemini 2.x features.
 
-**Environment variables needed:**
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
+**Model to use:** `gemini-2.5-flash`
+- Lowest latency and cost in the 2.5 family — ideal for request/response sales briefs
+- `gemini-2.5-pro` is for complex reasoning tasks; overkill for a short marketing paragraph
+- Gemini 2.0 models are deprecated and "will be shut down soon" per Google docs (verified 2026-04-01)
 
----
+**Integration pattern — Next.js Route Handler (server-side only):**
 
-### Core: Global State Management
+The API key must never reach the browser. Use a Next.js Route Handler in `app/api/`:
 
-| Technology | Version | Purpose | Why Recommended |
-|---|---|---|---|
-| `zustand` | ^5.0.12 | Cross-feature shared state (pins, discover results, route stops, UI modes) | Smallest bundle (1.1 KB gzip), dead simple API, React 19 / `useSyncExternalStore` native in v5, no boilerplate. The app needs multiple features (pins, discover, route) to share state — component prop drilling won't scale. Zustand's slice pattern keeps feature state isolated while making cross-feature reads cheap. |
-
-**Install:**
-```bash
-npm install zustand
-```
-
-**Why NOT React Context:** Context re-renders the entire subtree on every change. Pin list has potentially hundreds of items; discover results have up to ~200 items from multiple queries. Context would cause map re-renders on every list hover — unacceptable. Zustand subscriptions are selector-based.
-
-**Why NOT Jotai:** Atomic model adds indirection that doesn't match this app's shape. The state here is a few well-defined global slices (pinsStore, discoverStore, routeStore, mapModeStore), not fine-grained independent atoms.
-
-**Recommended store structure:**
-```
-app/stores/
-  pins.store.ts        — pins[], selectedPinId, filterStatus, searchQuery
-  discover.store.ts    — results[], selectedIds, isDrawing, drawBounds
-  route.store.ts       — stops[], optimizedOrder, routePolyline
-  map-mode.store.ts    — activeMode (pin|discover|route|view)
-```
-
----
-
-### Core: Places API (New) via `importLibrary`
-
-No new npm package needed. `@googlemaps/js-api-loader` already loads the Google Maps JS API, and the **Places (New)** library is loaded dynamically via the existing `importLibrary()` pattern.
-
-**Verified API pattern (from official docs, HIGH confidence):**
 ```typescript
-const { Place } = await google.maps.importLibrary('places');
+// app/api/ai/brief/route.ts
+import { GoogleGenAI } from '@google/genai';
 
-// Text search (for discover queries by category)
-const { places } = await Place.searchByText({
-  textQuery: 'roofing contractor',
-  fields: ['displayName', 'location', 'formattedAddress', 'types',
-           'businessStatus', 'rating', 'photos', 'id'],
-  locationRestriction: {
-    // LatLngBoundsLiteral — the drawn rectangle from discover feature
-    low: { lat: swLat, lng: swLng },
-    high: { lat: neLat, lng: neLng },
-  },
-  maxResultCount: 20,
-});
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function POST(req: Request) {
+  const { businessName, types, address } = await req.json();
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: `Write a 2-sentence sales brief for visiting ${businessName}, a ${types.join('/')} at ${address}. Focus on construction-related opportunities.`,
+  });
+  return Response.json({ brief: response.text });
+}
 ```
 
-**Why Places (New) over legacy `PlacesService`:**
-- Legacy `PlacesService` is explicitly marked "Legacy status" in Google docs as of 2025
-- `Place.searchByText` and `Place.searchNearby` support Promise/async natively — no callback hell
-- `locationRestriction` with rectangle bounds is directly supported (critical for draw-to-search)
-- `locationRestriction` enforces strict bounds (results only within the rectangle), matching the PROJECT.md requirement for "Strict bounds filtering"
+**Environment variable needed (server-only, no `NEXT_PUBLIC_` prefix):**
+```
+GEMINI_API_KEY=your-key-from-ai-studio
+```
 
-**`@types/google.maps` already covers Places (New)** — no additional type package needed.
+**Why Route Handler over Server Action:** The AI call is triggered from a map bubble UI click (not a form submit), which is the canonical case for a Route Handler. Server Actions are optimized for form mutations. Both work but Route Handler is cleaner for fire-and-fetch patterns.
+
+**Why NOT Vercel AI SDK (`ai` package):** The Vercel AI SDK adds excellent streaming + React hooks (`useChat`, `useCompletion`) but is significant overhead for a single non-chat use case. The Ask AI feature generates one short paragraph on demand — no streaming needed, no conversation history, no multi-turn. Direct `@google/genai` is 3 lines of code. The Vercel AI SDK pays off if chat-style interactions are added later; add it then.
 
 ---
 
-### Core: Route Optimization via Route Class (New)
+### 2. Marathon Mode — No New Packages Needed
 
-No new npm package needed. The **Route class** in Maps JavaScript API is the client-side equivalent of the Routes REST API, loaded via `importLibrary`.
+Marathon mode accumulates discover results and route stops across multiple drawn areas before committing to a route. This is pure state management work with the existing stack.
 
-**API pattern (from official docs, HIGH confidence):**
+**What changes:**
+- `discover.store.ts` — add `marathonMode: boolean`, `accumulatedResults: DiscoverResult[]`, actions to toggle mode and merge results from repeated searches
+- `route.store.ts` — already has `addStop()` + dedup; Marathon mode calls it after each area search
+- `discover-search.ts` — existing search logic is called repeatedly; dedup by Place ID already required
+
+**No new npm package needed.** The existing Places API, Zustand slices, and dnd-kit (for reordering accumulated stops) are sufficient.
+
+**Key constraint:** The Places API returns up to 20 results per `searchByText` call (`maxResultCount: 20`). Marathon mode accumulates across multiple polygons — dedup by `place.id` must happen in the store, not just the UI.
+
+---
+
+### 3. Planner Tab — No New Packages Needed
+
+The Planner stores daily stops, notes, and an activity log. All required infrastructure exists:
+
+| Capability | How |
+|---|---|
+| Daily plan state | New `planner.store.ts` Zustand slice, persisted via existing `persist` middleware |
+| Plan data shape | `{ date: string (ISO), stops: PlanStop[], notes: string, log: LogEntry[] }` — date as string key |
+| Supabase sync | New `planner_days` table; same upsert + merge pattern used by pins |
+| Drag reorder | `@dnd-kit/sortable` already installed — reuse for daily stop ordering |
+| Notes textarea | Plain React controlled input, no rich text editor needed for v1 |
+| Activity log | Append-only array in the plan store; rendered as a timestamped list |
+
+**No new npm package needed.** The existing Zustand + Supabase + dnd-kit stack covers all Planner requirements.
+
+**Zustand date-keyed plan pattern:**
 ```typescript
-const { Route } = await google.maps.importLibrary('routes');
-
-const result = await new Route().computeRoutes({
-  origin: { address: startAddress },
-  destination: { address: endAddress },
-  intermediates: stops.map(s => ({ address: s.address })),
-  travelMode: 'DRIVING',
-  optimizeWaypointOrder: true,
-  fields: ['routes.legs', 'routes.optimizedIntermediateWaypointIndices',
-           'routes.duration', 'routes.distanceMeters'],
-});
-// Optimized order in: result.routes[0].optimizedIntermediateWaypointIndices
+// planner.store.ts
+interface PlannerSlice {
+  plans: Record<string, DailyPlan>;   // keyed by ISO date string "2026-04-15"
+  activeDate: string;                  // which day is open
+  // ...actions
+}
 ```
 
-**Why Route class (New) over `DirectionsService` (legacy):**
-- `google.maps.DirectionsService` was marked deprecated February 25, 2026 (official docs confirmed)
-- Route class is the current recommended client-side routing API
-- `optimizeWaypointOrder: true` is directly supported — Google's TSP solver handles the 25-waypoint optimization required by PROJECT.md
-- Returns `optimizedIntermediateWaypointIndices` array to rebuild the confirmed stop order in the UI
-
-**25-waypoint cap:** The Routes API supports up to 25 stopovers when using `optimizeWaypointOrder`. This exactly matches the PROJECT.md constraint. No special handling needed.
+`Record<string, DailyPlan>` serializes cleanly with `JSON.stringify` — no custom serializer (like `superjson`) is needed as long as dates are stored as ISO strings, not `Date` objects.
 
 ---
 
-### Core: AdvancedMarkerElement (already available via `importLibrary`)
+## Full Installation Command for This Milestone
 
-No new npm package needed. `AdvancedMarkerElement` and `PinElement` are loaded via `importLibrary('marker')`.
-
-**Required: Map ID**
-
-Advanced markers require a Map ID. The app must provide one when creating the `Map` instance:
-```typescript
-const map = new google.maps.Map(el, {
-  mapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID,  // add to .env.local
-  // ... other options
-});
-```
-
-`DEMO_MAP_ID` can be used for development. A production Map ID is created in Google Cloud Console.
-
-**Why use `AdvancedMarkerElement` over legacy `Marker`:**
-- `google.maps.Marker` is not officially deprecated on a fixed timeline, but `AdvancedMarkerElement` is the current standard
-- Status-colored SVG markers (Prospect/Active/Follow-Up/Lost) require custom HTML content — `AdvancedMarkerElement` accepts a `content` DOM element directly, making this clean
-- Discover markers (orange/green/yellow states) need programmatic style switching — `AdvancedMarkerElement.content` is mutable after creation
-- `PinElement` provides the built-in teardrop shape if custom SVG is not needed
-
----
-
-### Supporting: Drag-to-Reorder for Route Planner
-
-| Library | Version | Purpose | When to Use |
-|---|---|---|---|
-| `@dnd-kit/core` | ^6.3.1 | Drag-and-drop primitives | Route stop reordering in confirm panel |
-| `@dnd-kit/sortable` | ^10.0.0 | Sortable list preset | Wraps the DnD primitives with `useSortable` + `arrayMove` for list reorder |
-
-**Install:**
 ```bash
-npm install @dnd-kit/core @dnd-kit/sortable
+npm install @google/genai
 ```
 
-**Why `@dnd-kit` over `react-beautiful-dnd`:** `react-beautiful-dnd` is unmaintained (archived repo). `@dnd-kit` is the community standard replacement, works with React 19, and is accessibility-first. The `@dnd-kit/sortable` preset provides `arrayMove()` and `useSortable()` — exactly what the route stop reorder list needs with minimal setup.
-
-**Scope:** Only needed for the route planner's stop-reorder list. Do NOT use for the pin list sidebar — that list only needs click-to-select, not drag reorder.
+That is the only new dependency. Everything else reuses existing packages.
 
 ---
 
-### Supporting: Toast Notifications
+## Environment Variables to Add
 
-| Library | Version | Purpose | When to Use |
-|---|---|---|---|
-| `sonner` | ^2.0.7 | User feedback toasts | Pin saved, route copied, error states, discover progress |
-
-**Install:**
 ```bash
-npm install sonner
+# .env.local additions for v1.1
+GEMINI_API_KEY=your-key-from-google-ai-studio   # server-only, no NEXT_PUBLIC_ prefix
 ```
 
-**Why `sonner` over `react-hot-toast`:** Sonner has 20.5M weekly downloads vs react-hot-toast's 3.0M — it has become the de facto standard, particularly after shadcn/ui adopted it as the official toast component. Both are fine, but sonner's API is slightly more ergonomic for progress/loading states (relevant for batch discover queries). Bundle is 9.1 KB gzip — acceptable.
-
-**Usage:** Add `<Toaster />` once in `app/layout.tsx`. Call `toast.success()`, `toast.error()`, `toast.loading()` from anywhere without hooks.
+Keep the Gemini key server-only. It must never appear in client bundle. The Route Handler pattern above guarantees this by placing the key in a non-`NEXT_PUBLIC_` variable consumed only in `app/api/`.
 
 ---
 
@@ -195,50 +147,44 @@ npm install sonner
 
 | Avoid | Why | Use Instead |
 |---|---|---|
-| `@react-google-maps/api` | Wrapper around the Maps JS API that adds abstraction over `@googlemaps/js-api-loader` which is already installed and working. Switching would require rewriting `Map.tsx` with no benefit. React wrapper libraries for Maps tend to lag behind Google's API updates. | Continue using `@googlemaps/js-api-loader` directly with `importLibrary()` |
-| `use-places-autocomplete` | Hooks wrapper for legacy `PlacesAutocomplete` which is deprecated. | Call `Place.searchByText` directly via the new Places library |
-| Legacy `google.maps.DirectionsService` | Deprecated February 25, 2026 per official Google docs. Not scheduled for immediate removal but will not receive new features. | `google.maps.importLibrary('routes')` + Route class |
-| Legacy `google.maps.places.PlacesService` | Marked "Legacy status" by Google. Callback-based API, no Promises. | `Place.searchByText` / `Place.searchNearby` from Places (New) |
-| `@supabase/ssr` | Designed for cookie-based auth session management in Next.js server components. Auth is out of scope — this package adds unnecessary complexity. | Plain `@supabase/supabase-js` with anon key |
-| `react-beautiful-dnd` | Archived, unmaintained. | `@dnd-kit/core` + `@dnd-kit/sortable` |
-| Redux Toolkit | Significant boilerplate for a single-page app with 3-4 feature slices. Overkill. | Zustand with slice pattern |
-| PowerSync / RxDB | Full offline-first sync engines — appropriate for native mobile apps or complex conflict resolution. PROJECT.md specifies "localStorage with Supabase cloud sync (debounced)" — a much simpler pattern that doesn't need a sync engine. | Manual `localStorage` read/write + `@supabase/supabase-js` upsert with `useEffect` + `setTimeout` debounce |
+| `@google/generative-ai` | Deprecated; archived; all support ends Aug 31, 2025; no Gemini 2.x features | `@google/genai` |
+| `NEXT_PUBLIC_GEMINI_API_KEY` | Exposes API key to browser bundle; anyone can scrape it from the JS | Server-only `GEMINI_API_KEY` via Route Handler |
+| Vercel AI SDK (`ai` package) | Correct tool for streaming chat UIs; overkill for a single on-demand brief generation with no conversation state | Direct `@google/genai` in a Route Handler |
+| `superjson` / `serialize-javascript` | Only needed if storing `Date` objects or `Map`/`Set` in Zustand state; planner avoids this by using ISO date strings | ISO string dates throughout |
+| Rich text editor (TipTap, Slate, Quill) | Planner notes are field notes, not documents — plain `<textarea>` is appropriate for v1; add rich text only if users explicitly request it | Native `<textarea>` |
+| Separate analytics library (Segment, Mixpanel) | Activity log is internal audit trail, not product analytics | Append to `log: LogEntry[]` in planner store |
+| `@supabase/ssr` | Cookie-based auth session management — auth is still out of scope this milestone | Plain `@supabase/supabase-js` anon client |
 
 ---
 
-## Full Installation Command
+## Supabase Schema Additions
 
-```bash
-# Add these to the existing project
-npm install @supabase/supabase-js zustand sonner @dnd-kit/core @dnd-kit/sortable
+Two new tables needed for this milestone:
+
+**`planner_days`**
+```sql
+create table planner_days (
+  id          uuid primary key default gen_random_uuid(),
+  date        date not null,             -- ISO date, unique per "user" (no auth yet)
+  stops       jsonb default '[]',
+  notes       text default '',
+  log         jsonb default '[]',
+  updated_at  timestamptz default now()
+);
 ```
 
-No new dev dependencies required — all type definitions are bundled in these packages.
-
----
-
-## Environment Variables to Add
-
-```bash
-# .env.local additions
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=your-map-id   # Required for AdvancedMarkerElement
-```
+No new Supabase client config needed — same `@supabase/supabase-js` client from `app/lib/supabase.ts`.
 
 ---
 
 ## Version Compatibility Notes
 
-| Package | React Version | Notes |
+| Package | Compat | Notes |
 |---|---|---|
-| `zustand` ^5.0.12 | React 18+ required | v5 uses native `useSyncExternalStore` — compatible with React 19.2.4 |
-| `@dnd-kit/core` ^6.3.1 | React 16.8+ | Compatible with React 19; last updated ~1 year ago but stable |
-| `@dnd-kit/sortable` ^10.0.0 | Matches core | Version jump from 8.x to 10.x is a major bump — install both explicitly |
-| `sonner` ^2.0.7 | React 18+ | Compatible with React 19 |
-| `@supabase/supabase-js` ^2.101.1 | Framework-agnostic | Works in both Server and Client components; use only in Client components for this milestone |
-| Google Places (New) | N/A | Loaded via `importLibrary('places')` — already available in `@googlemaps/js-api-loader` ^2.0.2 |
-| Google Route class | N/A | Loaded via `importLibrary('routes')` — already available in `@googlemaps/js-api-loader` ^2.0.2 |
+| `@google/genai` ^1.x | Node.js 18+ | Next.js Route Handlers run in Node.js runtime by default — compatible. Do NOT run in Edge Runtime (no Node.js built-ins). |
+| `@google/genai` ^1.x | React 19.2.4 | SDK is used server-side only; no React compat concern |
+| `gemini-2.5-flash` model | `@google/genai` ^1.x | GA model, stable identifier — not a preview string |
+| Zustand `Record<string, DailyPlan>` | Zustand ^5.0.12 | Serializes cleanly with default JSON storage; no migration needed if schema starts correct |
 
 ---
 
@@ -246,30 +192,26 @@ NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=your-map-id   # Required for AdvancedMarkerElemen
 
 | Recommended | Alternative | When to Use Alternative |
 |---|---|---|
-| Zustand | React Context | If the app had <3 components sharing state and no map involved. Map interactions make Context re-render costs unacceptable. |
-| Zustand | Jotai | If state were highly granular and reactive (e.g., a spreadsheet). This app has coarse feature-level slices, not fine atomic state. |
-| `@dnd-kit` | `react-beautiful-dnd` | Never — it's archived. |
-| `sonner` | `react-hot-toast` | Either works. Choose `react-hot-toast` if bundle size is a hard constraint (4.7 KB vs 9.1 KB). |
-| Route class (New) | `DirectionsService` (Legacy) | If you need to ship immediately and can't test the Route class API — `DirectionsService` still works and won't be removed with short notice. Flag as tech debt. |
-| `Place.searchByText` | Legacy `PlacesService.textSearch` | Same caveat — legacy still works, but new projects should not start on it. |
+| `@google/genai` direct | Vercel AI SDK with `@ai-sdk/google` provider | If the project adds streaming chat, multi-turn conversation, or needs to swap AI providers. Vercel AI SDK's `useChat` hook and `streamText` are better than hand-rolling streaming. Add it at that point. |
+| Route Handler for AI call | Server Action | Server Actions are cleaner for form mutations. For a UI-triggered fetch (clicking "Ask AI" on a map bubble), a Route Handler is the conventional Next.js pattern. |
+| ISO string dates in Zustand | `Date` objects | Never store `Date` objects in Zustand persist — they serialize to strings but don't deserialize back to `Date`, causing silent type bugs. Always use ISO strings. |
+| Plain `<textarea>` for notes | TipTap / Slate | Add rich text only when users actually request formatting. Field notes in a sales CRM are typically one-liners. Avoid the 50+ KB bundle cost speculatively. |
 
 ---
 
 ## Sources
 
-- [Google Maps JavaScript API: Place Class](https://developers.google.com/maps/documentation/javascript/place) — Places (New) confirmed current standard; `importLibrary('places')` pattern verified
-- [Place.searchByText docs](https://developers.google.com/maps/documentation/javascript/place-search) — `locationRestriction` rectangle bounds confirmed; field mask pattern verified
-- [Place.searchNearby docs](https://developers.google.com/maps/documentation/javascript/nearby-search) — `SearchNearbyRankPreference` and radius confirmed
-- [Google Maps DirectionsService reference](https://developers.google.com/maps/documentation/javascript/reference/directions) — Deprecated status February 25, 2026 confirmed
-- [Route class overview](https://developers.google.com/maps/documentation/javascript/routes/route-class-overview) — Current routing API confirmed; `optimizeWaypointOrder` supported
-- [Advanced Markers overview](https://developers.google.com/maps/documentation/javascript/advanced-markers/overview) — Map ID requirement confirmed; migration guide referenced
-- [supabase-js GitHub releases](https://github.com/supabase/supabase-js/releases) — v2.101.1 confirmed current stable (2026-03-31)
-- [zustand GitHub releases](https://github.com/pmndrs/zustand/releases) — v5.0.12 confirmed current stable
-- [dnd-kit npm](https://www.npmjs.com/package/@dnd-kit/core) — @dnd-kit/core 6.3.1 current
-- [sonner npm](https://www.npmjs.com/package/sonner) — 2.0.7 current stable; 12M+ weekly downloads confirmed
-- [LogRocket toast comparison 2025](https://blog.logrocket.com/react-toast-libraries-compared-2025/) — sonner vs react-hot-toast comparison; sonner adoption numbers
+- [@google/genai npm page](https://www.npmjs.com/package/@google/genai) — v1.x current, GA since May 2025; install command confirmed
+- [googleapis/js-genai GitHub](https://github.com/googleapis/js-genai) — official SDK repo; unified SDK for Gemini + Vertex AI
+- [deprecated-generative-ai-js GitHub](https://github.com/google-gemini/deprecated-generative-ai-js) — confirmed deprecated; "use new unified Google GenAI SDK"
+- [Gemini API Models docs](https://ai.google.dev/gemini-api/docs/models) — `gemini-2.5-flash` confirmed stable GA; Gemini 2.0 deprecated "shut down soon"
+- [Gemini API Quickstart](https://ai.google.dev/gemini-api/docs/quickstart) — `GoogleGenAI` import + `ai.models.generateContent` pattern confirmed; `GEMINI_API_KEY` auto-pickup confirmed
+- [Gemini API Key security docs](https://ai.google.dev/gemini-api/docs/api-key) — server-only key requirement confirmed
+- [Vercel AI SDK docs](https://ai-sdk.dev/docs/introduction) — `useChat`/`streamText` for streaming chat; confirmed overkill for single-brief use case
+- [Zustand persist GitHub discussion](https://github.com/pmndrs/zustand/discussions/2476) — `Record<string, T>` pattern for date-keyed state; ISO string advice confirmed
+- [dnd-kit/sortable docs](https://docs.dndkit.com/concepts/sortable) — `useSortable` + `arrayMove` reuse confirmed for Planner stop ordering
 
 ---
 
-*Stack research for: map-centric field sales CRM (Groundwork v2)*
-*Researched: 2026-03-31*
+*Stack research for: map-centric field sales CRM (Groundwork v2) — v1.1 Power Features*
+*Initial research: 2026-03-31 | Updated: 2026-04-01*

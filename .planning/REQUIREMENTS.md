@@ -1,154 +1,114 @@
-# Requirements: Groundwork v2
+# Requirements: Groundwork v2 — Milestone v1.1
 
-**Defined:** 2026-03-31
+**Defined:** 2026-04-01
 **Core Value:** A sales rep can discover businesses in an area, pin the ones worth visiting, build an optimized route, and launch Google Maps navigation — all in one seamless flow.
 
-## v1 Requirements
+## v1.0 Requirements (Complete)
 
-Requirements for initial release. Each maps to roadmap phases.
+All 41 v1.0 requirements delivered. See `.planning/phases/` for verification reports.
+
+## v1.1 Requirements
+
+Requirements for milestone v1.1: Power Features.
 
 ### Foundation
 
-- [x] **FOUN-01**: App uses Zustand store with feature slices (pins, discover, route) for all cross-component state
-- [x] **FOUN-02**: Map instance shared via React Context so all features can access it without prop drilling
-- [x] **FOUN-03**: All map markers use AdvancedMarkerElement (not deprecated google.maps.Marker)
-- [x] **FOUN-04**: MapButton component extracted as reusable shared component
+- [ ] **FOUN-05**: Zustand schema version bumped with migration before adding Planner state to persist
+- [ ] **FOUN-06**: PlannerSlice added to Zustand store with planned stops, notes, activity log persisted to localStorage
 
-### Pins
+### Marathon
 
-- [x] **PINS-01**: User can enter pin-drop mode and click map to place a pin at that location
-- [x] **PINS-02**: Pin stores title, address, status, contact name, phone, follow-up date, and notes
-- [x] **PINS-03**: Address is reverse-geocoded automatically from pin coordinates on drop
-- [x] **PINS-04**: Pin has one of four fixed statuses: Prospect (blue), Active (green), Follow-Up (amber), Lost (red)
-- [x] **PINS-05**: User can edit a pin's fields via a slide-in edit panel
-- [x] **PINS-06**: User can delete a pin from the edit panel or info window
-- [x] **PINS-07**: Pins display as status-colored SVG markers on the map
-- [x] **PINS-08**: Clicking a pin marker shows an info window with name, status, address, contact, and action buttons
-- [x] **PINS-09**: Sidebar shows a searchable list of all pins with text search across title, address, and contact
-- [x] **PINS-10**: Sidebar has status filter chips that filter both the list and map marker visibility
-- [x] **PINS-11**: Clicking a pin in the sidebar pans and zooms the map to that pin and bounces the marker
-- [x] **PINS-12**: Pins persist to localStorage as primary cache
-- [ ] **PINS-13**: Pins sync to Supabase with debounced cloud push and pull-on-load with merge semantics (updated_at comparison)
+- [x] **MARA-01**: User can enter Marathon mode from the discover panel
+- [x] **MARA-02**: User can draw multiple search rectangles sequentially without losing previous results
+- [x] **MARA-03**: Results accumulate across all drawn areas with cross-zone deduplication
+- [x] **MARA-04**: User can select businesses from the accumulated pool and build one optimized route
+- [x] **MARA-05**: Zone count progress indicator shows "X areas searched" during marathon session
+- [x] **MARA-06**: User can clear results per-zone or clear all accumulated results
+- [x] **MARA-07**: Per-zone attribution — each result tagged with which search area it came from
 
-### Discover
+### Ask AI
 
-- [ ] **DISC-01**: User can click Discover button to enter discovery mode
-- [ ] **DISC-02**: User draws a rectangle on the map via click+drag to define the search area
-- [ ] **DISC-03**: Search area is validated (min 200m, max 30km)
-- [ ] **DISC-04**: App searches Google Places (New API) using configurable query categories (default: 18 construction/trade queries)
-- [ ] **DISC-05**: Results are filtered by chain/residential/irrelevant-type exclusion rules
-- [ ] **DISC-06**: Results are deduplicated by place_id, normalized name, and coordinate proximity
-- [ ] **DISC-07**: Results are strictly filtered to the drawn rectangle bounds (client-side containment check)
-- [ ] **DISC-08**: Results display in a scrollable list with business name, type classification, rating, and address
-- [ ] **DISC-09**: Results display as markers on the map (orange default, green selected, yellow hover)
-- [ ] **DISC-10**: Clicking a discover marker shows an info bubble with photo, name, type, rating, address, and action buttons
-- [ ] **DISC-11**: User can select multiple discovered businesses via checkboxes
-- [ ] **DISC-12**: User can quick-save a discovered business as a pin with default Prospect status
-- [ ] **DISC-13**: Mobile touch support: 300ms hold-to-draw to prevent accidental rectangles
+- [ ] **ASKI-01**: "Ask AI" button appears in discover business info bubble
+- [ ] **ASKI-02**: Server-side Route Handler proxies Gemini API calls (API key never exposed to browser)
+- [ ] **ASKI-03**: Sales brief generated with pain points relevant to construction/staffing, crew size estimates, insider tips
+- [ ] **ASKI-04**: Loading state shown while brief generates
+- [ ] **ASKI-05**: "Learn More" expands brief with company profile, recent activity, decision maker intel, competitive landscape
+- [ ] **ASKI-06**: Brief cached per placeId — same business doesn't re-fetch on repeated clicks
 
-### Route
+### Planner
 
-- [ ] **ROUT-01**: User can add pins to a stop list from the pin info window, sidebar, or discover results
-- [ ] **ROUT-02**: User can select start point: home base address, GPS location, or custom address
-- [ ] **ROUT-03**: Route is optimized via Google Directions API with optimizeWaypoints flag
-- [ ] **ROUT-04**: Route displays on map as an orange polyline with numbered stop markers
-- [ ] **ROUT-05**: Route confirm panel shows reorderable stop list with distance and time summary
-- [ ] **ROUT-06**: User can drag-to-reorder stops in the confirm panel and route recalculates
-- [ ] **ROUT-07**: App generates a Google Maps shareable link using stop addresses (fallback to coordinates)
-- [ ] **ROUT-08**: User can open the route in Google Maps for turn-by-turn navigation via the shareable link
-- [ ] **ROUT-09**: Route is capped at 25 waypoints with clear user-facing messaging when limit is reached
-- [ ] **ROUT-10**: Route returns to start point when departing from home base
-- [ ] **ROUT-11**: Route state (stops, order, shareable link) is managed in Zustand store, not local component state
+- [x] **PLAN-01**: Planner tab in sidebar (alongside Pins tab) — clicking switches between Pins and Planner views
+- [x] **PLAN-02**: Today's planned stops displayed as an ordered list with business name, address, and status
+- [x] **PLAN-03**: User can add stops to planner from pin info window, route confirm panel ("Send to Planner"), or sidebar
+- [x] **PLAN-04**: User can mark stops as visited, skipped, or pending
+- [x] **PLAN-05**: Daily notes text area for free-form notes about the day
+- [x] **PLAN-06**: Date navigation — prev/next day arrows, today button, calendar date picker
+- [x] **PLAN-07**: Activity log per day — timestamped entries for stop visits, route starts, notes added
+- [x] **PLAN-08**: Stats display — planned count, visited count, skipped count for the current day
+- [x] **PLAN-09**: Planner stops persist to localStorage via Zustand persist (keyed by date)
+- [x] **PLAN-10**: Clean, minimal UI — cleaner than original Groundwork planner
 
-## v2 Requirements
+## Future Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+Deferred beyond v1.1.
 
-### Pin Enhancements
-
-- **PINE-01**: Sidebar ↔ map bidirectional hover sync (highlight marker on sidebar hover, highlight list item on marker hover)
-- **PINE-02**: Bulk area-select via shift+drag on map
-- **PINE-03**: Pin grouping options (by status, A-Z, follow-up date, most recent)
-- **PINE-04**: Pin relocate (pick up and re-drop on map)
-- **PINE-05**: Customizable pin statuses (user-defined names and colors)
+### Planner Enhancements
+- **PLAN-E01**: Voice dictation for notes (browser Speech API)
+- **PLAN-E02**: GPS auto-check-in — automatically mark stop visited when within proximity
+- **PLAN-E03**: Planner stops sync to Supabase (planner_days table)
+- **PLAN-E04**: Activity log stored in Supabase (not just localStorage)
 
 ### Platform
-
 - **PLAT-01**: Auth / login system with user profiles
-- **PLAT-02**: Daily notes and activity logging in planner
-- **PLAT-03**: Marathon mode (multi-area routing)
-- **PLAT-04**: AI research via Gemini on discovered businesses
-- **PLAT-05**: GPS background tracking with auto-visit detection
-- **PLAT-06**: Route import via bulk paste or quick add
-- **PLAT-07**: Email integration from pins
-- **PLAT-08**: >25 waypoint clustering fallback
+- **PLAT-02**: Email integration from pins
+- **PLAT-03**: Route import via bulk paste
+- **PLAT-04**: Custom pin status creation
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Built-in turn-by-turn navigation | Google Maps handles this better than any custom implementation; shareable link is the handoff |
-| Real-time GPS rep tracking | Privacy friction kills adoption; defer to opt-in v2 feature |
-| Custom status creation | Fixed 4-status set covers the sales cycle; avoids configuration complexity |
-| CSV/bulk route import | Edge cases with bad addresses and geocoding failures; manual pin + discover covers the use case |
-| Email/calendar integration | Deep OAuth integrations are maintenance-heavy; follow-up date field is sufficient for v1 |
-| AI-generated visit summaries | LLM API dependency adds cost and latency; good structured fields deliver the same outcome |
-| Voice dictation | Browser speech API is unreliable; defer to v2 |
-| Native mobile app | Web-first; must work well on mobile browsers |
+| GPS auto-check-in | Background location permissions + battery drain; defer to v1.2 |
+| Voice dictation | Browser Speech API reliability; defer to v1.2 |
+| Supabase planner sync | No auth yet; localStorage sufficient for single-user |
+| Activity log in Supabase | Depends on planner Supabase sync |
+| >25 waypoint clustering | Capped at 25 for simplicity |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | Phase 1 | Complete |
-| FOUN-02 | Phase 1 | Complete |
-| FOUN-03 | Phase 1 | Complete |
-| FOUN-04 | Phase 1 | Complete |
-| PINS-01 | Phase 2 | Complete |
-| PINS-02 | Phase 2 | Complete |
-| PINS-03 | Phase 2 | Complete |
-| PINS-04 | Phase 2 | Complete |
-| PINS-05 | Phase 2 | Complete |
-| PINS-06 | Phase 2 | Complete |
-| PINS-07 | Phase 2 | Complete |
-| PINS-08 | Phase 2 | Complete |
-| PINS-09 | Phase 2 | Complete |
-| PINS-10 | Phase 2 | Complete |
-| PINS-11 | Phase 2 | Complete |
-| PINS-12 | Phase 2 | Complete |
-| PINS-13 | Phase 3 | Pending |
-| DISC-01 | Phase 4 | Pending |
-| DISC-02 | Phase 4 | Pending |
-| DISC-03 | Phase 4 | Pending |
-| DISC-04 | Phase 4 | Pending |
-| DISC-05 | Phase 4 | Pending |
-| DISC-06 | Phase 4 | Pending |
-| DISC-07 | Phase 4 | Pending |
-| DISC-08 | Phase 4 | Pending |
-| DISC-09 | Phase 4 | Pending |
-| DISC-10 | Phase 4 | Pending |
-| DISC-11 | Phase 4 | Pending |
-| DISC-12 | Phase 4 | Pending |
-| DISC-13 | Phase 4 | Pending |
-| ROUT-01 | Phase 5 | Pending |
-| ROUT-02 | Phase 5 | Pending |
-| ROUT-03 | Phase 5 | Pending |
-| ROUT-04 | Phase 5 | Pending |
-| ROUT-05 | Phase 5 | Pending |
-| ROUT-06 | Phase 5 | Pending |
-| ROUT-07 | Phase 5 | Pending |
-| ROUT-08 | Phase 5 | Pending |
-| ROUT-09 | Phase 5 | Pending |
-| ROUT-10 | Phase 5 | Pending |
-| ROUT-11 | Phase 5 | Pending |
+| FOUN-05 | Phase 6 | Pending |
+| FOUN-06 | Phase 6 | Pending |
+| PLAN-01 | Phase 6 | Complete |
+| PLAN-02 | Phase 6 | Complete |
+| PLAN-03 | Phase 6 | Complete |
+| PLAN-04 | Phase 6 | Complete |
+| PLAN-05 | Phase 6 | Complete |
+| PLAN-06 | Phase 6 | Complete |
+| PLAN-07 | Phase 6 | Complete |
+| PLAN-08 | Phase 6 | Complete |
+| PLAN-09 | Phase 6 | Complete |
+| PLAN-10 | Phase 6 | Complete |
+| MARA-01 | Phase 7 | Complete |
+| MARA-02 | Phase 7 | Complete |
+| MARA-03 | Phase 7 | Complete |
+| MARA-04 | Phase 7 | Complete |
+| MARA-05 | Phase 7 | Complete |
+| MARA-06 | Phase 7 | Complete |
+| MARA-07 | Phase 7 | Complete |
+| ASKI-01 | Phase 8 | Pending |
+| ASKI-02 | Phase 8 | Pending |
+| ASKI-03 | Phase 8 | Pending |
+| ASKI-04 | Phase 8 | Pending |
+| ASKI-05 | Phase 8 | Pending |
+| ASKI-06 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 41 total
-- Mapped to phases: 41
+- v1.1 requirements: 25 total
+- Mapped to phases: 25
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-31*
-*Last updated: 2026-03-31 after roadmap creation*
+*Requirements defined: 2026-04-01*
+*Last updated: 2026-03-31 — traceability updated after roadmap revision (Phase 9 merged into Phase 6)*

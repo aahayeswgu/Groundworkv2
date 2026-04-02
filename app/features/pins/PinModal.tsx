@@ -2,15 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { PIN_STATUS_OPTIONS } from "@/app/entities/pin/model/pin-status";
-import { useStore } from "@/app/shared/store";
 import type { Pin, PinStatus, NoteEntry } from "@/app/types/pins.types";
+import { useStore } from "@/app/store/index";
 
 export interface PinModalProps {
   mode: "create" | "edit";
   initialData: Partial<Pin>;
   onClose: () => void;
 }
+
+const STATUS_OPTIONS: { value: PinStatus; label: string; color: string }[] = [
+  { value: "prospect", label: "Prospect", color: "#3B82F6" },
+  { value: "active", label: "Active", color: "#22C55E" },
+  { value: "follow-up", label: "Follow-Up", color: "#F59E0B" },
+  { value: "lost", label: "Lost", color: "#EF4444" },
+];
 
 const INPUT_CLASS =
   "w-full px-3 py-2 bg-bg-input border border-border rounded-lg text-sm text-text-primary outline-none focus:border-orange transition-colors";
@@ -140,7 +146,7 @@ export default function PinModal({ mode, initialData, onClose }: PinModalProps) 
           <div>
             <label className={LABEL_CLASS}>Status</label>
             <div className="flex gap-2 flex-wrap">
-              {PIN_STATUS_OPTIONS.map((opt) => {
+              {STATUS_OPTIONS.map((opt) => {
                 const isSelected = status === opt.value;
                 return (
                   <button

@@ -1,197 +1,288 @@
 # Feature Research
 
 **Domain:** Field sales CRM / map-based route planning (construction trades focus)
-**Researched:** 2026-03-31
+**Researched:** 2026-03-31 (updated for v1.1 milestone)
 **Confidence:** MEDIUM-HIGH (competitive analysis + Google API docs; no direct user interviews)
 
 ---
 
-## Feature Landscape
+## Scope Note
 
-### Table Stakes (Users Expect These)
-
-Features that every field sales map tool ships. Missing any of these makes the product feel broken.
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Status-colored pin markers on map | Every competitor does this; reps navigate by visual color, not names | LOW | Fixed 4-status palette (Prospect/Active/Follow-Up/Lost) covers the full sales cycle |
-| Click-to-place pin drop | Core input mechanic; analogous to dropping a pin in Google Maps | LOW | Requires a "pin drop mode" UI toggle to avoid accidental drops |
-| Pin info window on marker click | Reps need name, status, address, phone without opening sidebar | LOW | Show only primary fields; full edit opens in sidebar panel |
-| Pin list in sidebar with search and filter | How reps navigate when they know who they're looking for | MEDIUM | Status filter chips + text search are minimum; grouping is a v1 nice-to-have |
-| Pin CRUD with edit panel | Add, edit, delete is non-negotiable for any data management tool | MEDIUM | Reverse geocoding on pin drop removes manual address entry burden |
-| Pin persistence across sessions | Pins that vanish on reload are unusable | LOW | localStorage is minimum viable; cloud sync is expected for a "real" tool |
-| Multi-stop route building | Core value proposition of the app; reason reps open it daily | MEDIUM | Must support at minimum 5-10 stops to cover a real day's route |
-| Route display on map | Reps need to see the route visually before committing | LOW | Numbered stop markers + polyline is the standard pattern |
-| Navigation handoff to Google Maps | Reps execute routes in Google Maps (turn-by-turn, traffic, voice); nobody expects the app to replicate that | LOW | Shareable link with `https://www.google.com/maps/dir/` is standard; addresses preferred over coords |
-| Mobile-responsive layout | Field reps work on phones; desktop-first fails in the field | MEDIUM | Sidebar collapses to bottom bar on mobile; existing layout already handles this |
-| Fly-to-pin from sidebar | Standard map UX: click item in list, map pans to it | LOW | Pan + zoom + brief marker bounce is the expected animation |
-
-### Differentiators (Competitive Advantage)
-
-Features that set this product apart from Badger Maps, SPOTIO, MapMyCustomers. Not expected but highly valued.
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Draw-to-search business discovery | No competitor offers draw-a-rectangle-to-discover; they all use territory zones or address-based search | HIGH | Rectangle draw + Google Places multi-category search is the unique mechanic; construction-specific query defaults make it immediately useful |
-| Construction-specific query defaults | Generic tools require manual category setup; this works out of the box for trades | LOW | 18 default categories (roofing, HVAC, plumbing, contractors, etc.) configurable per fork |
-| Quick-save discovered business as pin | Closes the discover-to-pipeline loop in one tap | LOW | Competitor tools require leaving the map to add a lead |
-| Sidebar ↔ map hover sync | Bidirectional highlight feels polished and reduces "where is that pin?" confusion | MEDIUM | Requires shared hover state across map and sidebar components |
-| Drag-to-reorder stops in route planner | Competitors offer optimization-then-lock; manual reorder lets reps apply local knowledge (customer prefers morning) | MEDIUM | React drag-and-drop on stop list; map polyline updates in real time |
-| Area-select bulk pin operations | Lasso/shift+drag to select multiple pins for bulk delete or route-add beats clicking one by one | HIGH | Badger Maps has a similar "lasso" feature as a flagship differentiator; this is competitive parity + value |
-| Offline-first with cloud sync | Field reps in low-signal areas can't lose their day's work | MEDIUM | localStorage as primary store, Supabase sync debounced; competitors require constant connectivity |
-| Fork-friendly industry config | Contractors can hand this to a plumber, HVAC company, or real estate team with a config swap | LOW (for design, not implementation) | Requires clean separation of query config, branding colors, and status labels from core logic |
-
-### Anti-Features (Commonly Requested, Often Problematic)
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Built-in turn-by-turn navigation | Reps want one app | Google Maps, Waze, and Apple Maps are better at navigation than any custom implementation will ever be; building this is 6+ months of work that adds zero competitive advantage | One-tap shareable link handoff to Google Maps; let Google handle navigation |
-| Real-time GPS rep tracking | Managers want visibility | Privacy friction kills adoption; reps resent surveillance tools; adds background location permissions complexity | Log visits manually at pin; GPS-verify check-in as a v2 opt-in feature |
-| Custom status creation | Reps want to personalize | Unlimited custom statuses break color-coded visual scanning and complicate filtering logic | Fixed 4-status set covers the full sales cycle; avoid the configuration rabbit hole in v1 |
-| Route import via CSV/bulk paste | Power users want to pre-load routes | Edge cases (bad addresses, geocoding failures, duplicate deduplication) are a long tail of bugs; adds a separate data entry paradigm | Manual pin placement + discover flow covers the use case without the import complexity |
-| Email/calendar integration | Reps want to log comms in one place | Deep OAuth integrations with Gmail and Outlook are maintenance-heavy; each provider has breaking changes; this is a distraction from the map-first value | Store follow-up date and notes on pin; email integrations are v2 after core is validated |
-| More than 25 stops per route | "I have 30 visits today" | Google Directions API hard cap at 25 waypoints (including origin/destination); circumventing this requires multiple API calls, stitching, and UX complexity | Cap at 25, communicate clearly; most field sales days are under 15 stops anyway |
-| AI-generated visit summaries | Sounds cutting-edge | Requires LLM API calls, prompt engineering, and cost per-use; adds latency to core workflows; training data on construction industry notes is limited | Good notes field with structured fields (contact name, next action, follow-up date) delivers the same outcome without AI dependency |
+This document covers v1.1 milestone features — Marathon mode, Ask AI (Gemini), and Planner tab — layered onto the already-built v1 foundation (pin management, discovery, route optimization, Supabase sync). The v1 feature landscape is preserved at the bottom for continuity.
 
 ---
 
-## Feature Dependencies
+## v1.1 Feature Landscape
+
+### Marathon Mode — Multi-Area Discover + Route Accumulation
+
+**What it is:** A persistent session where a rep can draw multiple search rectangles across different areas — accumulating discovered businesses across all draws — then build a single optimized route from the combined pool. Contrast with the current v1 flow where each new draw *replaces* previous results.
+
+#### How Competitors Handle This
+
+SPOTIO and Knockbase treat territory coverage as pre-planned zone assignments rather than live accumulation — managers assign zones, reps work them. Neither supports in-session "keep adding results from new draws." Badger Maps' lasso tool selects existing accounts; it doesn't discover new ones across areas. The live accumulate-across-draws pattern is not a standard competitor feature. This is a genuine differentiator.
+
+RepMove and eCanvasser support re-optimizing routes when new stops are added mid-day — this is the closest analogue to what Marathon mode produces on the route side.
+
+#### Table Stakes for Marathon Mode
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Accumulate results across draws | Reps can't re-draw the same area if prior results vanish | MEDIUM | Core mechanic: instead of `setDiscoverResults(results)` replacing state, Marathon appends with deduplication by `placeId` |
+| Cross-area dedup | If two draws overlap, same business must not appear twice | LOW | Existing dedup logic in `discover-search.ts` already handles within-draw dedup; extend to cross-draw using `placeId` Set |
+| Visual distinction of "area already searched" | Reps need to know which areas have been drawn | MEDIUM | Render completed draw rectangles as semi-transparent overlays on the map layer |
+| Result count badge showing accumulated total | Rep needs to know how many they've found across all areas | LOW | Integer counter in Marathon UI header |
+| "Clear all and restart" escape hatch | If rep draws a wrong area, they need to reset without leaving Marathon | LOW | Destructive confirm → clears all accumulated results and saved rectangles |
+
+#### Differentiators for Marathon Mode
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Add entire accumulated pool to route in one tap | Converts a multi-area canvassing session into a route without stop-by-stop add | LOW | Calls `addStop()` for each selected result up to 25-stop cap; shows cap-reached notice if overflow |
+| Persistent session across app navigation | Rep can switch to pin list or route panel and return to Marathon without losing accumulated results | MEDIUM | Marathon state lives in a new `marathonSlice` in the Zustand store, not in component state |
+| Area rectangle count indicator | Shows "3 areas searched, 47 businesses found" — communicates scope of session | LOW | Derived from stored rectangle array length + accumulated results count |
+| Filter/select from accumulated pool before routing | Rep sees the full pool and checks which ones to route to | MEDIUM | Reuse existing `selectedDiscoverIds` pattern from DiscoverSlice; Marathon extends selection to span multiple draws |
+
+#### Anti-Features for Marathon Mode
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Auto-route every newly drawn area | "Make it automatic" | Routing 25 stops mid-discovery interrupts the canvassing flow; reps want to discover first, route after | Explicit "Build Route from Session" CTA at end of Marathon session |
+| Unlimited stop accumulation beyond 25 | "I found 60 businesses" | Google Directions API hard cap at 25 waypoints; circumventing requires multi-route stitching with significant UX complexity | Show count, communicate cap clearly, let rep select which 25 to prioritize — selection UX solves this |
+| Saving Marathon sessions for replay | "I want to do this area again tomorrow" | Adds a session management system; the pin-quick-save flow already persists anything worth keeping | Quick-save the businesses you want to revisit as pins; that's the persistence mechanism |
+
+---
+
+### Ask AI — Gemini Sales Brief in Discover Info Bubble
+
+**What it is:** A button in the discover result info bubble (the panel that opens when a rep taps a discovered business) that calls the Gemini API and returns a short sales brief about that business — what they do, likely pain points, relevant services, suggested talking points for a Gillman Services pitch.
+
+#### How Competitors Handle This
+
+AI pre-call research is an emerging category. Leadbeam explicitly lists "meeting prep" as an AI-generated feature. LinkedIn Sales Navigator does pre-visit research for B2B accounts. ZoomInfo provides company intelligence. None of these are embedded in a map discovery flow — they require leaving the map, switching apps, and pasting company names. Embedding AI brief generation directly in the discover info bubble is a genuine workflow improvement.
+
+SPOTIO's 2026 adoption report found only 33% of field sales teams use AI at all; 26% use it for content/proposal generation. This is early-adopter territory — the feature needs to degrade gracefully (work without it, not require it).
+
+#### How Gemini Grounding Works (HIGH confidence — official API docs)
+
+The Gemini API supports "Grounding with Google Search" — the model automatically decides if a web search would improve the answer, generates one or more search queries, executes them, and returns a response grounded in live web content with citation metadata. This is particularly well-suited for business research where training data may be stale.
+
+- Supported models: Gemini 2.5 Flash, Gemini 3 Flash, Gemini 3.1 series
+- Billing: Per-search-query that the model executes (Gemini 3+ models), plus standard token pricing
+- Free tier: AI Studio free tier available for Gemini 2.5 Flash and Flash variants with rate limits
+- Pricing: Gemini 2.5 Flash at $0.30/1M input + $2.50/1M output is the right balance of quality vs cost for this use case; brief generation per business is ~500 tokens in + ~300 tokens out — roughly $0.0002 per request at scale
+
+#### Table Stakes for Ask AI
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| One-tap "Ask AI" button in discover info bubble | Reps won't navigate away from the map to research a business; the button must be in the existing info context | LOW | Button added to `discover-info.ts` or `DiscoverResultItem` component; triggers API call |
+| Brief returned in < 5 seconds | Reps will abandon if it's slow; field conditions mean they may tap and then pocket the phone | MEDIUM | Gemini Flash models typically respond in 1-3 seconds for short outputs; use streaming if available |
+| Readable, scannable output format | A wall of text won't be read in the field | LOW | Prompt Gemini to return structured output: 2-3 bullets max (what they do, pain point, talking point); no prose paragraphs |
+| Graceful failure state | API quota, network error, or unknown business must not break the info bubble | LOW | Show "Couldn't load brief — try again" with retry; never throw unhandled errors into map UI |
+| Company name + address passed as context | The business is already in `DiscoverResult`; the AI needs both to ground the search correctly | LOW | Prompt template: `"Research [displayName] at [address]. Return: what they do (1 sentence), likely need for construction services (1 sentence), opening talking point (1 sentence)."` |
+
+#### Differentiators for Ask AI
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Grounded search (not hallucinated) | Brief is based on live web results about this specific business, not generic industry info | MEDIUM | Use `tools: [{ googleSearch: {} }]` in Gemini API call; groundingMetadata confirms sources used |
+| Brief cached per placeId within session | If rep taps "Ask AI" twice on the same business, don't make two API calls | LOW | Session-level cache: `Map<placeId, brief>` in component state or Zustand slice; cleared when discover is cleared |
+| Show source citations | Reps trust the brief more when they can see where it came from | LOW | `groundingMetadata.groundingChunks` contains source URIs; render as collapsed "Sources" section below brief |
+| Construction-context system prompt | Generic AI output mentions "customer service improvements"; construction-context prompt generates "potential roofing contract, storm damage work, equipment maintenance" | LOW | System prompt sets industry context; easily configurable per fork |
+
+#### Anti-Features for Ask AI
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Auto-generate brief for every discover result | "Research everything automatically" | 50+ businesses per draw × API cost × latency = expensive and slow; reps rarely read all results | On-demand per business; rep taps Ask AI only when interested |
+| Save brief to pin notes automatically | "I want this in my CRM" | Auto-save creates noise in notes; rep may not pin this business at all | "Copy to Notes" button when saving as pin; rep opts in to what they keep |
+| Ask AI about pinned businesses (not discovered) | "I want research on existing accounts" | Reasonable feature but different surface area — pins have their own edit panel | Scope v1.1 to discover info bubble only; pin-level AI research is a natural v1.2 addition |
+| Voice output of brief | "Read it to me while I drive" | Browser TTS APIs are inconsistent across mobile browsers; driving + app interaction is a safety/legal issue | Screen-readable format with large text; rep can use device accessibility features if needed |
+
+---
+
+### Planner Tab — Daily Stop Management and Activity Log
+
+**What it is:** A dedicated tab (not the map, not the route panel) where a rep manages today's planned stops, records what happened at each visit (outcome, notes), and sees a running log of past activity. The planner sits between planning (route builder) and recording (pin notes).
+
+#### How Competitors Handle This
+
+SPOTIO is the benchmark here. Its pattern: one-tap activity logging at GPS-verified location, visit audit log with arrival time + duration + outcome, "Download My Day" offline pre-load, custom fields per visit. SPOTIO treats every field visit as an auditable event.
+
+RepMove focuses on route management with "activity logging on the go" — add notes per stop after visiting.
+
+Badger Maps is weaker here: route-centric but visit logging is basic.
+
+The consensus pattern across competitors:
+1. A "today's stops" list derived from the current day's route
+2. Tap a stop to log an outcome (called, visited, left material, no answer, booked meeting)
+3. Add a free-text note per stop
+4. History view showing past activity
+
+#### Table Stakes for Planner
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Today's planned stops list | Without this, the planner is just a notes app; stops must be the primary unit | MEDIUM | Derive from `routeStops` initially; rep can also add stops to planner manually without a route |
+| Tap stop to log outcome | "What happened here?" is the core question; reps need a fast answer mechanism | MEDIUM | Outcome options: Visited / Called / Left Material / No Answer / Booked Meeting — pre-defined set, not free text |
+| Notes per stop per visit | Outcome alone isn't enough; reps need to capture details | LOW | Textarea with timestamp; appended to visit log, not replacing prior entries |
+| Activity log (past visits) | Reps and managers need to see what was done; without history, the planner has no memory | MEDIUM | Per-pin list of dated entries: `{ date, outcome, note }`; persisted in Supabase alongside pin data |
+| Today's date header with stop count | "Monday — 6 stops planned" — the daily anchor | LOW | Derived date + count from planner state |
+| Mark stop complete | Visual check-off for "done with this one today" — reps think in terms of completion | LOW | Toggle on each stop item; completed stops visually dimmed or moved to bottom of list |
+
+#### Differentiators for Planner
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Push stops from Route Confirm panel to Planner in one tap | Closing the loop between "I built a route" and "I'm executing it today" | MEDIUM | Route Confirm panel gets "Send to Planner" CTA; copies ordered stops into planner's daily list |
+| Follow-up scheduling from planner outcome | "No answer today" → prompt "Schedule follow-up?" → sets `followUpDate` on pin | MEDIUM | After logging "No Answer" or "Called", surface a date picker; writes back to pin's `followUpDate` field |
+| Planner persists separately from route | Route is planning; planner is execution. Clearing a route doesn't wipe the day's planner | LOW | Separate Zustand slice (`plannerSlice`) with its own localStorage partition key |
+| Quick-add stop to planner from pin list | Rep is reviewing pins and wants to add one to today's visits without rebuilding the route | LOW | "Add to Today" button in pin info window or sidebar pin list item |
+| Activity history per pin visible in pin edit panel | "When did I last visit this account?" currently requires scrolling notes | MEDIUM | In pin edit panel, render a collapsed "Visit History" section pulled from planner log entries for that pin's ID |
+
+#### Anti-Features for Planner
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| GPS auto-check-in (detect when rep arrives) | "Log it automatically" | Background location permission required; battery drain; iOS background execution restrictions; privacy friction; out of scope in PROJECT.md | One-tap manual check-in button when rep arrives; fast enough that manual is not a burden |
+| Manager dashboard / team view | "Show my team's activity" | Requires auth, user profiles, and a completely different UI surface; adds months of scope | Single-rep tool in v1.1; team features are a post-auth milestone |
+| Planned vs actual time tracking | "Show how long visits took" | Requires start-time and end-time logging, which adds interaction overhead to every visit | Log visit date and outcome; time tracking is a v2 opt-in if reps request it |
+| Weekly/monthly reporting views | "Show my month's activity" | Adds charting and aggregation complexity; the daily view is the core value | Simple chronological log sorted by date; filtering by date range is a v2 feature |
+| CRM sync (Salesforce, HubSpot) | "Write back to our CRM" | Deep OAuth integrations with external CRMs are maintenance-heavy; each has breaking changes; out of scope for a field-focused tool | Supabase is the source of truth; export as CSV is a simpler bridge if needed |
+
+---
+
+## Feature Dependencies (v1.1)
 
 ```
-[Pin CRUD + Edit Panel]
-    └──requires──> [Reverse Geocoding on Drop]
-    └──requires──> [Pin Persistence (localStorage)]
-                       └──enhances──> [Supabase Cloud Sync]
+[Marathon Mode]
+    └──requires──> [Discover (v1)] — extends the draw-to-search mechanic
+    └──requires──> [DiscoverSlice] — adds accumulation behavior to existing state
+    └──requires──> [RouteSlice.addStop()] — reuses existing stop-add mechanic
+    └──new state──> [MarathonSlice] — accumulates results + rectangles
+                       └──persists in localStorage (session only, not Supabase)
 
-[Pin List Sidebar]
-    └──requires──> [Pin CRUD]
-    └──enhances──> [Fly-to-Pin]
-    └──enhances──> [Sidebar ↔ Map Hover Sync]
+[Ask AI (Gemini)]
+    └──requires──> [DiscoverResult] type — placeId, displayName, address already available
+    └──requires──> [Gemini API key] — new environment variable
+    └──requires──> [discover-info.ts / DiscoverResultItem] — button added to existing info surface
+    └──new utility──> [gemini-brief.ts] — wraps Gemini API call, handles grounding + cache
+    └──no new state required──> (session cache in module scope or component state is sufficient)
 
-[Route Building]
-    └──requires──> [Pin CRUD] (must have pins to route to)
-    └──requires──> [Google Directions API]
-    └──enhances──> [Route Display (polyline + numbered markers)]
-                       └──enhances──> [Drag-to-Reorder Stops]
+[Planner Tab]
+    └──requires──> [Pin] type — pins are the subjects of planner stops
+    └──requires──> [RouteSlice.routeStops] — "Send to Planner" reads from route state
+    └──new state──> [PlannerSlice] — daily stops list + visit log entries
+    └──new type──> [VisitLog] — { id, pinId, date, outcome, note }
+    └──enhances──> [Pin edit panel] — visit history section
+    └──enhances──> [Pin.followUpDate] — planner outcome can write back
 
-[Navigation Handoff]
-    └──requires──> [Route Building]
-    └──requires──> [Shareable Link Generation]
-
-[Business Discovery]
-    └──requires──> [Draw-to-Search Rectangle UI]
-    └──requires──> [Google Places API multi-query search]
-    └──requires──> [Deduplication logic]
-    └──enhances──> [Quick-Save as Pin]
-                       └──requires──> [Pin CRUD]
-    └──enhances──> [Route discovered businesses directly]
-                       └──requires──> [Route Building]
-
-[Bulk Pin Operations]
-    └──requires──> [Pin CRUD]
-    └──requires──> [Area-select UI (shift+drag)]
+[Planner] ──conflicts with routing concerns── [RouteSlice]
+    — Route is planning; Planner is execution. They share stop data but must not
+      share state slices. "Send to Planner" is a one-time copy, not a live sync.
 ```
 
 ### Dependency Notes
 
-- **Route Building requires Pin CRUD:** You cannot add stops to a route until pins exist. Pin persistence must be solid before routing is built.
-- **Business Discovery enhances Pin CRUD:** Discovery produces results; quick-save converts them to pins. The discover flow is a pin creation accelerator, not a standalone feature.
-- **Navigation Handoff requires Route Building:** The shareable link is the output of a completed route. No route = no link.
-- **Area-select conflicts with Draw-to-Search:** Both use mouse drag on the map canvas. These must use distinct modes (shift+drag for area-select, explicit "discover mode" button for draw-to-search) to avoid input conflicts.
+- **Marathon Mode requires DiscoverSlice:** Marathon is a mode *on top of* discover, not a replacement. The existing `discoverResults`, `selectedDiscoverIds`, and `drawBounds` state must be refactored or extended to support accumulation without breaking normal discover flow.
+- **Ask AI requires no new store state:** The brief is ephemeral — it's per-session, per-business. A module-level `Map<placeId, brief>` cache avoids Zustand overhead for transient data.
+- **Planner requires a new Zustand slice:** Visit log entries must persist across sessions (rep needs yesterday's log today). Supabase sync for planner entries is appropriate since this is auditable activity data.
+- **Planner conflicts with route in UX, not data:** "Send to Planner" copies stops from `routeStops` — it does not bind them. Clearing the route after sending to planner must not affect the planner's stop list.
 
 ---
 
-## MVP Definition
+## MVP Definition (v1.1)
 
-### Launch With (v1 — this milestone)
+### Launch With (this milestone)
 
-- [x] Pin drop, CRUD, status, reverse geocode address — the data foundation
-- [x] Status-colored SVG markers on map with info window
-- [x] Pin list sidebar with search and status filters
-- [x] Fly-to-pin, hover sync between sidebar and map
-- [x] Bulk pin operations (area-select, delete selected)
-- [x] localStorage persistence with Supabase cloud sync
-- [x] Draw-to-search business discovery with construction query defaults
-- [x] Discover markers (orange/green/yellow) with info bubble + quick-save to pin
-- [x] Route builder: add pins or discovered businesses to stop list
-- [x] Route optimization via Google Directions API (optimizeWaypoints)
-- [x] Route display: numbered stops + orange polyline on map
-- [x] Drag-to-reorder stops in confirm panel
-- [x] Shareable Google Maps link + open in Google Maps
+- [ ] Marathon Mode: accumulate-across-draws, persistent rectangle overlays, cross-area dedup, "build route from session" CTA — core mechanic is differentiating and has zero dependencies on new infrastructure
+- [ ] Ask AI: one-tap Gemini brief in discover info bubble, grounded search, session cache, graceful error state — low infrastructure cost, high demo value, constrained to existing discover surface
+- [ ] Planner: today's stops list, outcome logging, free-text notes per visit, mark complete, activity log — core daily execution loop without GPS or manager features
 
-### Add After Validation (v1.x)
+### Add After Validation (v1.2)
 
-- [ ] Mobile touch: 300ms hold-to-draw for discover rectangle — validate that touch users actually use discovery before optimizing it
-- [ ] Pin relocate (pick up and re-drop) — lower frequency action; can use delete + re-drop initially
-- [ ] Route "return to start" for home base departures — useful but not blocking
+- [ ] Marathon mode: area-level result count badges on saved rectangles — validate that reps use Marathon before adding visual polish
+- [ ] Ask AI for pinned businesses — validate demand for AI research outside discover flow before expanding surface area
+- [ ] Planner follow-up scheduling from outcome — validate that reps use the planner consistently before adding CRM write-back
+- [ ] Planner visit history in pin edit panel — nice-to-have; add when planner adoption is confirmed
 
 ### Future Consideration (v2+)
 
-- [ ] Auth / user profiles — required for multi-device sync and team sharing; defer until single-user flow is validated
-- [ ] GPS check-in / visit logging — adds accountability but increases complexity; validate core route + discover first
-- [ ] AI visit summaries via Gemini — validate that reps actually write notes before adding AI to summarize them
-- [ ] Marathon mode (multi-area routing, >25 stops with clustering) — rare use case; 25-stop cap covers most days
-- [ ] Email / calendar integration — validated need before building; follow-up date field may be sufficient
+- [ ] Marathon mode: session save/resume across days — requires auth first
+- [ ] Planner: manager dashboard / team view — requires auth + user profiles
+- [ ] Planner: GPS auto-check-in — requires background location permission flow + opt-in UX
+- [ ] Ask AI: batch brief generation for Marathon results — validate cost model at scale first
 
 ---
 
-## Feature Prioritization Matrix
+## Feature Prioritization Matrix (v1.1)
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Pin drop + CRUD + status colors | HIGH | MEDIUM | P1 |
-| Pin list sidebar (search + filter) | HIGH | MEDIUM | P1 |
-| localStorage persistence | HIGH | LOW | P1 |
-| Status-colored map markers + info window | HIGH | LOW | P1 |
-| Fly-to-pin + hover sync | MEDIUM | LOW | P1 |
-| Draw-to-search business discovery | HIGH | HIGH | P1 |
-| Quick-save discovered business as pin | HIGH | LOW | P1 |
-| Route builder + Directions API optimization | HIGH | HIGH | P1 |
-| Route display (polyline + numbered markers) | HIGH | LOW | P1 |
-| Drag-to-reorder stops | MEDIUM | MEDIUM | P1 |
-| Shareable Google Maps navigation link | HIGH | LOW | P1 |
-| Bulk pin operations (area-select) | MEDIUM | HIGH | P2 |
-| Supabase cloud sync | MEDIUM | MEDIUM | P2 |
-| Pin relocate | LOW | MEDIUM | P2 |
-| Mobile touch draw (300ms hold) | MEDIUM | LOW | P2 |
-| Auth + user profiles | HIGH | HIGH | P3 |
-| GPS check-in logging | MEDIUM | HIGH | P3 |
-| AI visit summaries | LOW | HIGH | P3 |
+| Marathon: accumulate-across-draws + dedup | HIGH | MEDIUM | P1 |
+| Marathon: saved rectangle overlays on map | MEDIUM | MEDIUM | P1 |
+| Marathon: "Build Route from Session" CTA | HIGH | LOW | P1 |
+| Ask AI: Gemini brief button in discover info | HIGH | MEDIUM | P1 |
+| Ask AI: grounded search (not hallucinated) | HIGH | LOW | P1 — just pass `tools: [{googleSearch: {}}]` |
+| Ask AI: session cache per placeId | MEDIUM | LOW | P1 |
+| Ask AI: graceful error state | HIGH | LOW | P1 |
+| Planner: today's stops list | HIGH | MEDIUM | P1 |
+| Planner: outcome logging + notes per stop | HIGH | MEDIUM | P1 |
+| Planner: mark stop complete | HIGH | LOW | P1 |
+| Planner: activity log (past visits) | MEDIUM | MEDIUM | P1 |
+| Planner: Send to Planner from Route | HIGH | LOW | P1 |
+| Marathon: area result count badges | LOW | LOW | P2 |
+| Ask AI: show source citations | MEDIUM | LOW | P2 |
+| Planner: follow-up scheduling from outcome | MEDIUM | MEDIUM | P2 |
+| Planner: visit history in pin edit panel | MEDIUM | MEDIUM | P2 |
+| Ask AI: pin-level research | MEDIUM | LOW | P2 |
+| Marathon: session save/resume | LOW | HIGH | P3 |
+| Planner: manager/team view | MEDIUM | HIGH | P3 |
+| Planner: GPS auto-check-in | MEDIUM | HIGH | P3 |
 
 **Priority key:**
 - P1: Must have for this milestone
-- P2: Should have, add when core is stable
-- P3: Future milestone — defer until v1 is validated
+- P2: Add when core is working, before milestone closes
+- P3: Future milestone — defer
 
 ---
 
-## Competitor Feature Analysis
+## Competitor Feature Analysis (v1.1 scope)
 
-| Feature | Badger Maps | SPOTIO | MapMyCustomers | Our Approach |
-|---------|-------------|--------|----------------|--------------|
-| Map pin markers | Yes, colorized by custom field | Yes, color by deal stage | Yes, color by status | Fixed 4-status color system; simpler than custom fields |
-| Business/lead discovery | Lead Finder (separate paid tier, address-based) | No native discovery | Limited | Draw-a-rectangle + Google Places; construction-query defaults; in-flow not separate tier |
-| Route optimization | Yes, up to 120 stops, optimizeWaypoints | Yes, up to 150 stops | Yes | Google Directions API, 25-stop cap; matches Google's hard limit cleanly |
-| Navigation handoff | Google Maps, Apple Maps, Waze | One-tap to Google/Apple/Waze | Google Maps link | Shareable link + open in Google Maps; no proprietary nav |
-| Sidebar pin list | Account list view | Lead list | Customer list | Sidebar with search, status filter chips, grouping |
-| Bulk selection | Lasso tool (flagship differentiator) | Territory selection | Limited | Shift+drag area-select; parity with Badger's flagship feature |
-| Offline support | Partial (data cached) | No | No | localStorage-first; full offline read, syncs when online |
-| Industry config | Generic (any industry) | Generic | Generic | Construction defaults; fork-friendly config for industry swap |
+| Feature | Leadbeam | SPOTIO | Badger Maps | Our Approach |
+|---------|----------|--------|-------------|--------------|
+| Multi-area discovery session | Not a distinct feature; routes pull from CRM | No in-draw accumulation; territory zones are pre-assigned | Lasso selects existing pins across areas, doesn't discover new ones | Live accumulate-across-draws: unique mechanic not replicated by any competitor |
+| AI pre-visit research | AI-generated "meeting prep" (flagship feature) | LinkedIn Sales Navigator + ZoomInfo integrations for B2B | None | Embedded in discover info bubble; grounded Gemini brief for the specific business at point of discovery |
+| Daily planner / visit log | Route + auto-logging (AI-powered) | Full activity log + GPS-verified check-in + visit audit log | Basic visit notes | Planner tab: manual check-in, outcome types, notes per stop, activity log — no GPS tracking burden |
+| Outcome types per visit | AI-detected + manual | Customizable activity types | Note field only | Pre-defined set: Visited / Called / Left Material / No Answer / Booked Meeting |
+| Offline support for planner | Unknown | "Download My Day" (24h offline pre-load) | No | localStorage-first planner state; Supabase sync when online |
 
 ---
 
 ## Sources
 
-- [SPOTIO Sales Mapping Software overview](https://spotio.com/blog/sales-mapping-software/) — competitor feature breakdown (MEDIUM confidence, marketing copy)
+**v1.1 Research Sources:**
+
+- [SPOTIO Sales Tracking features](https://spotio.com/features/sales-tracking/) — visit logging, GPS check-in, audit log detail (MEDIUM confidence)
+- [SPOTIO AI Sales Tools 2026](https://spotio.com/blog/ai-sales-tools/) — AI adoption stats, pre-visit research patterns (MEDIUM confidence)
+- [Gemini API Grounding with Google Search](https://ai.google.dev/gemini-api/docs/google-search) — grounding mechanics, response schema, billing model (HIGH confidence — official docs)
+- [Gemini API Pricing 2026 — MetaCTO](https://www.metacto.com/blogs/the-true-cost-of-google-gemini-a-guide-to-api-pricing-and-integration) — token pricing for Flash and Pro tiers (MEDIUM confidence)
+- [Gemini API tooling updates: Maps grounding, tool combos](https://blog.google/innovation-and-ai/technology/developers-tools/gemini-api-tooling-updates/) — function calling + Google Search combo (HIGH confidence)
+- [Leadbeam Field Sales Apps 2025](https://www.leadbeam.ai/blog/field-sales-apps) — AI-powered meeting prep feature description (MEDIUM confidence)
+- [Knockbase canvassing + roofing field sales](https://www.knockbase.com/features/canvassing-software) — zone sweep, territory assignment patterns (MEDIUM confidence)
+- [RepMove: Outside Sales Management Platform](https://repmove.app) — route + activity log pattern (MEDIUM confidence)
+- [eCanvasser route planning](https://www.ecanvasser.com/route-planning) — 200-stop accumulation, territory coverage (MEDIUM confidence)
+
+**v1 Research Sources (preserved):**
+
 - [SPOTIO Route Optimization features](https://spotio.com/features/sales-route-optimization/) — navigation handoff detail (MEDIUM confidence)
 - [Badger Maps homepage](https://www.badgermapping.com/) — Lead Finder, lasso tool, route limits (MEDIUM confidence)
-- [Badger Maps vs SPOTIO comparison](https://spotio.com/compare/badger-maps-vs-spotio/) — feature differentiation (MEDIUM confidence)
 - [Google Directions API waypoint optimization](https://developers.google.com/maps/documentation/routes/opt-way) — 25-waypoint cap confirmed (HIGH confidence)
 - [Google Places API (New) overview](https://developers.google.com/maps/documentation/places/web-service/op-overview) — Nearby Search, Text Search capabilities (HIGH confidence)
-- [Maptive Best Sales Mapping Software 2026](https://www.maptive.com/15-best-sales-territory-mapping-software/) — competitive landscape (LOW confidence, aggregator)
-- [Monday.com Sales Mapping Software Guide 2026](https://monday.com/blog/crm-and-sales/sales-mapping-software/) — feature expectations (LOW confidence, vendor blog)
+- [Maptive Best Sales Mapping Software 2026](https://www.maptive.com/15-best-sales-territory-mapping-software/) — competitive landscape (LOW confidence)
 
 ---
 
-*Feature research for: construction field sales CRM — pin management, business discovery, route planning*
-*Researched: 2026-03-31*
+*Feature research for: construction field sales CRM — Marathon mode, Gemini AI brief, daily planner*
+*v1.1 milestone research updated: 2026-03-31*
