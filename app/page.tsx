@@ -1,5 +1,5 @@
-import HomeClientShell from "@/app/components/HomeClientShell";
+import HomeViewClient from "@/app/views/home/HomeView.client";
 
 export default function Home() {
-  return <HomeClientShell />;
+  return <HomeViewClient />;
 }

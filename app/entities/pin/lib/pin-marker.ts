@@ -1,4 +1,4 @@
-import { PIN_STATUS_META } from "@/app/features/pins/pin-status";
+import { PIN_STATUS_META } from "@/app/entities/pin/model/pin-status";
 import type { PinStatus } from "@/app/types/pins.types";
 
 export const STATUS_COLORS: Record<PinStatus, string> = {
