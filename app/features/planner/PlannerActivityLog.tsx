@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ActivityEntry } from "@/app/types/planner.types";
+import type { ActivityEntry } from "@/app/features/planner/model/planner.types";
 
 interface PlannerActivityLogProps {
   entries: ActivityEntry[];

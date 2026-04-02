@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import PinList from "@/app/features/pins/PinList";
-import { useStore } from "@/app/store/index";
+import PinList from "@/app/features/pins/ui/PinList";
+import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
 import AuthModal from "@/app/features/auth/AuthModal";

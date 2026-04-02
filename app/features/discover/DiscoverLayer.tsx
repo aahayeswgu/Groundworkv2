@@ -12,8 +12,8 @@ import {
   buildDiscoverInfoContent,
   buildQuickSavePin,
 } from "./discover-info";
-import type { DiscoverResult } from "@/app/types/discover.types";
-import type { RouteStop } from "@/app/types/route.types";
+import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
 
 function getMarkerState(
   placeId: string,

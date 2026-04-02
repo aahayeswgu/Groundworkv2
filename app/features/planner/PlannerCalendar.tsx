@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { DayPlan } from "@/app/types/planner.types";
+import type { DayPlan } from "@/app/features/planner/model/planner.types";
 
 interface PlannerCalendarProps {
   selectedDate: string;             // "YYYY-MM-DD" — the active planner date

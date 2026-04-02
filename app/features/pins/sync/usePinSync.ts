@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '@/app/store';
 import { supabase } from '@/app/lib/supabase';
 import { mergePins, localToRemote } from '@/app/features/pins/sync/merge';
-import type { Pin } from '@/app/types/pins.types';
+import type { Pin } from '@/app/features/pins/model/pin.types';
 import type { RemotePin } from '@/app/features/pins/sync/merge';
 
 export function usePinSync(): void {

@@ -8,7 +8,7 @@ import { createAuthSlice } from "@/app/features/auth/auth.store";
 import type { PinsSlice } from "@/app/features/pins/pins.store";
 import type { DiscoverSlice } from "@/app/features/discover/discover.store";
 import type { RouteSlice } from "@/app/features/route/route.store";
-import type { PlannerSlice } from "@/app/types/planner.types";
+import type { PlannerSlice } from "@/app/features/planner/model/planner.types";
 import type { AuthSlice } from "@/app/features/auth/auth.store";
 
 export type AppStore = PinsSlice & DiscoverSlice & RouteSlice & PlannerSlice & AuthSlice;

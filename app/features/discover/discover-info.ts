@@ -1,5 +1,5 @@
-import type { DiscoverResult } from '@/app/types/discover.types';
-import type { Pin } from '@/app/types/pins.types';
+import type { DiscoverResult } from '@/app/features/discover/model/discover.types';
+import type { Pin } from '@/app/features/pins/model/pin.types';
 import { classifyGooglePlace } from '@/app/features/discover/discover-filters';
 import { fetchAiBrief } from '@/app/lib/ask-ai';
 

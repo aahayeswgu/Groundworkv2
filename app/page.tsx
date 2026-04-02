@@ -2,13 +2,13 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
-import Map from "./features/map/Map";
+import Map from "./features/map/ui/Map";
 import MobileBottomBar from "./components/MobileBottomBar";
 import StoreHydration from "./components/StoreHydration";
 import GpsCheckin from "./features/planner/GpsCheckin";
 import AuthListener from "./features/auth/AuthListener";
 import EmailOverlay from "./features/email/EmailOverlay";
-import PinModal from "./features/pins/PinModal";
+import PinModal from "./features/pins/ui/PinModal";
 import { useStore } from "@/app/store";
 
 export default function Home() {

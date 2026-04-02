@@ -2,68 +2,15 @@
 
 import { useState, useMemo } from "react";
 import { useStore } from "@/app/store";
-import type { PinStatus } from "@/app/types/pins.types";
+import type { PinStatus } from "@/app/features/pins/model/pin.types";
+import {
+  computePinListStats,
+  filterPinsByQueryAndStatus,
+  STATUS_CHIPS,
+  toggleStatusFilter,
+} from "../model/pin-list.model";
+import { PinListEmptyState } from "./PinListEmptyState";
 import { PinListItem } from "./PinListItem";
-
-const STATUS_CHIPS: { status: PinStatus; label: string; color: string }[] = [
-  { status: "prospect", label: "Prospect", color: "#3B82F6" },
-  { status: "active", label: "Active", color: "#22C55E" },
-  { status: "follow-up", label: "Follow-Up", color: "#F59E0B" },
-  { status: "lost", label: "Lost", color: "#EF4444" },
-];
-
-interface EmptyStateProps {
-  searchText: string;
-}
-
-function EmptyState({ searchText }: EmptyStateProps) {
-  if (searchText.trim()) {
-    return (
-      <div className="py-10 px-5 text-center text-text-muted">
-        <div className="mb-3">
-          <svg
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="mx-auto text-text-muted"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-        </div>
-        <div className="text-sm leading-relaxed">No pins match your search.</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="py-10 px-5 text-center text-text-muted">
-      <div className="mb-3">
-        <svg
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="mx-auto text-text-muted"
-        >
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-          <circle cx="12" cy="10" r="3" />
-        </svg>
-      </div>
-      <div className="text-sm leading-relaxed">
-        No pins yet.
-        <br />
-        Click the + button on the map to start dropping pins.
-      </div>
-      <div className="text-xs mt-2 text-text-muted italic">Even the boss takes a day off sometimes.</div>
-    </div>
-  );
-}
 
 interface PinListProps {
   onEditPin: (pinId: string) => void;
@@ -77,48 +24,13 @@ export function PinList({ onEditPin }: PinListProps) {
   const [searchText, setSearchText] = useState("");
 
   const filtered = useMemo(() => {
-    const q = searchText.toLowerCase().trim();
-    return pins.filter((p) => {
-      const matchesSearch =
-        !q ||
-        p.title.toLowerCase().includes(q) ||
-        p.address.toLowerCase().includes(q) ||
-        p.contact.toLowerCase().includes(q);
-      const matchesStatus = activeStatusFilter.has(p.status);
-      return matchesSearch && matchesStatus;
-    });
+    return filterPinsByQueryAndStatus(pins, searchText, activeStatusFilter);
   }, [pins, searchText, activeStatusFilter]);
 
-  const stats = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-
-    const totalPins = pins.length;
-    const activeCount = pins.filter((p) => p.status === "active").length;
-    const thisWeekCount = pins.filter((p) => {
-      if (!p.followUpDate) return false;
-      const d = new Date(p.followUpDate);
-      return d >= today && d <= nextWeek;
-    }).length;
-    const overdueCount = pins.filter((p) => {
-      if (!p.followUpDate) return false;
-      const d = new Date(p.followUpDate);
-      return d < today;
-    }).length;
-
-    return { totalPins, activeCount, thisWeekCount, overdueCount };
-  }, [pins]);
+  const stats = useMemo(() => computePinListStats(pins), [pins]);
 
   function toggleStatus(status: PinStatus) {
-    const next = new Set(activeStatusFilter);
-    if (next.has(status)) {
-      next.delete(status);
-    } else {
-      next.add(status);
-    }
-    setActiveStatusFilter(next);
+    setActiveStatusFilter(toggleStatusFilter(activeStatusFilter, status));
   }
 
   return (
@@ -182,7 +94,7 @@ export function PinList({ onEditPin }: PinListProps) {
       {/* Pin list */}
       <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
         {filtered.length === 0 ? (
-          <EmptyState searchText={searchText} />
+          <PinListEmptyState searchText={searchText} />
         ) : (
           filtered.map((pin) => (
             <PinListItem key={pin.id} pin={pin} onEditPin={onEditPin} />

@@ -1,8 +1,7 @@
 "use client";
 
 import { useStore } from "@/app/store";
-import type { Pin } from "@/app/types/pins.types";
-import type { RouteStop } from "@/app/types/route.types";
+import type { Pin } from "@/app/features/pins/model/pin.types";
 
 const STATUS_COLORS: Record<string, string> = {
   prospect: "#3B82F6",

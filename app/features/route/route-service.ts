@@ -1,5 +1,5 @@
 import { importLibrary } from "@googlemaps/js-api-loader";
-import type { RouteStop, RouteResult } from '@/app/types/route.types';
+import type { RouteStop, RouteResult } from '@/app/features/route/model/route.types';
 
 export interface RouteOrigin {
   address?: string;
