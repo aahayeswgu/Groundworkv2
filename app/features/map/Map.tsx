@@ -296,7 +296,7 @@ export default function Map({ onEditPin }: MapProps) {
     setOptions({
       key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       v: "weekly",
-      libraries: ["places", "geometry", "marker"],
+      libraries: ["places", "geometry", "marker", "routes"],
     });
 
     importLibrary("maps").then(async () => {
