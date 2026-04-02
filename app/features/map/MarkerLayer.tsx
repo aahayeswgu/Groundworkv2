@@ -180,7 +180,9 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       const existingEl = existing?.content as HTMLElement | undefined;
 
       if (existing && existingEl?.dataset?.status === pin.status) {
-        // Status unchanged — just update position
+        // Keep pooled markers attached when map instance is recreated (e.g. theme switch).
+        existing.map = map;
+        // Status unchanged — just update position/title
         existing.position = { lat: pin.lat, lng: pin.lng };
         existing.title = pin.title;
         continue;
