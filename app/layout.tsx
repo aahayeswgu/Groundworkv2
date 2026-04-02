@@ -30,7 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={dmSans.variable}>
-      <body data-theme="dark" className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300">{children}</body>
+      <body data-theme="dark" className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300" suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gw-theme');if(t==='gray'||t==='dark')document.body.setAttribute('data-theme',t)}catch(e){}` }} />
+        {children}
+      </body>
     </html>
   );
 }

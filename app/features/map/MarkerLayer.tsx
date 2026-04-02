@@ -16,6 +16,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const map = useContext(MapContext);
   const pins = useStore((s) => s.pins);
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
+  const pinsVisible = useStore((s) => s.pinsVisible);
   const deletePin = useStore((s) => s.deletePin);
   const addStop = useStore((s) => s.addStop);
   const addPlannerStop = useStore((s) => s.addPlannerStop);
@@ -297,7 +298,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   useEffect(() => {
     if (!map) return;
 
-    const visiblePins = pins.filter((p) => activeStatusFilter.has(p.status));
+    const visiblePins = pinsVisible ? pins.filter((p) => activeStatusFilter.has(p.status)) : [];
     const visibleIds = new Set(visiblePins.map((p) => p.id));
 
     // Remove stale markers
@@ -348,7 +349,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       infoWindow.current?.close();
       openPinId.current = null;
     }
-  }, [map, pins, activeStatusFilter, deletePin, onEditPin, handleMarkerClick]);
+  }, [map, pins, activeStatusFilter, pinsVisible, deletePin, onEditPin, handleMarkerClick]);
 
   // Listen for sidebar pin clicks to pan, bounce, and open InfoWindow
   useEffect(() => {
