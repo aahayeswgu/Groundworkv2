@@ -16,6 +16,7 @@ interface PinListItemProps {
 }
 
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
+  const focusPin = useStore((s) => s.focusPin);
   const addStop = useStore((s) => s.addStop);
   const removeStop = useStore((s) => s.removeStop);
   const routeStops = useStore((s) => s.routeStops);
@@ -29,8 +30,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const isPlanned = todayStops.some((s) => s.pinId === pin.id);
 
   function handleClick() {
-    // Dispatch custom event — MarkerLayer handles pan, bounce, and InfoWindow
-    window.dispatchEvent(new CustomEvent("open-pin-info", { detail: { pinId: pin.id } }));
+    focusPin(pin.id);
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useStore } from "@/app/store";
 import type { Pin, PinStatus, NoteEntry } from "../model/pin.types";
@@ -30,15 +30,11 @@ export default function PinModal({ mode, initialData, onClose }: PinModalProps) 
   const [followUpDate, setFollowUpDate] = useState(initialData.followUpDate ?? "");
   const [notes, setNotes] = useState<NoteEntry[]>(initialData.notes ?? []);
   const [noteInput, setNoteInput] = useState("");
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // ESC key handler
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
+    modalRef.current?.focus();
+  }, []);
 
   function handleSave() {
     const timestamp = new Date().toISOString();
@@ -91,7 +87,14 @@ export default function PinModal({ mode, initialData, onClose }: PinModalProps) 
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Modal card */}
-      <div className="relative z-10 bg-bg-card rounded-xl border border-border shadow-gw w-full max-w-lg mx-4 max-h-[90vh] flex flex-col">
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onClose();
+        }}
+        className="relative z-10 bg-bg-card rounded-xl border border-border shadow-gw w-full max-w-lg mx-4 max-h-[90vh] flex flex-col"
+      >
         <PinModalHeader mode={mode} onClose={onClose} />
 
         {/* Scrollable body */}
