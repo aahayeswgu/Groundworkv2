@@ -1,8 +1,7 @@
 "use client";
 
-import { AdvancedMarker, InfoWindow } from "@vis.gl/react-google-maps";
-import { useCallback, useContext, useMemo, useState } from "react";
-import { MapContext } from "@/app/features/map/MapContext";
+import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { useCallback, useMemo, useState } from "react";
 import { useStore } from "@/app/store";
 import {
   MARKER_Z_INDEX,
@@ -66,7 +65,7 @@ function DiscoverMarkerVisual({ state }: { state: DiscoverMarkerState }) {
 }
 
 export default function DiscoverLayer() {
-  const map = useContext(MapContext);
+  const map = useMap();
   const discoverResults = useStore((s) => s.discoverResults);
   const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
   const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);

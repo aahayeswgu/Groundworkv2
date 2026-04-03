@@ -1,8 +1,7 @@
 "use client";
 
-import { AdvancedMarker, InfoWindow, Polyline } from "@vis.gl/react-google-maps";
-import { useContext, useEffect, useMemo, useState } from "react";
-import { MapContext } from "@/app/features/map/MapContext";
+import { AdvancedMarker, InfoWindow, Polyline, useMap } from "@vis.gl/react-google-maps";
+import { useEffect, useMemo, useState } from "react";
 import { RouteStopInfoWindowCard } from "@/app/features/route/ui/RouteStopInfoWindowCard";
 import {
   ROUTE_BORDER_STYLE,
@@ -49,7 +48,7 @@ function RouteStopMarkerVisual({ label }: { label: string }) {
 }
 
 export default function RouteLayer() {
-  const map = useContext(MapContext);
+  const map = useMap();
   const routeResult = useStore((s) => s.routeResult);
   const routeStops = useStore((s) => s.routeStops);
   const routeActive = useStore((s) => s.routeActive);

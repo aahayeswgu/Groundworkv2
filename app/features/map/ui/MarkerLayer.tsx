@@ -1,8 +1,7 @@
 "use client";
 
-import { AdvancedMarker, InfoWindow } from "@vis.gl/react-google-maps";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { MapContext } from "../MapContext";
+import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStore } from "@/app/store";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import { STATUS_COLORS } from "@/app/features/pins/pin-marker";
@@ -86,7 +85,7 @@ function PinMarkerVisual({ pin, bouncing }: { pin: Pin; bouncing: boolean }) {
 }
 
 export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
-  const map = useContext(MapContext);
+  const map = useMap();
   const pins = useStore((s) => s.pins);
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
   const pinsVisible = useStore((s) => s.pinsVisible);

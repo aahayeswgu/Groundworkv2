@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { APIProvider, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
 import MapButton from "@/app/components/MapButton";
-import { MapContext } from "../MapContext";
 import { reverseGeocode } from "@/app/lib/geocoding";
 import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/ui/PinModal";
@@ -354,113 +353,111 @@ export default function Map({ onEditPin }: MapProps) {
   }, []);
 
   return (
-    <MapContext.Provider value={mapState}>
-      <APIProvider
-        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-        version="weekly"
-        libraries={["places", "geometry", "marker", "routes"]}
-      >
-        <div className="flex-1 relative h-screen overflow-hidden">
-          <GoogleMap
-            className="w-full h-full z-[1]"
-            mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID"}
-            defaultCenter={DEFAULT_MAP_CENTER}
-            defaultZoom={DEFAULT_MAP_ZOOM}
-            disableDefaultUI
-            zoomControl
-            zoomControlOptions={{ position: ControlPosition.RIGHT_BOTTOM }}
-            gestureHandling="greedy"
-            clickableIcons={false}
+    <APIProvider
+      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+      version="weekly"
+      libraries={["places", "geometry", "marker", "routes"]}
+    >
+      <div className="flex-1 relative h-screen overflow-hidden">
+        <GoogleMap
+          className="w-full h-full z-[1]"
+          mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID"}
+          defaultCenter={DEFAULT_MAP_CENTER}
+          defaultZoom={DEFAULT_MAP_ZOOM}
+          disableDefaultUI
+          zoomControl
+          zoomControlOptions={{ position: ControlPosition.RIGHT_BOTTOM }}
+          gestureHandling="greedy"
+          clickableIcons={false}
+        >
+          <MapInstanceBridge onMapChange={handleMapChange} />
+        </GoogleMap>
+
+        {/* Floating controls */}
+        <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
+          <MapButton
+            title="Drop a pin"
+            active={dropMode}
+            onClick={dropMode ? exitDropMode : enterDropMode}
           >
-            <MapInstanceBridge onMapChange={handleMapChange} />
-          </GoogleMap>
-
-          {/* Floating controls */}
-          <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
-            <MapButton
-              title="Drop a pin"
-              active={dropMode}
-              onClick={dropMode ? exitDropMode : enterDropMode}
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </MapButton>
-            <MapButton
-              title="Get directions"
-              active={routePanelOpen}
-              badge={routeStops.length || undefined}
-              onClick={() => setRoutePanelOpen((prev) => !prev)}
-            >
-              <polygon points="3 11 22 2 13 21 11 13 3 11" />
-            </MapButton>
-            <MapButton
-              title="Discover businesses"
-              active={discoverMode}
-              onClick={discoverMode ? exitDiscoverMode : enterDiscoverMode}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-              <line x1="11" y1="8" x2="11" y2="14" />
-              <line x1="8" y1="11" x2="14" y2="11" />
-            </MapButton>
-            <MapButton
-              title="Show/hide pins"
-              active={!pinsVisible}
-              onClick={togglePinVisibility}
-            >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </MapButton>
-            <MapButton
-              title={quickListening ? "Listening... tap to stop" : "Quick Entry — voice note to planner"}
-              active={quickListening}
-              onClick={toggleQuickEntry}
-            >
-              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-              <path d="M19 10v2a7 7 0 01-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </MapButton>
-          </div>
-
-          {/* Toast notification */}
-          {toast && (
-            <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg bg-charcoal text-white text-sm font-semibold shadow-gw-lg animate-[fadeInOut_2.5s_ease]">
-              {toast}
-            </div>
-          )}
-
-          {/* Floating satellite label (bottom-left, Google Maps style) */}
-          <button
-            onClick={toggleSatellite}
-            style={satellite
-              ? { backgroundColor: "#fff", color: "#C4692A", borderColor: "#fff" }
-              : { backgroundColor: "#C4692A", color: "#fff", borderColor: "#C4692A" }
-            }
-            className="absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110"
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </MapButton>
+          <MapButton
+            title="Get directions"
+            active={routePanelOpen}
+            badge={routeStops.length || undefined}
+            onClick={() => setRoutePanelOpen((prev) => !prev)}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-            </svg>
-            {satellite ? "Road view" : "Satellite"}
-          </button>
+            <polygon points="3 11 22 2 13 21 11 13 3 11" />
+          </MapButton>
+          <MapButton
+            title="Discover businesses"
+            active={discoverMode}
+            onClick={discoverMode ? exitDiscoverMode : enterDiscoverMode}
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+            <line x1="11" y1="8" x2="11" y2="14" />
+            <line x1="8" y1="11" x2="14" y2="11" />
+          </MapButton>
+          <MapButton
+            title="Show/hide pins"
+            active={!pinsVisible}
+            onClick={togglePinVisibility}
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </MapButton>
+          <MapButton
+            title={quickListening ? "Listening... tap to stop" : "Quick Entry — voice note to planner"}
+            active={quickListening}
+            onClick={toggleQuickEntry}
+          >
+            <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+            <path d="M19 10v2a7 7 0 01-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="23" />
+            <line x1="8" y1="23" x2="16" y2="23" />
+          </MapButton>
         </div>
 
-        {mapState && <MarkerLayer onEditPin={onEditPin} />}
-        {mapState && <DiscoverLayer />}
-        {mapState && <RouteLayer />}
-        <RouteConfirmPanel open={routePanelOpen} onClose={() => setRoutePanelOpen(false)} />
-        {pendingPin && (
-          <PinModal
-            mode="create"
-            initialData={{ lat: pendingPin.lat, lng: pendingPin.lng, address: pendingPin.address }}
-            onClose={() => setPendingPin(null)}
-          />
+        {/* Toast notification */}
+        {toast && (
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg bg-charcoal text-white text-sm font-semibold shadow-gw-lg animate-[fadeInOut_2.5s_ease]">
+            {toast}
+          </div>
         )}
-      </APIProvider>
-    </MapContext.Provider>
+
+        {/* Floating satellite label (bottom-left, Google Maps style) */}
+        <button
+          onClick={toggleSatellite}
+          style={satellite
+            ? { backgroundColor: "#fff", color: "#C4692A", borderColor: "#fff" }
+            : { backgroundColor: "#C4692A", color: "#fff", borderColor: "#C4692A" }
+          }
+          className="absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          {satellite ? "Road view" : "Satellite"}
+        </button>
+      </div>
+
+      {mapState && <MarkerLayer onEditPin={onEditPin} />}
+      {mapState && <DiscoverLayer />}
+      {mapState && <RouteLayer />}
+      <RouteConfirmPanel open={routePanelOpen} onClose={() => setRoutePanelOpen(false)} />
+      {pendingPin && (
+        <PinModal
+          mode="create"
+          initialData={{ lat: pendingPin.lat, lng: pendingPin.lng, address: pendingPin.address }}
+          onClose={() => setPendingPin(null)}
+        />
+      )}
+    </APIProvider>
   );
 }
