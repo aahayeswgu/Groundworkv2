@@ -1,4 +1,3 @@
-import { importLibrary } from "@googlemaps/js-api-loader";
 import type { RouteStop, RouteResult } from '@/app/features/route/model/route.types';
 
 export interface RouteOrigin {
@@ -19,8 +18,6 @@ export async function computeRoute(
   stops: RouteStop[],
 ): Promise<RouteResult | null> {
   try {
-    // Ensure routes library is loaded (provides DirectionsService)
-    await importLibrary("routes");
     const directionsService = new google.maps.DirectionsService();
 
     // Support both address string and lat/lng coordinates

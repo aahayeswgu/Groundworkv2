@@ -1,5 +1,6 @@
 "use client";
 
+import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useRef, useState, useCallback } from "react";
 
 interface Suggestion {
@@ -23,31 +24,17 @@ export default function PlacesAutocomplete({
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const places = useMapsLibrary("places");
 
   const fetchSuggestions = useCallback(async (input: string) => {
-    if (input.length < 3) {
+    if (input.length < 3 || !places) {
       setSuggestions([]);
       setShowDropdown(false);
       return;
     }
 
     try {
-      // Use Places (New) AutocompleteSuggestion API
-      const { AutocompleteSuggestion } = (await google.maps.importLibrary("places")) as google.maps.PlacesLibrary & {
-        AutocompleteSuggestion: {
-          fetchAutocompleteSuggestions: (req: {
-            input: string;
-            includedPrimaryTypes?: string[];
-          }) => Promise<{ suggestions: Array<{
-            placePrediction?: {
-              placeId: string;
-              text: { text: string };
-            };
-          }> }>;
-        };
-      };
-
-      const response = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
+      const response = await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
         input,
       });
 
@@ -69,7 +56,7 @@ export default function PlacesAutocomplete({
       setSuggestions([]);
       setShowDropdown(false);
     }
-  }, []);
+  }, [places]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;

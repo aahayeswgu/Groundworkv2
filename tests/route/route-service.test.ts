@@ -1,12 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { RouteStop } from '@/app/features/route/model/route.types';
 
-// Mock the loader — importLibrary is a no-op since we stub google.maps directly
-vi.mock('@googlemaps/js-api-loader', () => ({
-  importLibrary: vi.fn().mockResolvedValue(undefined),
-}));
-
-// Import after mock is registered
 const { computeRoute } = await import('@/app/features/route/route-service');
 
 const makeStop = (id: string): RouteStop => ({
