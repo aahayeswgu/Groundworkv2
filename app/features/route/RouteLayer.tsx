@@ -23,25 +23,7 @@ function buildRouteBounds(path: Array<{ lat: number; lng: number }>): google.map
 
 function RouteStopMarkerVisual({ label }: { label: string }) {
   return (
-    <div
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: "50%",
-        background: "#D4712A",
-        color: "#fff",
-        fontSize: 13,
-        fontWeight: 800,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "2px solid rgba(255,255,255,0.85)",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.35)",
-        pointerEvents: "none",
-        userSelect: "none",
-        lineHeight: 1,
-      }}
-    >
+    <div className="pointer-events-none select-none flex h-7 w-7 items-center justify-center rounded-full border-2 border-white/85 bg-[#D4712A] text-[13px] font-extrabold leading-none text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
       {label}
     </div>
   );

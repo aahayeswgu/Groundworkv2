@@ -11,8 +11,7 @@ export function PinMarkerVisual({ pin, bouncing }: PinMarkerVisualProps) {
 
   return (
     <div
-      className={bouncing ? "marker-bounce" : undefined}
-      style={{ cursor: "pointer", display: "block", lineHeight: 0 }}
+      className={`${bouncing ? "marker-bounce " : ""}block cursor-pointer leading-none`}
     >
       <svg width="24" height="36" viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">
         <defs>

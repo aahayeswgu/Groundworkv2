@@ -2,6 +2,21 @@
 for this codebase should be pragmatic and it should follow dry coding principles focused on reusability, not repeating yourself and clean code.
 This is a feature driven style, organize code by application domain or features.
 
+## Hard Frontend Ban
+
+- Imperative script injection is strictly forbidden in app code.
+- Do not use `document.createElement("script")`, `appendChild`, or `removeChild` to load SDKs.
+- Do not load third-party scripts from `useEffect` via manual DOM mutation.
+- Use Next.js-native loading (`next/script`) or another framework-native integration point.
+- Treat violations as blockers; refactor instead of shipping.
+- `dangerouslySetInnerHTML` is strictly forbidden in app code.
+- Do not render API/SDK/user-provided HTML directly into the DOM.
+- `innerHTML`, `outerHTML`, `insertAdjacentHTML`, and `document.write` are strictly forbidden in app code.
+- Do not read from `e.currentTarget.innerHTML`; use controlled state, refs, or typed input values.
+- `!important` is strictly forbidden in CSS.
+- Tailwind `!` modifier utilities (for example `!bg-*`, `!text-*`, `!border-*`) are strictly forbidden.
+- If specificity breaks, fix layer/cascade architecture instead of forcing overrides.
+
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 

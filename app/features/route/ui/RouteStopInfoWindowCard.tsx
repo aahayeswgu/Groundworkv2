@@ -9,25 +9,18 @@ export function RouteStopInfoWindowCard({ stop, order }: RouteStopInfoWindowCard
   const query = encodeURIComponent(stop.address || `${stop.lat},${stop.lng}`);
 
   return (
-    <div style={{ fontFamily: "DM Sans, sans-serif", padding: "8px 12px", minWidth: "200px" }}>
-      <div style={{ fontSize: "14px", fontWeight: 700, color: "#1A1A1A" }}>
+    <div className="min-w-[200px] px-3 py-2 font-sans">
+      <div className="text-sm font-bold text-[#1A1A1A]">
         Stop {order}: {stop.label}
       </div>
-      <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+      <div className="mt-1 text-xs text-[#666]">
         {stop.address}
       </div>
       <a
         href={`https://www.google.com/maps/search/?api=1&query=${query}`}
         target="_blank"
         rel="noopener"
-        style={{
-          display: "inline-block",
-          marginTop: "8px",
-          fontSize: "12px",
-          color: "#4285F4",
-          fontWeight: 600,
-          textDecoration: "none",
-        }}
+        className="mt-2 inline-block text-xs font-semibold text-[#4285F4] no-underline"
       >
         View on Google Maps
       </a>

@@ -7,11 +7,11 @@ export interface PinListStats {
   overdueCount: number;
 }
 
-export const STATUS_CHIPS: { status: PinStatus; label: string; color: string }[] = [
-  { status: "prospect", label: "Prospect", color: "#3B82F6" },
-  { status: "active", label: "Active", color: "#22C55E" },
-  { status: "follow-up", label: "Follow-Up", color: "#F59E0B" },
-  { status: "lost", label: "Lost", color: "#EF4444" },
+export const STATUS_CHIPS: { status: PinStatus; label: string; dotClassName: string }[] = [
+  { status: "prospect", label: "Prospect", dotClassName: "bg-[#3B82F6]" },
+  { status: "active", label: "Active", dotClassName: "bg-[#22C55E]" },
+  { status: "follow-up", label: "Follow-Up", dotClassName: "bg-[#F59E0B]" },
+  { status: "lost", label: "Lost", dotClassName: "bg-[#EF4444]" },
 ];
 
 export function filterPinsByQueryAndStatus(

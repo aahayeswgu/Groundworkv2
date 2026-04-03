@@ -50,10 +50,16 @@ export default function PlannerNotes({
 
   const speechAvailable = typeof window !== "undefined" && getSpeechRecognition() !== null;
 
+  const syncLocalText = useCallback((text: string) => {
+    setLocalText(text);
+  }, []);
+
   // Reset local text when activePage changes
   useEffect(() => {
-    setLocalText(notes[activePage] ?? "");
-  }, [activePage, notes]);
+    queueMicrotask(() => {
+      syncLocalText(notes[activePage] ?? "");
+    });
+  }, [activePage, notes, syncLocalText]);
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const text = e.target.value;
@@ -131,6 +137,9 @@ export default function PlannerNotes({
   const totalPages = notes.length;
   const isFirst = activePage === 0;
   const isLast = activePage === totalPages - 1;
+  const dictationButtonStateClass = isListening
+    ? "border-red-500 bg-red-500 text-white"
+    : "border-orange bg-orange text-white";
 
   return (
     <div className="px-4 py-3 border-b border-border">
@@ -141,11 +150,7 @@ export default function PlannerNotes({
           {speechAvailable && (
             <button
               onClick={toggleDictation}
-              style={isListening
-                ? { backgroundColor: "#EF4444", color: "#fff", borderColor: "#EF4444" }
-                : { backgroundColor: "#C4692A", color: "#fff", borderColor: "#C4692A" }
-              }
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-bold transition-all hover:brightness-110"
+              className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-bold transition-all hover:brightness-110 ${dictationButtonStateClass}`}
               title={isListening ? "Stop dictation" : "Dictate notes"}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -166,7 +171,7 @@ export default function PlannerNotes({
       {/* Listening indicator */}
       {isListening && (
         <div className="flex items-center gap-2 mb-2 px-2 py-1.5 rounded-md bg-red-500/10 border border-red-500/20">
-          <div className="w-2 h-2 rounded-full bg-red-500" style={{ animation: "pulse 1.5s infinite" }} />
+          <div className="h-2 w-2 rounded-full bg-red-500 animate-[pulse_1.5s_infinite]" />
           <span className="text-xs text-red-500 font-semibold">Listening... speak now</span>
         </div>
       )}

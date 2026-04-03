@@ -235,8 +235,6 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     ? Math.round(routeResult.totalDurationSeconds / 60)
     : null;
 
-  const showMobileWarning = routeStops.length > 3;
-
   if (!open) return null;
 
   return (

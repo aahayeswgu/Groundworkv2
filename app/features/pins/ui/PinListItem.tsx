@@ -1,14 +1,8 @@
 "use client";
 
 import { useStore } from "@/app/store";
+import { PIN_STATUS_BADGE_CLASSNAMES } from "@/app/features/pins/model/pin-status-palette";
 import type { Pin } from "@/app/features/pins/model/pin.types";
-
-const STATUS_COLORS: Record<string, string> = {
-  prospect: "#3B82F6",
-  active: "#22C55E",
-  "follow-up": "#F59E0B",
-  lost: "#EF4444",
-};
 
 interface PinListItemProps {
   pin: Pin;
@@ -28,6 +22,12 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const today = new Date().toISOString().slice(0, 10);
   const todayStops = plannerDays[today]?.stops ?? [];
   const isPlanned = todayStops.some((s) => s.pinId === pin.id);
+  const routeButtonClass = isInRoute
+    ? "bg-gw-green text-white"
+    : "bg-orange text-white";
+  const plannerButtonClass = isPlanned
+    ? "bg-gw-green text-white"
+    : "bg-[#3B8CB5] text-white";
 
   function handleClick() {
     focusPin(pin.id);
@@ -39,8 +39,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
       onClick={handleClick}
     >
       <span
-        className="w-2.5 h-2.5 rounded-full shrink-0"
-        style={{ background: STATUS_COLORS[pin.status] }}
+        className={`h-2.5 w-2.5 shrink-0 rounded-full ${PIN_STATUS_BADGE_CLASSNAMES[pin.status]}`}
       />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-text-primary truncate">
@@ -52,11 +51,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
       <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0">
         {/* Route toggle */}
         <button
-          style={isInRoute
-            ? { backgroundColor: "#22C55E", color: "#fff" }
-            : { backgroundColor: "#C4692A", color: "#fff" }
-          }
-          className="w-7 h-7 rounded flex items-center justify-center transition-all hover:brightness-110"
+          className={`flex h-7 w-7 items-center justify-center rounded transition-all hover:brightness-110 ${routeButtonClass}`}
           onClick={(e) => {
             e.stopPropagation();
             if (isInRoute) {
@@ -81,11 +76,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
         </button>
         {/* Planner toggle */}
         <button
-          style={isPlanned
-            ? { backgroundColor: "#22C55E", color: "#fff" }
-            : { backgroundColor: "#3B8CB5", color: "#fff" }
-          }
-          className="w-7 h-7 rounded flex items-center justify-center transition-all hover:brightness-110"
+          className={`flex h-7 w-7 items-center justify-center rounded transition-all hover:brightness-110 ${plannerButtonClass}`}
           onClick={(e) => {
             e.stopPropagation();
             if (isPlanned) {

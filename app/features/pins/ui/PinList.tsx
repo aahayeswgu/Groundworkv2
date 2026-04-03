@@ -70,7 +70,7 @@ export function PinList({ onEditPin }: PinListProps) {
       {/* Status filter chips */}
       <div className="px-3 py-2 border-b border-border bg-bg-card">
         <div className="flex flex-wrap gap-[5px]">
-          {STATUS_CHIPS.map(({ status, label, color }) => {
+          {STATUS_CHIPS.map(({ status, label, dotClassName }) => {
             const count = pins.filter((p) => p.status === status).length;
             const isActive = activeStatusFilter.has(status);
             return (
@@ -83,7 +83,7 @@ export function PinList({ onEditPin }: PinListProps) {
                     : "border-border text-text-secondary bg-bg-input hover:border-text-muted"
                 }`}
               >
-                <span className="w-[7px] h-[7px] rounded-full" style={{ background: color }} />
+                <span className={`h-[7px] w-[7px] rounded-full ${dotClassName}`} />
                 {label} <span className="font-normal opacity-70">{count}</span>
               </button>
             );
