@@ -127,7 +127,7 @@ export function startDiscoverDrawSession({
     const validation = validateBounds(bounds);
     if (!validation.valid) {
       clearArea();
-      complete({ type: "invalid", error: validation.error });
+      complete({ type: "invalid", error: validation.error ?? "Invalid selection area." });
       return;
     }
 
