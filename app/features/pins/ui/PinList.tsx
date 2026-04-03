@@ -69,7 +69,7 @@ export function PinList({ onEditPin }: PinListProps) {
 
       {/* Status filter chips */}
       <div className="px-3 py-2 border-b border-border bg-bg-card">
-        <div className="flex flex-wrap gap-[5px]">
+        <div className="pin-status-chips flex flex-wrap gap-[5px]">
           {STATUS_CHIPS.map(({ status, label, dotClassName }) => {
             const count = pins.filter((p) => p.status === status).length;
             const isActive = activeStatusFilter.has(status);
@@ -77,10 +77,10 @@ export function PinList({ onEditPin }: PinListProps) {
               <button
                 key={status}
                 onClick={() => toggleStatus(status)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer transition-all duration-150 border-[1.5px] ${
+                className={`pin-status-chip flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold cursor-pointer transition-all duration-150 ${
                   isActive
-                    ? "border-orange bg-orange-dim text-text-primary"
-                    : "border-border text-text-secondary bg-bg-input hover:border-text-muted"
+                    ? "pin-status-chip-active"
+                    : "pin-status-chip-inactive"
                 }`}
               >
                 <span className={`h-[7px] w-[7px] rounded-full ${dotClassName}`} />

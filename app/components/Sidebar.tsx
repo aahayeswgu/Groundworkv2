@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
@@ -8,12 +8,21 @@ import PlannerPanel from "@/app/features/planner/PlannerPanel";
 import AuthModal from "@/app/features/auth/AuthModal";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
+import { OPEN_EMAIL_EVENT, OPEN_SETTINGS_EVENT } from "@/app/shared/model/mobile-events";
 
 interface SidebarProps {
   onEditPin?: (pinId: string) => void;
+  mobileOpen?: boolean;
+  mobileTab?: "pins" | "planner";
+  onMobileClose?: () => void;
 }
 
-export default function Sidebar({ onEditPin }: SidebarProps) {
+export default function Sidebar({
+  onEditPin,
+  mobileOpen = false,
+  mobileTab,
+  onMobileClose,
+}: SidebarProps) {
   const discoverMode = useStore((s) => s.discoverMode);
   const trackingEnabled = useStore((s) => s.trackingEnabled);
   const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
@@ -22,7 +31,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
   const updateProfile = useStore((s) => s.updateProfile);
   const { theme, setTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pins" | "planner">("pins");
+  const [desktopActiveTab, setDesktopActiveTab] = useState<"pins" | "planner">("pins");
   const [profileName, setProfileName] = useState("");
   const [profileCompany, setProfileCompany] = useState("");
   const [profileHomebase, setProfileHomebase] = useState("");
@@ -36,14 +45,25 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
     ? "translate-x-5 bg-white"
     : "bg-[#999]";
 
-  function openSettings() {
+  const openSettings = useCallback(() => {
     if (profile) {
       setProfileName(profile.name ?? "");
       setProfileCompany(profile.company ?? "");
       setProfileHomebase(profile.homebase ?? "");
     }
     setSettingsOpen(true);
-  }
+  }, [profile]);
+
+  useEffect(() => {
+    const handleOpenSettings = () => {
+      openSettings();
+    };
+    window.addEventListener(OPEN_SETTINGS_EVENT, handleOpenSettings);
+    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handleOpenSettings);
+  }, [openSettings]);
+
+  const activeTab = mobileTab ?? desktopActiveTab;
+  const isCollapsed = collapsed && !mobileOpen;
 
   function handleSaveProfile() {
     updateProfile({ name: profileName, company: profileCompany, homebase: profileHomebase });
@@ -52,7 +72,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
   }
 
   return (
-    <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${collapsed ? "collapsed" : ""}`}>
+    <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${isCollapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
       {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed((prev) => !prev)}
@@ -64,9 +84,26 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
         </svg>
       </button>
 
+      <div className="lg:hidden flex items-center justify-center border-b border-border bg-bg-card py-2">
+        <span className="h-1.5 w-12 rounded-full bg-border" />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-bg-card">
         <div className="flex items-center gap-2.5">
+          {onMobileClose && (
+            <button
+              onClick={onMobileClose}
+              className="icon-btn-size mr-1 flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-orange-dim hover:text-orange lg:hidden"
+              title="Close drawer"
+              aria-label="Close drawer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
           <div className="w-8 h-8 bg-orange rounded-[7px] flex items-center justify-center font-extrabold text-white text-[15px] tracking-tight">
             G
           </div>
@@ -74,7 +111,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
         </div>
         <div className="flex gap-1.5 items-center">
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("gw-open-email"))}
+            onClick={() => window.dispatchEvent(new CustomEvent(OPEN_EMAIL_EVENT))}
             className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange relative"
             title="Email"
           >
@@ -142,15 +179,21 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
       )}
 
       {/* Nav Tabs */}
-      <div className="flex border-b border-border bg-bg-card">
+      <div className="hidden border-b border-border bg-bg-card lg:flex">
         <button
-          onClick={() => setActiveTab("pins")}
+          onClick={() => {
+            setDesktopActiveTab("pins");
+            setSettingsOpen(false);
+          }}
           className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${activeTab === "pins" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"}`}
         >
           Pins
         </button>
         <button
-          onClick={() => setActiveTab("planner")}
+          onClick={() => {
+            setDesktopActiveTab("planner");
+            setSettingsOpen(false);
+          }}
           className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${activeTab === "planner" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"}`}
         >
           Planner
