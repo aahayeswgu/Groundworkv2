@@ -20,6 +20,11 @@ import {
 } from "@/app/features/discover/discover-search";
 import { useStore } from "@/app/store";
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "../model/map.constants";
+import {
+  MAP_ACTION_EVENT,
+  dispatchOpenMobileTab,
+  type MapMobileActionEventDetail,
+} from "@/app/shared/model/mobile-events";
 
 interface PendingPin { lat: number; lng: number; address: string; }
 
@@ -53,6 +58,7 @@ export default function Map({ onEditPin }: MapProps) {
   const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
+  const setIsDrawing = useStore((s) => s.setIsDrawing);
   const addActivityEntry = useStore((s) => s.addActivityEntry);
   const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
   const trackingEnabled = useStore((s) => s.trackingEnabled);
@@ -161,15 +167,17 @@ export default function Map({ onEditPin }: MapProps) {
 
   const exitDiscoverMode = useCallback(() => {
     cancelDiscoverSearch();
+    setIsDrawing(false);
     setDiscoverMode(false);
     stopDiscoverSession(true);
-  }, [setDiscoverMode, stopDiscoverSession]);
+  }, [setDiscoverMode, setIsDrawing, stopDiscoverSession]);
 
   const enterDiscoverMode = useCallback(() => {
     const map = mapInstance.current;
     if (!map) return;
 
     setDiscoverMode(true);
+    setIsDrawing(true);
     stopDiscoverSession(true);
     discoverSessionRef.current = startDiscoverDrawSession({
       map,
@@ -177,18 +185,25 @@ export default function Map({ onEditPin }: MapProps) {
         discoverSessionRef.current = null;
 
         if (result.type === "bounds") {
+          setIsDrawing(false);
           searchBusinessesInArea(result.bounds);
+          const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+          const marathonModeEnabled = useStore.getState().marathonMode;
+          if (isMobileViewport && !marathonModeEnabled) {
+            dispatchOpenMobileTab("pins");
+          }
           return;
         }
 
         cancelDiscoverSearch();
+        setIsDrawing(false);
         setDiscoverMode(false);
         if (result.type === "invalid") {
           alert(result.error);
         }
       },
     });
-  }, [setDiscoverMode, stopDiscoverSession]);
+  }, [setDiscoverMode, setIsDrawing, stopDiscoverSession]);
 
   useEffect(() => {
     if (!mapState || didStartBackfill.current) return;
@@ -220,6 +235,51 @@ export default function Map({ onEditPin }: MapProps) {
     prevStopCount.current = routeStops.length;
   }, [routeStops.length]);
 
+  useEffect(() => {
+    const handleMapAction = (event: Event) => {
+      const detail = (event as CustomEvent<MapMobileActionEventDetail>).detail;
+      if (!detail) return;
+
+      if (detail.action === "toggle-drop-pin") {
+        if (dropMode) {
+          exitDropMode();
+        } else {
+          enterDropMode();
+        }
+        return;
+      }
+
+      if (detail.action === "toggle-discover") {
+        if (discoverMode) {
+          exitDiscoverMode();
+        } else {
+          enterDiscoverMode();
+        }
+        return;
+      }
+
+      if (detail.action === "toggle-route-panel") {
+        setRoutePanelOpen((prev) => !prev);
+        return;
+      }
+
+      if (detail.action === "toggle-voice-entry") {
+        toggleQuickEntry();
+      }
+    };
+
+    window.addEventListener(MAP_ACTION_EVENT, handleMapAction);
+    return () => window.removeEventListener(MAP_ACTION_EVENT, handleMapAction);
+  }, [
+    discoverMode,
+    dropMode,
+    enterDiscoverMode,
+    enterDropMode,
+    exitDiscoverMode,
+    exitDropMode,
+    toggleQuickEntry,
+  ]);
+
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
       const next = !prev;
@@ -229,6 +289,9 @@ export default function Map({ onEditPin }: MapProps) {
       return next;
     });
   }, []);
+  const satelliteButtonStateClass = satellite
+    ? "border-white bg-white text-orange"
+    : "border-orange bg-orange text-white";
 
   return (
     <APIProvider
@@ -244,7 +307,7 @@ export default function Map({ onEditPin }: MapProps) {
           defaultZoom={DEFAULT_MAP_ZOOM}
           disableDefaultUI
           zoomControl
-          zoomControlOptions={{ position: ControlPosition.RIGHT_BOTTOM }}
+          zoomControlOptions={{ position: ControlPosition.LEFT_TOP }}
           gestureHandling="greedy"
           clickableIcons={false}
         >
@@ -252,7 +315,7 @@ export default function Map({ onEditPin }: MapProps) {
         </GoogleMap>
 
         {/* Floating controls */}
-        <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
+        <div className="map-controls absolute top-3 right-3 z-30 flex flex-col gap-2">
           <MapButton
             title="Drop a pin"
             active={dropMode}
@@ -309,11 +372,7 @@ export default function Map({ onEditPin }: MapProps) {
         {/* Floating satellite label (bottom-left, Google Maps style) */}
         <button
           onClick={toggleSatellite}
-          style={satellite
-            ? { backgroundColor: "#fff", color: "#C4692A", borderColor: "#fff" }
-            : { backgroundColor: "#C4692A", color: "#fff", borderColor: "#C4692A" }
-          }
-          className="absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110"
+          className={`absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110 max-lg:bottom-[calc(84px+env(safe-area-inset-bottom,0px))] ${satelliteButtonStateClass}`}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="7" height="7" />

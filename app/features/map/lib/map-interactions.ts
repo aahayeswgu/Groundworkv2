@@ -85,6 +85,10 @@ export function startDiscoverDrawSession({
   let didComplete = false;
   let areaRect: google.maps.Rectangle | null = null;
   const cleanupFns: Array<() => void> = [];
+  const mapDiv = map.getDiv();
+  const previousDraggable = map.get("draggable");
+  const previousGestureHandling = map.get("gestureHandling") as google.maps.MapOptions["gestureHandling"] | undefined;
+  const previousTouchAction = mapDiv.style.touchAction;
 
   const clearArea = () => {
     if (!areaRect) return;
@@ -93,7 +97,12 @@ export function startDiscoverDrawSession({
   };
 
   const stop = () => {
-    map.setOptions({ draggableCursor: "", draggable: true });
+    map.setOptions({
+      draggableCursor: "",
+      draggable: typeof previousDraggable === "boolean" ? previousDraggable : true,
+      gestureHandling: previousGestureHandling ?? "greedy",
+    });
+    mapDiv.style.touchAction = previousTouchAction;
     cleanupFns.forEach((cleanup) => cleanup());
     cleanupFns.length = 0;
   };
@@ -134,47 +143,33 @@ export function startDiscoverDrawSession({
     complete({ type: "bounds", bounds });
   };
 
-  map.setOptions({ draggableCursor: "crosshair", draggable: false });
+  map.setOptions({
+    draggableCursor: "crosshair",
+    draggable: false,
+    gestureHandling: "none",
+  });
+  mapDiv.style.touchAction = "none";
 
   if (isCoarsePointerEnvironment(map)) {
-    let holdTimer: ReturnType<typeof setTimeout> | null = null;
     let touchStarted = false;
     let startLatLng: google.maps.LatLng | null = null;
-    let isSessionActive = true;
-
-    const clearHoldTimer = () => {
-      if (!holdTimer) return;
-      clearTimeout(holdTimer);
-      holdTimer = null;
-    };
-    cleanupFns.push(clearHoldTimer);
-    cleanupFns.push(() => {
-      isSessionActive = false;
-    });
+    let movedDuringGesture = false;
 
     const onTouchStart = (event: TouchEvent) => {
       const touch = event.touches[0];
       if (!touch) return;
-      const startX = touch.clientX;
-      const startY = touch.clientY;
-
-      holdTimer = setTimeout(() => {
-        if (!isSessionActive) return;
-        const projectedStart = projectClientPointToLatLng(map, startX, startY);
-        if (!projectedStart) return;
-        touchStarted = true;
-        startLatLng = projectedStart;
-        clearArea();
-        showSelectionRect(projectedStart, projectedStart);
-      }, 300);
+      const projectedStart = projectClientPointToLatLng(map, touch.clientX, touch.clientY);
+      if (!projectedStart) return;
+      event.preventDefault();
+      touchStarted = true;
+      movedDuringGesture = false;
+      startLatLng = projectedStart;
+      clearArea();
+      showSelectionRect(projectedStart, projectedStart);
     };
 
     const onTouchMove = (event: TouchEvent) => {
-      if (!touchStarted) {
-        clearHoldTimer();
-        return;
-      }
-
+      if (!touchStarted) return;
       if (!startLatLng) return;
       const touch = event.touches[0];
       if (!touch) return;
@@ -183,19 +178,30 @@ export function startDiscoverDrawSession({
       if (!currentLatLng) return;
 
       event.preventDefault();
+      movedDuringGesture = true;
       showSelectionRect(startLatLng, currentLatLng);
     };
 
-    const onTouchEnd = () => {
-      clearHoldTimer();
-
+    const onTouchEnd = (event: TouchEvent) => {
+      event.preventDefault();
       if (!touchStarted || !areaRect) {
+        touchStarted = false;
+        movedDuringGesture = false;
+        startLatLng = null;
         clearArea();
         complete({ type: "cancelled" });
         return;
       }
 
       touchStarted = false;
+      startLatLng = null;
+      if (!movedDuringGesture) {
+        movedDuringGesture = false;
+        clearArea();
+        complete({ type: "cancelled" });
+        return;
+      }
+      movedDuringGesture = false;
       const currentBounds = areaRect.getBounds();
       if (!currentBounds) {
         clearArea();
@@ -206,13 +212,22 @@ export function startDiscoverDrawSession({
       finalizeBounds(toDrawBounds(currentBounds));
     };
 
-    const mapDiv = map.getDiv();
+    const onTouchCancel = () => {
+      touchStarted = false;
+      movedDuringGesture = false;
+      startLatLng = null;
+      clearArea();
+      complete({ type: "cancelled" });
+    };
+
     mapDiv.addEventListener("touchstart", onTouchStart, { passive: false });
     mapDiv.addEventListener("touchmove", onTouchMove, { passive: false });
     mapDiv.addEventListener("touchend", onTouchEnd, { passive: false });
+    mapDiv.addEventListener("touchcancel", onTouchCancel, { passive: false });
     cleanupFns.push(() => mapDiv.removeEventListener("touchstart", onTouchStart));
     cleanupFns.push(() => mapDiv.removeEventListener("touchmove", onTouchMove));
     cleanupFns.push(() => mapDiv.removeEventListener("touchend", onTouchEnd));
+    cleanupFns.push(() => mapDiv.removeEventListener("touchcancel", onTouchCancel));
   } else {
     const onMouseDown = (event: google.maps.MapMouseEvent) => {
       if (!event.latLng) {

@@ -238,7 +238,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
   if (!open) return null;
 
   return (
-    <div className="absolute right-0 top-0 h-full z-30 flex flex-col w-full max-w-sm bg-bg-secondary border-l border-border shadow-gw overflow-hidden">
+    <div className="absolute right-0 top-0 h-full z-30 flex flex-col w-full max-w-sm bg-bg-secondary border-l border-border shadow-gw overflow-hidden max-lg:left-0 max-lg:max-w-none max-lg:bottom-[var(--mobile-bottom-bar-offset)] max-lg:h-auto max-lg:border-l-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-bg-card shrink-0">
         <div>
