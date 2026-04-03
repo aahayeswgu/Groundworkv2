@@ -42,7 +42,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - ESLint ^9 - Linting (`eslint.config.mjs`)
 - `eslint-config-next` 16.2.1 - Next.js ESLint rules (core-web-vitals + typescript presets)
 ## Key Dependencies
-- `@googlemaps/js-api-loader` ^2.0.2 - Google Maps JavaScript API loader, used in `app/features/map/Map.tsx`
+- `@vis.gl/react-google-maps` ^1.8.2 - Google-endorsed React integration used by `app/features/map/ui/Map.tsx`
 - `@types/google.maps` ^3.58.1 - TypeScript types for Google Maps API
 - `@types/node` ^20 - Node.js type definitions
 - `@types/react` ^19 - React type definitions
@@ -56,7 +56,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Incremental compilation: enabled
 - Next.js plugin included
 - `.env.local` present - contains environment configuration
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Required for Google Maps (referenced in `app/features/map/Map.tsx`)
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Required for Google Maps (referenced in `app/features/map/ui/Map.tsx`)
 - `next.config.ts` - Next.js configuration (currently empty/default)
 - `postcss.config.mjs` - PostCSS with `@tailwindcss/postcss` plugin
 - `eslint.config.mjs` - ESLint flat config with Next.js core-web-vitals and TypeScript presets
@@ -85,7 +85,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 ## Conventions
 
 ## Naming Patterns
-- React components: PascalCase (e.g., `app/components/Sidebar.tsx`, `app/features/map/Map.tsx`)
+- React components: PascalCase (e.g., `app/components/Sidebar.tsx`, `app/features/map/ui/Map.tsx`)
 - Non-component modules: kebab-case (e.g., `app/features/map/map-styles.ts`)
 - Follow this pattern: components get PascalCase filenames, utility/config modules get kebab-case
 - React components: PascalCase (`MapButton`, `MobileBottomBar`, `Sidebar`)
@@ -95,7 +95,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Local variables: camelCase (`mapInstance`, `satellite`)
 - CSS custom properties: kebab-case with semantic prefix (`--bg-primary`, `--text-muted`, `--gw-green`)
 - TypeScript strict mode is enabled (`tsconfig.json` has `"strict": true`)
-- Inline type annotations preferred over separate interface files (see `MapButton` props in `app/features/map/Map.tsx` lines 132-139)
+- Inline type annotations preferred over separate interface files (see feature component props in `app/features/map/ui/Map.tsx`)
 - Use `type` imports with `import type` syntax (see `app/layout.tsx` line 1)
 ## Code Style
 - No Prettier config detected -- rely on editor defaults
@@ -113,10 +113,10 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Prefer `@/` alias for cross-feature imports; use relative paths for same-feature imports
 ## Component Patterns
 - Server Components are the default (no directive needed): `app/page.tsx`, `app/layout.tsx`, `app/components/Sidebar.tsx`, `app/components/MobileBottomBar.tsx`
-- Client Components marked with `"use client"` only when browser APIs are needed: `app/features/map/Map.tsx`
+- Client Components marked with `"use client"` only when browser APIs are needed: `app/features/map/ui/Map.tsx`
 - Keep `"use client"` boundary as narrow as possible
 - One default export per component file for page-level/feature components
-- Private helper components defined in same file below the main export (e.g., `MapButton` in `app/features/map/Map.tsx` line 131)
+- Reusable UI controls should live as shared/feature components (e.g., `MapButton` in `app/components/MapButton.tsx`)
 - Props typed inline in the function signature, not as separate interfaces
 - Use `useRef` for DOM elements and mutable instances (`mapRef`, `mapInstance`)
 - Use `useCallback` for stable references passed to effects or children
@@ -143,7 +143,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Standard viewBox: `0 0 24 24`
 - Standard attributes: `fill="none" stroke="currentColor" strokeWidth="2"`
 - Icons inherit color from parent text color via `currentColor`
-- Reusable icon buttons use a wrapper component pattern (see `MapButton` in `app/features/map/Map.tsx`)
+- Reusable icon buttons use a wrapper component pattern (see `MapButton` in `app/components/MapButton.tsx`)
 ## Error Handling
 - Non-null assertion (`!`) used for environment variables: `process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!`
 - Guard clauses for null refs: `if (!mapRef.current) return;`
@@ -201,7 +201,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Theme is stored as a DOM attribute, not React state
 ## Key Abstractions
 - Purpose: Reusable floating action button for map controls
-- Location: `app/features/map/Map.tsx` (defined as a local function component)
+- Location: `app/components/MapButton.tsx`
 - Pattern: Accepts SVG children, renders a styled `<button>` with consistent hover/active states
 - Purpose: Maps theme name to Google Maps style array
 - Location: `app/features/map/map-styles.ts`
@@ -216,9 +216,9 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Location: `app/page.tsx`
 - Triggers: Navigation to `/`
 - Responsibilities: Compose the main app view (sidebar + map + mobile nav)
-- Location: `app/features/map/Map.tsx`
+- Location: `app/features/map/ui/Map.tsx`
 - Triggers: Component mount (`useEffect`)
-- Responsibilities: Load Google Maps JS API, create map instance, apply theme styles
+- Responsibilities: Mount `APIProvider` + map/layers, orchestrate interaction modes, and coordinate map UI state
 ## Error Handling
 - Non-null assertion on env var: `process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!`
 - Guard clause: `if (!mapRef.current) return` before map initialization

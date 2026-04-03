@@ -56,6 +56,12 @@ function projectClientPointToLatLng(
   return new google.maps.LatLng(lat, lng);
 }
 
+function isCoarsePointerEnvironment(map: google.maps.Map): boolean {
+  const view = map.getDiv().ownerDocument.defaultView;
+  if (!view?.matchMedia) return false;
+  return view.matchMedia("(pointer: coarse)").matches;
+}
+
 export function startDropPinSession({
   map,
   onDrop,
@@ -130,10 +136,21 @@ export function startDiscoverDrawSession({
 
   map.setOptions({ draggableCursor: "crosshair", draggable: false });
 
-  if (window.matchMedia("(pointer: coarse)").matches) {
+  if (isCoarsePointerEnvironment(map)) {
     let holdTimer: ReturnType<typeof setTimeout> | null = null;
     let touchStarted = false;
     let startLatLng: google.maps.LatLng | null = null;
+    let isSessionActive = true;
+
+    const clearHoldTimer = () => {
+      if (!holdTimer) return;
+      clearTimeout(holdTimer);
+      holdTimer = null;
+    };
+    cleanupFns.push(clearHoldTimer);
+    cleanupFns.push(() => {
+      isSessionActive = false;
+    });
 
     const onTouchStart = (event: TouchEvent) => {
       const touch = event.touches[0];
@@ -142,6 +159,7 @@ export function startDiscoverDrawSession({
       const startY = touch.clientY;
 
       holdTimer = setTimeout(() => {
+        if (!isSessionActive) return;
         const projectedStart = projectClientPointToLatLng(map, startX, startY);
         if (!projectedStart) return;
         touchStarted = true;
@@ -153,10 +171,7 @@ export function startDiscoverDrawSession({
 
     const onTouchMove = (event: TouchEvent) => {
       if (!touchStarted) {
-        if (holdTimer) {
-          clearTimeout(holdTimer);
-          holdTimer = null;
-        }
+        clearHoldTimer();
         return;
       }
 
@@ -172,10 +187,7 @@ export function startDiscoverDrawSession({
     };
 
     const onTouchEnd = () => {
-      if (holdTimer) {
-        clearTimeout(holdTimer);
-        holdTimer = null;
-      }
+      clearHoldTimer();
 
       if (!touchStarted || !areaRect) {
         clearArea();
