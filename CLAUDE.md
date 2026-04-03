@@ -95,7 +95,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Local variables: camelCase (`mapInstance`, `satellite`)
 - CSS custom properties: kebab-case with semantic prefix (`--bg-primary`, `--text-muted`, `--gw-green`)
 - TypeScript strict mode is enabled (`tsconfig.json` has `"strict": true`)
-- Inline type annotations preferred over separate interface files (see feature component props in `app/features/map/ui/Map.tsx`)
+- Prefer dedicated type files in the owning feature/domain `model` segment (e.g., `*.types.ts`); avoid declaring app-level interfaces/types inline in UI files
 - Use `type` imports with `import type` syntax (see `app/layout.tsx` line 1)
 ## Code Style
 - No Prettier config detected -- rely on editor defaults
@@ -117,7 +117,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Keep `"use client"` boundary as narrow as possible
 - One default export per component file for page-level/feature components
 - Reusable UI controls should live as shared/feature components (e.g., `MapButton` in `app/components/MapButton.tsx`)
-- Props typed inline in the function signature, not as separate interfaces
+- Props should use imported named types from dedicated `model` type files instead of inline type declarations
 - Use `useRef` for DOM elements and mutable instances (`mapRef`, `mapInstance`)
 - Use `useCallback` for stable references passed to effects or children
 - Use `useEffect` for side effects like external library initialization
