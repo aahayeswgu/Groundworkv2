@@ -1,9 +1,9 @@
 import { useState, type CSSProperties } from "react";
 import { fetchAiBrief } from "@/app/lib/ask-ai";
 import type { Pin } from "@/app/features/pins/model/pin.types";
+import type { RouteAddResult } from "../model/marker-layer.types";
 import { PIN_INFO_STATUS_COLORS, PIN_INFO_STATUS_LABELS } from "../model/pin-info-window.model";
 
-type RouteAddResult = "added" | "full" | "already";
 type RouteState = "idle" | RouteAddResult;
 
 interface PinInfoWindowCardProps {
