@@ -5,11 +5,25 @@ import type { DiscoverResult } from "@/app/features/discover/model/discover.type
 
 export type DrawBounds = { swLat: number; swLng: number; neLat: number; neLng: number };
 
-// Cancellation token — set to true to abort the current search
-let cancelToken = false;
+// Each new search increments this id; older runs become stale and should stop.
+let activeSearchRunId = 0;
 
 export function cancelDiscoverSearch(): void {
-  cancelToken = true;
+  activeSearchRunId += 1;
+}
+
+function isSearchRunStale(runId: number): boolean {
+  return runId !== activeSearchRunId;
+}
+
+function isExpectedPlacesTransportError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return (
+    message.includes("PLACES_SEARCH_TEXT") ||
+    message.includes("Rpc failed due to xhr error") ||
+    message.includes("error code: 6") ||
+    message.includes(" [0]")
+  );
 }
 
 export function validateBounds(bounds: DrawBounds): { valid: boolean; error?: string } {
@@ -22,10 +36,10 @@ export function validateBounds(bounds: DrawBounds): { valid: boolean; error?: st
 }
 
 export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> {
-  // Cancel any in-progress search
-  cancelToken = true;
-  await sleep(50);
-  cancelToken = false;
+  // Start a new run and invalidate any previous in-flight search loop.
+  activeSearchRunId += 1;
+  const searchRunId = activeSearchRunId;
+  const isCancelled = (): boolean => isSearchRunStale(searchRunId);
 
   const Place = google.maps.places.Place;
 
@@ -59,7 +73,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   const newResults: DiscoverResult[] = [];
 
   for (let i = 0; i < DISCOVER_QUERIES.length; i++) {
-    if (cancelToken) {
+    if (isCancelled()) {
       setSearchProgress("");
       return;
     }
@@ -85,6 +99,10 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
         ),
         maxResultCount: 20,
       });
+      if (isCancelled()) {
+        setSearchProgress("");
+        return;
+      }
       for (const place of places ?? []) {
         const result = filterAndMapPlace(
           place as Parameters<typeof filterAndMapPlace>[0],
@@ -94,12 +112,16 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
         if (result) newResults.push(result);
       }
     } catch (err) {
+      // Frequent transient transport/cancel noise from Places RPC should not spam console.
+      if (isCancelled() || isExpectedPlacesTransportError(err)) {
+        continue;
+      }
       console.error(`[Discover] Query "${query}" failed:`, err);
     }
     await sleep(200);
   }
 
-  if (cancelToken) {
+  if (isCancelled()) {
     setSearchProgress("");
     return;
   }

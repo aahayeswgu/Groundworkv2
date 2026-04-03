@@ -9,7 +9,12 @@ import PinModal from "@/app/features/pins/ui/PinModal";
 import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
 import RouteLayer from "@/app/features/route/RouteLayer";
 import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
-import { searchBusinessesInArea, validateBounds, type DrawBounds } from "@/app/features/discover/discover-search";
+import {
+  cancelDiscoverSearch,
+  searchBusinessesInArea,
+  validateBounds,
+  type DrawBounds,
+} from "@/app/features/discover/discover-search";
 import { useStore } from "@/app/store";
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "../model/map.constants";
 
@@ -146,6 +151,7 @@ export default function Map({ onEditPin }: MapProps) {
   }, []);
 
   const exitDiscoverMode = useCallback(() => {
+    cancelDiscoverSearch();
     stopDrawing();
     setDiscoverMode(false);
     if (areaRectRef.current) { areaRectRef.current.setMap(null); areaRectRef.current = null; }
