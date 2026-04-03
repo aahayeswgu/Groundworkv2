@@ -27,7 +27,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   await sleep(50);
   cancelToken = false;
 
-  const { Place } = (await google.maps.importLibrary("places")) as google.maps.PlacesLibrary;
+  const Place = google.maps.places.Place;
 
   const store = useStore.getState() as ReturnType<typeof useStore.getState> & {
     setSearchProgress?: (msg: string) => void;

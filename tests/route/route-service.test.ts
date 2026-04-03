@@ -24,7 +24,6 @@ function buildGoogleMock(directionsServiceImpl: unknown) {
       DirectionsService: directionsServiceImpl,
       LatLng: FakeLatLng,
       TravelMode: { DRIVING: 'DRIVING' },
-      importLibrary: vi.fn().mockResolvedValue(undefined),
     },
   };
 }

@@ -18,8 +18,6 @@ export async function computeRoute(
   stops: RouteStop[],
 ): Promise<RouteResult | null> {
   try {
-    // Ensure routes library is loaded (provides DirectionsService)
-    await google.maps.importLibrary("routes");
     const directionsService = new google.maps.DirectionsService();
 
     // Support both address string and lat/lng coordinates
