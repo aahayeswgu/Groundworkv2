@@ -356,7 +356,7 @@ export default function Map({ onEditPin }: MapProps) {
     <APIProvider
       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
       version="weekly"
-      libraries={["places", "geometry", "marker", "routes"]}
+      libraries={["places", "geometry", "marker", "routes", "geocoding"]}
     >
       <div className="flex-1 relative h-screen overflow-hidden">
         <GoogleMap

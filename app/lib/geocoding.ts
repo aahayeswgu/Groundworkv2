@@ -1,12 +1,16 @@
 let geocoder: google.maps.Geocoder | null = null;
 
-export async function reverseGeocode(latLng: google.maps.LatLng): Promise<string> {
+function getGeocoder(): google.maps.Geocoder {
   if (!geocoder) {
-    await google.maps.importLibrary("geocoding");
     geocoder = new google.maps.Geocoder();
   }
+  return geocoder;
+}
+
+export async function reverseGeocode(latLng: google.maps.LatLng): Promise<string> {
+  const activeGeocoder = getGeocoder();
   try {
-    const { results } = await geocoder.geocode({ location: latLng });
+    const { results } = await activeGeocoder.geocode({ location: latLng });
     return results[0]?.formatted_address ?? coordinateFallback(latLng);
   } catch {
     return coordinateFallback(latLng);
@@ -23,12 +27,9 @@ function coordinateFallback(latLng: google.maps.LatLng): string {
  * Reuses the lazy geocoder singleton from reverseGeocode.
  */
 export async function forwardGeocode(address: string): Promise<{ lat: number; lng: number } | null> {
-  if (!geocoder) {
-    await google.maps.importLibrary('geocoding');
-    geocoder = new google.maps.Geocoder();
-  }
+  const activeGeocoder = getGeocoder();
   try {
-    const { results } = await geocoder.geocode({ address });
+    const { results } = await activeGeocoder.geocode({ address });
     const loc = results[0]?.geometry?.location;
     return loc ? { lat: loc.lat(), lng: loc.lng() } : null;
   } catch {
