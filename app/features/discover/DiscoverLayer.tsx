@@ -1,7 +1,7 @@
 "use client";
 
 import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useStore } from "@/app/store";
 import {
   MARKER_Z_INDEX,
@@ -34,32 +34,45 @@ function isResultAlreadyPinned(result: DiscoverResult, pins: Pin[]): boolean {
 function DiscoverMarkerVisual({ state }: { state: DiscoverMarkerState }) {
   if (state === "selected") {
     return (
-      <div data-discover-state={state} style={{ cursor: "pointer", lineHeight: 0 }}>
+      <MarkerShell state={state}>
         <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
           <circle cx="15" cy="15" r="13" fill="#22C55E" stroke="#fff" strokeWidth="2.5" />
           <path d="M10 15l4 4 6-7" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </div>
+      </MarkerShell>
     );
   }
 
   if (state === "hover") {
     return (
-      <div data-discover-state={state} style={{ cursor: "pointer", lineHeight: 0 }}>
+      <MarkerShell state={state}>
         <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
           <circle cx="15" cy="15" r="13" fill="#F59E0B" stroke="#fff" strokeWidth="2.5" />
           <circle cx="15" cy="15" r="4" fill="#fff" />
         </svg>
-      </div>
+      </MarkerShell>
     );
   }
 
   return (
-    <div data-discover-state={state} style={{ cursor: "pointer", lineHeight: 0 }}>
+    <MarkerShell state={state}>
       <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
         <circle cx="11" cy="11" r="9" fill="#D4712A" opacity="0.7" stroke="#fff" strokeWidth="2" />
         <circle cx="11" cy="11" r="3" fill="#fff" />
       </svg>
+    </MarkerShell>
+  );
+}
+
+interface MarkerShellProps {
+  children: ReactNode;
+  state: DiscoverMarkerState;
+}
+
+function MarkerShell({ children, state }: MarkerShellProps) {
+  return (
+    <div data-discover-state={state} className="cursor-pointer leading-none">
+      {children}
     </div>
   );
 }

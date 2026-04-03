@@ -36,6 +36,36 @@ These rules are mandatory for all frontend work in this repository.
    1. Do not build UI with `document.createElement`, `innerHTML`, or manual `appendChild`.
    2. Do not wire UI interactions with `addEventListener` when React event props (`onClick`, etc.) can be used.
    3. When integrating imperative third-party APIs, isolate the imperative bridge and keep actual UI content React-rendered.
+10. Styling policy (enforced):
+   1. Prefer Tailwind utility classes and theme tokens (`bg-orange`, `text-text-secondary`, etc.) over inline `style={{...}}`.
+   2. Inline styles are allowed only for truly dynamic runtime values that cannot be represented with classes (for example computed `backgroundImage`, map coordinates, or per-item computed colors).
+   3. If a color/spacing/size value is reused, move it into the slice `model/` (constants) or shared theme tokens instead of repeating literals in JSX.
+   4. Never introduce `<style>` or `<style jsx>` blocks in feature code unless explicitly requested for a one-off prototype.
+11. Duplicate markup policy (enforced):
+   1. If a JSX block is repeated more than once (same structure with small text/icon differences), extract it into a reusable component in the correct FSD layer.
+   2. Keep extracted reusable UI in `ui/`, static variants/config in `model/`, and pure transformers/helpers in `lib/`.
+   3. Prefer narrow, explicit props over boolean-heavy “god components”.
+   4. Avoid copy-pasting near-identical `div` trees across tabs/panels/cards; compose shared primitives instead.
+12. External script loading policy (strictly enforced):
+   1. Do not inject scripts imperatively with `document.createElement("script")`, `appendChild`, or `removeChild` in React components.
+   2. Do not load third-party SDKs via manual DOM mutation inside `useEffect`.
+   3. Use framework-native loading mechanisms (for Next.js: `next/script`) or server-safe integration points.
+   4. Any exception requires explicit user approval in the same task.
+13. Unsafe HTML injection policy (strictly enforced):
+   1. `dangerouslySetInnerHTML` is prohibited in this repository.
+   2. Do not pass raw HTML strings into the DOM from APIs, SDKs, or user input.
+   3. Prefer plain text rendering or explicitly modeled/sanitized render pipelines that do not require `dangerouslySetInnerHTML`.
+   4. Any exception requires explicit user approval in the same task.
+14. DOM HTML API policy (strictly enforced):
+   1. Do not read or write `innerHTML` / `outerHTML` in app code.
+   2. Do not use `insertAdjacentHTML` or `document.write`.
+   3. In form handlers, do not pull markup from `e.currentTarget.innerHTML`; use controlled state, refs, or typed values instead.
+   4. Any exception requires explicit user approval in the same task.
+15. CSS specificity policy (strictly enforced):
+   1. Do not use CSS `!important`.
+   2. Do not use Tailwind `!` modifier utilities (for example `!bg-*`, `!text-*`, `!border-*`).
+   3. Fix the underlying cascade/layer issue instead of forcing specificity.
+   4. Any exception requires explicit user approval in the same task.
 
 # General Code Style Principles
 
@@ -86,6 +116,14 @@ For AI Agents:
   - Avoid technical-type buckets like generic `components/`; place modules in `views/widgets/features/entities/shared` based on ownership.
 - Accessibility:
   - Use semantic HTML where meaningful.
+- Frontend cleanup guardrails (required before finalizing frontend edits):
+  - Run `rg -n 'style=\\{\\{' app --glob '*.tsx' --glob '*.ts'` and justify any remaining inline styles in the PR/summary.
+  - Run `rg -n 'document\\.createElement\\(\\s*[\"\\x27]script[\"\\x27]\\s*\\)|\\.appendChild\\(|\\.removeChild\\(' app --glob '*.tsx' --glob '*.ts'` and remove violations.
+  - Run `rg -n 'dangerouslySetInnerHTML' app --glob '*.tsx' --glob '*.ts'` and remove all matches.
+  - Run `rg -n '\\b(innerHTML|outerHTML|insertAdjacentHTML|document\\.write)\\b' app --glob '*.tsx' --glob '*.ts'` and remove all matches.
+  - Run `rg -n '!important|className=.*![A-Za-z\\[]' app --glob '*.tsx' --glob '*.ts' --glob '*.css'` and remove all matches.
+  - Remove duplicated JSX blocks introduced during the change by extracting reusable components.
+  - If a file grows beyond ~300 lines, split static data to `model/` and helpers to `lib/`.
 
 ### Language-Specific Rules
 

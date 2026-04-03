@@ -55,8 +55,10 @@
 }
 
 /* ─── Base resets ─── */
-input, button, select, textarea { font-family: inherit; font-size: inherit; }
-button { cursor: pointer; font-family: inherit; border: none; background: none; }
+@layer base {
+  input, button, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; font-family: inherit; border: none; background: none; }
+}
 
 /* ─── Scrollbar styling (can't do with utilities) ─── */
 .scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }

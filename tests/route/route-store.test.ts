@@ -1,20 +1,22 @@
 import { describe, it, expect } from 'vitest';
 // RED: route.store.ts exists as skeleton but createRouteSlice may not export correctly yet
 import { createRouteSlice } from '@/app/features/route/route.store';
+import type { RouteSlice } from '@/app/features/route/route.store';
 import type { RouteStop } from '@/app/features/route/model/route.types';
 
 // Build a minimal store around just the RouteSlice for testing
 function makeStore() {
-  const get = () => store;
-  const set = (updater: ((s: typeof store) => Partial<typeof store>) | Partial<typeof store>) => {
+  let store = {} as RouteSlice;
+
+  const get = (): RouteSlice => store;
+  const set = (updater: ((s: RouteSlice) => Partial<RouteSlice>) | Partial<RouteSlice>) => {
     if (typeof updater === 'function') {
       Object.assign(store, updater(store));
     } else {
       Object.assign(store, updater);
     }
   };
-  // @ts-expect-error minimal StateCreator test harness
-  const store = createRouteSlice(set, get, {} as never);
+  store = createRouteSlice(set as never, get as never, {} as never);
   return store;
 }
 

@@ -106,45 +106,35 @@ export function DiscoverInfoWindowCard({
     : normalizeAiText(briefText);
 
   return (
-    <div style={{ width: "300px", fontFamily: "DM Sans, sans-serif" }}>
+    <div className="w-[300px] font-sans">
       {result.photoUri ? (
         <div
-          style={{
-            height: "140px",
-            backgroundImage: `url('${result.photoUri}')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            borderRadius: "12px 12px 0 0",
-          }}
+          className="h-[140px] rounded-t-[12px] bg-cover bg-center"
+          style={{ backgroundImage: `url('${result.photoUri}')` }}
+          aria-label={result.displayName}
         />
       ) : null}
 
-      <div style={{ padding: result.photoUri ? "12px 16px 14px" : "14px 16px" }}>
-        <div style={{ color: "#1A1A1A", fontSize: "15px", fontWeight: 700, lineHeight: 1.3, paddingRight: "16px" }}>
-          {result.displayName}
-        </div>
-        <div style={{ color: "#D4712A", fontSize: "12px", fontWeight: 600, marginTop: "3px" }}>
-          {placeType}
-        </div>
+      <div className={result.photoUri ? "px-4 pb-3.5 pt-3" : "px-4 pb-3.5 pt-3.5"}>
+        <div className="pr-4 text-[15px] font-bold leading-[1.3] text-[#1A1A1A]">{result.displayName}</div>
+        <div className="mt-[3px] text-xs font-semibold text-[#D4712A]">{placeType}</div>
 
         {result.rating ? (
-          <div style={{ marginTop: "4px", fontSize: "12px" }}>
-            <span style={{ color: "#F59E0B", letterSpacing: "1px" }}>{stars}</span> {result.rating}
+          <div className="mt-1 text-xs">
+            <span className="tracking-[1px] text-[#F59E0B]">{stars}</span> {result.rating}
           </div>
         ) : null}
 
         {result.address ? (
-          <div style={{ fontSize: "11px", color: "#777", marginTop: "3px", lineHeight: 1.3 }}>
-            {result.address}
-          </div>
+          <div className="mt-[3px] text-[11px] leading-[1.3] text-[#777]">{result.address}</div>
         ) : null}
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px", gap: "8px" }}>
+        <div className="mt-2.5 flex items-center justify-between gap-2">
           <a
             href={`https://www.google.com/maps/place/?q=place_id:${result.placeId}`}
             target="_blank"
             rel="noopener"
-            style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "#4285F4", fontWeight: 600, textDecoration: "none" }}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#4285F4] no-underline"
           >
             Google Maps
           </a>
@@ -153,19 +143,11 @@ export function DiscoverInfoWindowCard({
             type="button"
             onClick={handleSave}
             disabled={saved}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "5px",
-              padding: "6px 14px",
-              borderRadius: "6px",
-              border: "none",
-              background: saved ? "none" : "#D4712A",
-              color: saved ? "#22C55E" : "#fff",
-              fontSize: "12px",
-              fontWeight: 700,
-              cursor: saved ? "default" : "pointer",
-            }}
+            className={`inline-flex items-center gap-1 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
+              saved
+                ? "cursor-default bg-transparent text-gw-green"
+                : "cursor-pointer bg-[#D4712A] text-white hover:brightness-110"
+            }`}
           >
             {saved ? "\u2713 Pinned" : "Save as Pin"}
           </button>
@@ -175,23 +157,11 @@ export function DiscoverInfoWindowCard({
           type="button"
           onClick={handleAddToRoute}
           disabled={routeState !== "idle"}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "4px",
-            width: "100%",
-            padding: "7px",
-            borderRadius: "6px",
-            border: "1px solid #D4712A",
-            background: "none",
-            color: "#D4712A",
-            fontSize: "12px",
-            fontWeight: 700,
-            cursor: routeState === "idle" ? "pointer" : "default",
-            marginTop: "8px",
-            opacity: routeState === "idle" ? 1 : 0.7,
-          }}
+          className={`mt-2 flex w-full items-center justify-center gap-1 rounded-md border px-2 py-[7px] text-xs font-bold text-[#D4712A] transition-all ${
+            routeState === "idle"
+              ? "cursor-pointer border-[#D4712A]"
+              : "cursor-default border-[#D4712A] opacity-70"
+          }`}
         >
           {routeState === "full" ? "Max 25 Stops" : routeState === "added" ? "\u2713 Added to Route" : "+ Add to Route"}
         </button>
@@ -200,42 +170,22 @@ export function DiscoverInfoWindowCard({
           type="button"
           onClick={handleAiClick}
           disabled={aiLoading !== null}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "6px",
-            width: "100%",
-            padding: "8px",
-            borderRadius: "6px",
-            border: "1.5px solid #4285F4",
-            background: briefText ? "#4285F4" : "transparent",
-            color: briefText ? "#fff" : "#4285F4",
-            fontSize: "13px",
-            fontWeight: 700,
-            cursor: aiLoading ? "default" : "pointer",
-            marginTop: "6px",
-            opacity: aiLoading ? 0.7 : 1,
-          }}
+          className={`mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-md border-[1.5px] px-2 py-2 text-[13px] font-bold transition-all ${
+            briefText
+              ? "border-[#4285F4] bg-[#4285F4] text-white"
+              : "border-[#4285F4] bg-transparent text-[#4285F4]"
+          } ${aiLoading ? "cursor-default opacity-70" : "cursor-pointer"}`}
         >
           {aiButtonLabel}
         </button>
 
         {showAi ? (
           <div
-            style={{
-              marginTop: "8px",
-              padding: "12px",
-              borderRadius: "8px",
-              background: "#f8f9fa",
-              border: "1px solid #e0e0e0",
-              fontSize: "13px",
-              lineHeight: 1.6,
-              color: aiError ? "#EF4444" : "#1A1A1A",
-              maxHeight: "300px",
-              overflowY: "auto",
-              whiteSpace: "pre-wrap",
-            }}
+            className={`mt-2 max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg border px-3 py-3 text-[13px] leading-[1.6] ${
+              aiError
+                ? "border-[#e0e0e0] bg-[#f8f9fa] text-gw-red"
+                : "border-[#e0e0e0] bg-[#f8f9fa] text-[#1A1A1A]"
+            }`}
           >
             {aiError ?? aiText}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
@@ -29,6 +29,12 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const trackingToggleTrackClass = trackingEnabled
+    ? "border-orange bg-orange"
+    : "border-[#666] bg-[#555]";
+  const trackingToggleThumbClass = trackingEnabled
+    ? "translate-x-5 bg-white"
+    : "bg-[#999]";
 
   function openSettings() {
     if (profile) {
@@ -98,48 +104,41 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
 
       {/* Profile */}
       {user ? (
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
+        <SidebarProfileCard
+          avatar={(profile?.name?.[0] || user.email?.[0] || "?").toUpperCase()}
+          title={profile?.name || "Set up profile"}
+          subtitle={profile?.company || user.email || ""}
           onClick={openSettings}
-        >
-          <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
-            {(profile?.name?.[0] || user.email?.[0] || "?").toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-text-primary truncate">{profile?.name || "Set up profile"}</div>
-            <div className="text-[11px] text-text-secondary mt-px truncate">{profile?.company || user.email}</div>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); supabase.auth.signOut(); }}
-            className="text-text-muted hover:text-gw-red transition-colors shrink-0"
-            title="Sign out"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
-        </div>
+          trailing={(
+            <button
+              onClick={(e) => { e.stopPropagation(); supabase.auth.signOut(); }}
+              className="text-text-muted hover:text-gw-red transition-colors shrink-0"
+              title="Sign out"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          )}
+        />
       ) : (
-        <div
-          className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
+        <SidebarProfileCard
+          avatar="?"
+          title="Sign in"
+          subtitle="Tap to log in or create account"
           onClick={() => setAuthOpen(true)}
-        >
-          <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
-            ?
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-text-primary truncate">Sign in</div>
-            <div className="text-[11px] text-text-secondary mt-px">Tap to log in or create account</div>
-          </div>
-          <div className="text-text-muted shrink-0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
-          </div>
-        </div>
+          trailing={(
+            <div className="text-text-muted shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </div>
+          )}
+        />
       )}
 
       {/* Nav Tabs */}
@@ -164,7 +163,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
           <div className="flex-1 flex flex-col overflow-y-auto scrollbar-thin">
             {/* Toast */}
             {settingsToast && (
-              <div className="mx-5 mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white text-center" style={{ backgroundColor: "#C4692A", animation: "fadeInOut 2.5s ease" }}>
+              <div className="mx-5 mt-3 rounded-lg bg-orange px-4 py-2 text-center text-sm font-semibold text-white animate-[fadeInOut_2.5s_ease]">
                 {settingsToast}
               </div>
             )}
@@ -192,12 +191,10 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
                 </div>
                 <button
                   onClick={() => setTrackingEnabled(!trackingEnabled)}
-                  style={{ backgroundColor: trackingEnabled ? "#C4692A" : "#555", borderColor: trackingEnabled ? "#C4692A" : "#666" }}
-                  className="relative w-11 h-6 rounded-full transition-colors duration-200 border"
+                  className={`relative h-6 w-11 rounded-full border transition-colors duration-200 ${trackingToggleTrackClass}`}
                 >
                   <span
-                    style={{ backgroundColor: trackingEnabled ? "#fff" : "#999" }}
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${trackingEnabled ? "translate-x-5" : ""}`}
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition-transform duration-200 ${trackingToggleThumbClass}`}
                   />
                 </button>
               </div>
@@ -264,6 +261,38 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
       </div>
 
       {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+    </div>
+  );
+}
+
+interface SidebarProfileCardProps {
+  avatar: string;
+  title: string;
+  subtitle: string;
+  onClick: () => void;
+  trailing: ReactNode;
+}
+
+function SidebarProfileCard({
+  avatar,
+  title,
+  subtitle,
+  onClick,
+  trailing,
+}: SidebarProfileCardProps) {
+  return (
+    <div
+      className="flex cursor-pointer items-center gap-3 border-b border-border bg-bg-card px-5 py-4 transition-colors duration-150 hover:bg-orange-dim"
+      onClick={onClick}
+    >
+      <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] bg-orange text-[15px] font-extrabold text-white">
+        {avatar}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-bold text-text-primary">{title}</div>
+        <div className="mt-px truncate text-[11px] text-text-secondary">{subtitle}</div>
+      </div>
+      {trailing}
     </div>
   );
 }
