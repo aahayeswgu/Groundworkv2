@@ -6,8 +6,8 @@ import { PlannerStopItem } from "@/app/features/planner/PlannerStopItem";
 import PlannerNotes from "@/app/features/planner/PlannerNotes";
 import PlannerActivityLog from "@/app/features/planner/PlannerActivityLog";
 import PlannerCalendar from "@/app/features/planner/PlannerCalendar";
-import type { PlannerStopStatus } from "@/app/types/planner.types";
-import type { RouteStop } from "@/app/types/route.types";
+import type { PlannerStopStatus } from "@/app/features/planner/model/planner.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
 
 export default function PlannerPanel() {
   const plannerDays = useStore((s) => s.plannerDays);

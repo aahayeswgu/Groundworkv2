@@ -2,6 +2,7 @@
 
 /* ─── Theme Variables (swapped by data-theme attribute) ─── */
 :root {
+  --mobile-bottom-bar-offset: calc(72px + env(safe-area-inset-bottom, 0px));
   --orange: #C4692A;
   --orange-hover: #D47830;
   --orange-dim: rgba(196,105,42,0.12);
@@ -55,13 +56,52 @@
 }
 
 /* ─── Base resets ─── */
-input, button, select, textarea { font-family: inherit; font-size: inherit; }
-button { cursor: pointer; font-family: inherit; border: none; background: none; }
+@layer base {
+  input, button, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; font-family: inherit; }
+}
 
 /* ─── Scrollbar styling (can't do with utilities) ─── */
 .scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
 .scrollbar-thin::-webkit-scrollbar { width: 5px; }
 .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Control styling guards (resilient against generic button resets/vendor CSS) ─── */
+.map-controls .map-action-btn {
+  border: 1px solid var(--orange);
+  background-color: var(--orange);
+  color: #fff;
+}
+.map-controls .map-action-btn:hover {
+  border-color: var(--orange-hover);
+  background-color: var(--orange-hover);
+}
+.map-controls .map-action-btn.map-action-btn-active {
+  box-shadow: var(--shadow), 0 0 0 2px rgba(255, 255, 255, 0.65);
+}
+.map-controls .map-action-badge {
+  background-color: var(--orange);
+  color: #fff;
+}
+
+.pin-status-chips .pin-status-chip {
+  border-radius: 9999px;
+  border-style: solid;
+  border-width: 1.5px;
+}
+.pin-status-chips .pin-status-chip.pin-status-chip-active {
+  border-color: var(--orange);
+  background-color: var(--orange-dim);
+  color: var(--text-primary);
+}
+.pin-status-chips .pin-status-chip.pin-status-chip-inactive {
+  border-color: var(--border);
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+}
+.pin-status-chips .pin-status-chip.pin-status-chip-inactive:hover {
+  border-color: var(--text-muted);
+}
 
 /* ─── Sidebar collapse transition (stateful, needs custom CSS) ─── */
 .sidebar-wrap {
@@ -80,16 +120,16 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 }
 
 /* ─── Responsive layout ─── */
-@media (max-width: 768px) {
-  .mobile-bottom-bar { display: flex !important; }
+@media (max-width: 1024px) {
+  .mobile-bottom-bar { display: flex; }
 
   .sidebar-wrap {
-    position: fixed; top: 0; left: 0; height: 100%; z-index: 35;
-    transform: translateX(-100%); width: 100% !important; min-width: 0 !important;
+    position: fixed; top: 0; left: 0; bottom: var(--mobile-bottom-bar-offset); height: auto; z-index: 35;
+    transform: translateX(-100%); width: 100%; min-width: 0;
     transition: transform 0.3s ease;
   }
   .sidebar-wrap.open { transform: translateX(0); }
-  .sidebar-wrap.collapsed { transform: translateX(-100%) !important; margin-right: 0 !important; }
+  .sidebar-wrap.collapsed { transform: translateX(-100%); margin-right: 0; }
   .sidebar-toggle { display: none; }
   .icon-btn-size { width: 44px; height: 44px; }
   .map-ctrl-size { width: 44px; height: 44px; }

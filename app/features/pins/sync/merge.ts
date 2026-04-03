@@ -1,4 +1,4 @@
-import type { Pin, PinStatus } from '@/app/types/pins.types';
+import type { Pin, PinStatus } from '@/app/features/pins/model/pin.types';
 
 export interface RemotePin {
   id: string;

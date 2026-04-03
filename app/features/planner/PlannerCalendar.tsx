@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { DayPlan } from "@/app/types/planner.types";
+import { useCallback, useEffect, useState } from "react";
+import type { DayPlan } from "@/app/features/planner/model/planner.types";
 
 interface PlannerCalendarProps {
   selectedDate: string;             // "YYYY-MM-DD" — the active planner date
@@ -35,12 +35,18 @@ export default function PlannerCalendar({
     return d.getMonth(); // 0-11
   });
 
-  // Sync viewed month when selectedDate changes (e.g. prev/next day nav outside calendar)
-  useEffect(() => {
-    const d = new Date(selectedDate + "T00:00:00");
+  const syncViewedMonth = useCallback((dateStr: string) => {
+    const d = new Date(dateStr + "T00:00:00");
     setViewYear(d.getFullYear());
     setViewMonth(d.getMonth());
-  }, [selectedDate]);
+  }, []);
+
+  // Sync viewed month when selectedDate changes (e.g. prev/next day nav outside calendar)
+  useEffect(() => {
+    queueMicrotask(() => {
+      syncViewedMonth(selectedDate);
+    });
+  }, [selectedDate, syncViewedMonth]);
 
   const todayStr = new Date().toLocaleDateString("en-CA");
 

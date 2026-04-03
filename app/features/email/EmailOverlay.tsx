@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Script from "next/script";
 import {
   getGmailToken, setGmailToken, getProfile, listMessages,
   getMessage, getMessageHeaders, modifyMessage, trashMessage,
@@ -49,12 +50,72 @@ function avatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
+function hasGoogleIdentityLoaded(): boolean {
+  if (typeof window === "undefined") return false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return Boolean((window as any).google?.accounts?.oauth2);
+}
+
+function htmlToPlainText(html: string): string {
+  if (!html) return "";
+
+  const withLineBreaks = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n");
+
+  if (typeof window === "undefined") {
+    return withLineBreaks
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, "\"")
+      .replace(/&#39;/gi, "'")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  const doc = new DOMParser().parseFromString(withLineBreaks, "text/html");
+  return (doc.body.textContent ?? "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function plainTextToHtml(text: string): string {
+  const trimmed = text.trim();
+  if (!trimmed) return "<p></p>";
+  return escapeHtml(trimmed).replace(/\n/g, "<br>");
+}
+
+function EmailAvatar({ name }: { name: string }) {
+  return (
+    <div
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+      style={{ backgroundColor: avatarColor(name) }}
+    >
+      {name[0]?.toUpperCase() ?? "?"}
+    </div>
+  );
+}
+
 interface EmailOverlayProps {
   onClose: () => void;
 }
 
 export default function EmailOverlay({ onClose }: EmailOverlayProps) {
   const [connected, setConnected] = useState(!!getGmailToken());
+  const [gsiLoaded, setGsiLoaded] = useState(hasGoogleIdentityLoaded());
   const [account, setAccount] = useState("");
   const [folder, setFolder] = useState<Folder>("INBOX");
   const [messages, setMessages] = useState<MessagePreview[]>([]);
@@ -72,27 +133,6 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
   const [composeBody, setComposeBody] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
-
-  const gsiLoadedRef = useRef(false);
-
-  // Load Google Identity Services
-  useEffect(() => {
-    if (gsiLoadedRef.current || !GMAIL_CLIENT_ID) return;
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.onload = () => { gsiLoadedRef.current = true; };
-    document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
-  }, []);
-
-  // On connect, fetch profile + inbox
-  useEffect(() => {
-    if (!connected) return;
-    getProfile().then((p) => setAccount(p.emailAddress)).catch(() => { setConnected(false); setGmailToken(null); });
-    fetchMessages("INBOX");
-    getLabelUnreadCount("INBOX").then(setInboxUnread).catch(() => {});
-  }, [connected]);
 
   const fetchMessages = useCallback(async (folderId: Folder, query = "", pageToken?: string) => {
     setLoading(true);
@@ -116,8 +156,18 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
     setLoading(false);
   }, []);
 
+  // On connect, fetch profile + inbox
+  useEffect(() => {
+    if (!connected) return;
+    getProfile().then((p) => setAccount(p.emailAddress)).catch(() => { setConnected(false); setGmailToken(null); });
+    queueMicrotask(() => {
+      void fetchMessages("INBOX");
+      getLabelUnreadCount("INBOX").then(setInboxUnread).catch(() => {});
+    });
+  }, [connected, fetchMessages]);
+
   function handleConnect() {
-    if (!GMAIL_CLIENT_ID || !gsiLoadedRef.current) return;
+    if (!GMAIL_CLIENT_ID || !gsiLoaded) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const client = (window as any).google.accounts.oauth2.initTokenClient({
       client_id: GMAIL_CLIENT_ID,
@@ -184,7 +234,7 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
     setSending(true);
     setSendError("");
     try {
-      await sendMessage(composeTo, composeSubject, composeBody || "<p></p>");
+      await sendMessage(composeTo, composeSubject, plainTextToHtml(composeBody));
       setComposeOpen(false);
       setComposeTo("");
       setComposeSubject("");
@@ -197,9 +247,14 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
 
   function handleReply() {
     if (!selectedMsg) return;
+    const quotedBody = htmlToPlainText(selectedMsg.body)
+      .split("\n")
+      .map((line) => `> ${line}`)
+      .join("\n");
+
     setComposeTo(selectedMsg.from);
     setComposeSubject(selectedMsg.subject.startsWith("Re:") ? selectedMsg.subject : `Re: ${selectedMsg.subject}`);
-    setComposeBody(`<br><br><div style="border-left:2px solid #ccc;padding-left:12px;margin-left:4px;color:#666">On ${selectedMsg.date}, ${extractName(selectedMsg.from)} wrote:<br>${selectedMsg.body}</div>`);
+    setComposeBody(`\n\nOn ${selectedMsg.date}, ${extractName(selectedMsg.from)} wrote:\n${quotedBody}`);
     setComposeOpen(true);
   }
 
@@ -215,10 +270,21 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
     fetchMessages(folder, searchQuery);
   }
 
+  const googleIdentityScript = GMAIL_CLIENT_ID ? (
+    <Script
+      id="google-gsi-client"
+      src="https://accounts.google.com/gsi/client"
+      strategy="afterInteractive"
+      onLoad={() => setGsiLoaded(true)}
+      onReady={() => setGsiLoaded(true)}
+    />
+  ) : null;
+
   // Not connected — show connect screen
   if (!connected) {
     return (
       <div className="fixed inset-0 z-40 bg-bg-primary flex flex-col">
+        {googleIdentityScript}
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-bg-card">
           <div className="flex items-center gap-3">
@@ -240,7 +306,11 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
             <h2 className="text-xl font-bold text-text-primary mb-2">Connect Gmail</h2>
             <p className="text-sm text-text-secondary mb-6 max-w-xs">Sign in with Google to read, send, and manage your emails right from Groundwork.</p>
             {GMAIL_CLIENT_ID ? (
-              <button onClick={handleConnect} className="px-6 py-2.5 bg-orange text-white font-bold text-sm rounded-lg hover:bg-orange-hover transition-colors">
+              <button
+                onClick={handleConnect}
+                disabled={!gsiLoaded}
+                className="px-6 py-2.5 bg-orange text-white font-bold text-sm rounded-lg hover:bg-orange-hover transition-colors disabled:cursor-default disabled:opacity-60"
+              >
                 Connect with Google
               </button>
             ) : (
@@ -255,6 +325,7 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
   // Connected — full email client
   return (
     <div className="fixed inset-0 z-40 bg-bg-primary flex flex-col">
+      {googleIdentityScript}
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-bg-card shrink-0">
         <div className="flex items-center gap-3">
@@ -356,12 +427,7 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
                         }`}
                       >
                         {/* Avatar */}
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                          style={{ backgroundColor: avatarColor(name) }}
-                        >
-                          {name[0]?.toUpperCase() ?? "?"}
-                        </div>
+                        <EmailAvatar name={name} />
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
@@ -424,9 +490,7 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
                 </div>
                 <h2 className="text-base font-bold text-text-primary">{selectedMsg.subject || "(no subject)"}</h2>
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0" style={{ backgroundColor: avatarColor(extractName(selectedMsg.from)) }}>
-                    {extractName(selectedMsg.from)[0]?.toUpperCase() ?? "?"}
-                  </div>
+                  <EmailAvatar name={extractName(selectedMsg.from)} />
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-text-primary truncate">{extractName(selectedMsg.from)}</div>
                     <div className="text-[11px] text-text-muted truncate">to {selectedMsg.to}</div>
@@ -439,10 +503,9 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
                 {readingLoading ? (
                   <div className="text-center text-text-muted py-8">Loading...</div>
                 ) : (
-                  <div
-                    className="text-sm text-text-primary [&_img]:max-w-full [&_table]:max-w-full [&_table]:table-fixed"
-                    dangerouslySetInnerHTML={{ __html: selectedMsg.body }}
-                  />
+                  <pre className="whitespace-pre-wrap break-words font-sans text-sm text-text-primary">
+                    {htmlToPlainText(selectedMsg.body)}
+                  </pre>
                 )}
                 {/* Attachments */}
                 {selectedMsg.attachments.length > 0 && (
@@ -509,12 +572,11 @@ export default function EmailOverlay({ onClose }: EmailOverlayProps) {
             />
           </div>
           {/* Body */}
-          <div
-            contentEditable
-            className="flex-1 px-4 py-3 text-sm text-text-primary overflow-y-auto focus:outline-none min-h-[150px]"
-            onInput={(e) => setComposeBody(e.currentTarget.innerHTML)}
-            dangerouslySetInnerHTML={{ __html: composeBody }}
-            suppressContentEditableWarning
+          <textarea
+            value={composeBody}
+            onChange={(e) => setComposeBody(e.target.value)}
+            className="min-h-[150px] flex-1 resize-none overflow-y-auto bg-transparent px-4 py-3 text-sm text-text-primary focus:outline-none"
+            placeholder="Write your message..."
           />
           {/* Send bar */}
           <div className="flex items-center justify-between px-4 py-2.5 border-t border-border">

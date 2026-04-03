@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useStore } from "@/app/store";
 
@@ -8,6 +8,23 @@ export default function AuthListener() {
   const setUser = useStore((s) => s.setUser);
   const setProfile = useStore((s) => s.setProfile);
   const setAuthReady = useStore((s) => s.setAuthReady);
+
+  const pullProfile = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("name, company, homebase, homebase_lat, homebase_lng")
+      .eq("id", userId)
+      .single();
+
+    if (data) {
+      setProfile(data);
+    } else {
+      // Create empty profile for new user
+      const empty = { name: "", company: "", homebase: "", homebase_lat: null, homebase_lng: null };
+      setProfile(empty);
+      await supabase.from("profiles").upsert({ id: userId, ...empty }, { onConflict: "id" });
+    }
+  }, [setProfile]);
 
   useEffect(() => {
     // Check existing session on mount
@@ -28,24 +45,7 @@ export default function AuthListener() {
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setProfile, setAuthReady]);
-
-  async function pullProfile(userId: string) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("name, company, homebase, homebase_lat, homebase_lng")
-      .eq("id", userId)
-      .single();
-
-    if (data) {
-      setProfile(data);
-    } else {
-      // Create empty profile for new user
-      const empty = { name: "", company: "", homebase: "", homebase_lat: null, homebase_lng: null };
-      setProfile(empty);
-      await supabase.from("profiles").upsert({ id: userId, ...empty }, { onConflict: "id" });
-    }
-  }
+  }, [setUser, setProfile, setAuthReady, pullProfile]);
 
   return null;
 }

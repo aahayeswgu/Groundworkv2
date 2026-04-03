@@ -21,7 +21,7 @@ import { computeRoute } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
 import PlacesAutocomplete from "@/app/components/PlacesAutocomplete";
-import type { RouteStop } from "@/app/types/route.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {
   open: boolean;
@@ -139,8 +139,8 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       try {
         const pos = await getCurrentGpsPosition();
         return { lat: pos.lat, lng: pos.lng };
-      } catch {
-        setBuildError("Could not get GPS location. Check location permissions.");
+      } catch (err) {
+        setBuildError(err instanceof Error ? err.message : "Could not get GPS location.");
         return null;
       }
     }
@@ -235,12 +235,10 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     ? Math.round(routeResult.totalDurationSeconds / 60)
     : null;
 
-  const showMobileWarning = routeStops.length > 3;
-
   if (!open) return null;
 
   return (
-    <div className="absolute right-0 top-0 h-full z-30 flex flex-col w-full max-w-sm bg-bg-secondary border-l border-border shadow-gw overflow-hidden">
+    <div className="absolute right-0 top-0 h-full z-30 flex flex-col w-full max-w-sm bg-bg-secondary border-l border-border shadow-gw overflow-hidden max-lg:left-0 max-lg:max-w-none max-lg:bottom-[var(--mobile-bottom-bar-offset)] max-lg:h-auto max-lg:border-l-0">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-bg-card shrink-0">
         <div>

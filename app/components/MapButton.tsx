@@ -15,21 +15,19 @@ export default function MapButton({
   onClick?: () => void;
   className?: string;
 }) {
+  const buttonStateClass = active ? "map-action-btn-active" : "";
+
   return (
     <div className="relative group">
       {badge != null && badge > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 z-10 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1" style={{ backgroundColor: "#C4692A" }}>
+        <span className="map-action-badge absolute -right-1.5 -top-1.5 z-10 flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold">
           {badge}
         </span>
       )}
       <button
         title={title}
         onClick={onClick}
-        style={active
-          ? { backgroundColor: "#fff", color: "#C4692A", borderColor: "#fff" }
-          : { backgroundColor: "#C4692A", color: "#fff", borderColor: "#C4692A" }
-        }
-        className={`w-10 h-10 max-md:w-11 max-md:h-11 rounded-lg flex items-center justify-center shadow-gw transition-all duration-200 border ${className}`}
+        className={`map-action-btn map-ctrl-size flex h-10 w-10 items-center justify-center rounded-lg shadow-gw transition-all duration-200 max-lg:h-11 max-lg:w-11 ${buttonStateClass} ${className}`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           {children}

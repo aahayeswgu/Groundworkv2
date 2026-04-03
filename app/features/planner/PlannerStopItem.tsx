@@ -1,6 +1,6 @@
 "use client";
 
-import type { PlannerStop, PlannerStopStatus } from "@/app/types/planner.types";
+import type { PlannerStop, PlannerStopStatus } from "@/app/features/planner/model/planner.types";
 
 interface PlannerStopItemProps {
   stop: PlannerStop;

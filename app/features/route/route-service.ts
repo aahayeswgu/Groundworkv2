@@ -1,4 +1,4 @@
-import type { RouteStop, RouteResult } from '@/app/types/route.types';
+import type { RouteStop, RouteResult } from '@/app/features/route/model/route.types';
 
 export interface RouteOrigin {
   address?: string;
@@ -8,16 +8,10 @@ export interface RouteOrigin {
 
 /**
  * Calls google.maps.DirectionsService with optimizeWaypoints: true.
- * Returns null on failure — callers should check and show user feedback.
- *
- * NOTE: DirectionsService was deprecated Feb 2026 but still works.
- * The Route class (routes library) has unstable JS API surface.
- * Using DirectionsService until Route class stabilizes.
- */
-/**
  * Always treats origin as both start AND end (round trip).
  * ALL stops are waypoints with optimizeWaypoints: true — Google decides the best order.
  * Returns the optimized order so the UI list can reorder to match.
+ * Returns null on failure — callers should check and show user feedback.
  */
 export async function computeRoute(
   origin: RouteOrigin,
@@ -26,6 +20,7 @@ export async function computeRoute(
   try {
     const directionsService = new google.maps.DirectionsService();
 
+    // Support both address string and lat/lng coordinates
     const originPoint = origin.address
       ? origin.address
       : new google.maps.LatLng(origin.lat!, origin.lng!);

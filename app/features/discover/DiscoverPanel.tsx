@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { useStore } from "@/app/store/index";
+import { useStore } from "@/app/store";
 import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
 import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
-import type { RouteStop } from "@/app/types/route.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
 
 export default function DiscoverPanel() {
   const discoverResults = useStore((s) => s.discoverResults);

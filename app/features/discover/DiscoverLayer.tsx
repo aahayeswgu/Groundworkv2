@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useContext } from "react";
-import { MapContext } from "@/app/features/map/MapContext";
+import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useStore } from "@/app/store";
 import {
-  createDiscoverMarkerElement,
   MARKER_Z_INDEX,
   type DiscoverMarkerState,
 } from "./discover-marker";
-import {
-  buildDiscoverInfoContent,
-  buildQuickSavePin,
-} from "./discover-info";
-import type { DiscoverResult } from "@/app/types/discover.types";
-import type { RouteStop } from "@/app/types/route.types";
+import { buildQuickSavePin } from "./discover-info";
+import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
+import type { Pin } from "@/app/features/pins/model/pin.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
+import { DiscoverInfoWindowCard } from "./ui/DiscoverInfoWindowCard";
 
 function getMarkerState(
   placeId: string,
@@ -25,150 +23,141 @@ function getMarkerState(
   return "default";
 }
 
+function isResultAlreadyPinned(result: DiscoverResult, pins: Pin[]): boolean {
+  return pins.some(
+    (pin) =>
+      pin.title.toLowerCase() === result.displayName.toLowerCase() ||
+      (Math.abs(pin.lat - result.lat) < 0.001 && Math.abs(pin.lng - result.lng) < 0.001),
+  );
+}
+
+function DiscoverMarkerVisual({ state }: { state: DiscoverMarkerState }) {
+  if (state === "selected") {
+    return (
+      <MarkerShell state={state}>
+        <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="15" cy="15" r="13" fill="#22C55E" stroke="#fff" strokeWidth="2.5" />
+          <path d="M10 15l4 4 6-7" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </MarkerShell>
+    );
+  }
+
+  if (state === "hover") {
+    return (
+      <MarkerShell state={state}>
+        <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="15" cy="15" r="13" fill="#F59E0B" stroke="#fff" strokeWidth="2.5" />
+          <circle cx="15" cy="15" r="4" fill="#fff" />
+        </svg>
+      </MarkerShell>
+    );
+  }
+
+  return (
+    <MarkerShell state={state}>
+      <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="11" cy="11" r="9" fill="#D4712A" opacity="0.7" stroke="#fff" strokeWidth="2" />
+        <circle cx="11" cy="11" r="3" fill="#fff" />
+      </svg>
+    </MarkerShell>
+  );
+}
+
+interface MarkerShellProps {
+  children: ReactNode;
+  state: DiscoverMarkerState;
+}
+
+function MarkerShell({ children, state }: MarkerShellProps) {
+  return (
+    <div data-discover-state={state} className="cursor-pointer leading-none">
+      {children}
+    </div>
+  );
+}
+
 export default function DiscoverLayer() {
-  const map = useContext(MapContext);
+  const map = useMap();
   const discoverResults = useStore((s) => s.discoverResults);
   const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
   const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
+  const pins = useStore((s) => s.pins);
+  const addPin = useStore((s) => s.addPin);
+  const routeStops = useStore((s) => s.routeStops);
   const addStop = useStore((s) => s.addStop);
+  const [openPlaceId, setOpenPlaceId] = useState<string | null>(null);
 
-  const markerPool = useRef<Map<string, google.maps.marker.AdvancedMarkerElement>>(new Map());
-  const infoWindow = useRef<google.maps.InfoWindow | null>(null);
-  const openPlaceId = useRef<string | null>(null);
+  const openResult = useMemo(
+    () => discoverResults.find((result) => result.placeId === openPlaceId) ?? null,
+    [discoverResults, openPlaceId],
+  );
 
-  // Main sync effect — create/remove/update markers when results or selection changes
-  useEffect(() => {
-    if (!map) return;
-
-    const resultIds = new Set(discoverResults.map((r) => r.placeId));
-
-    // Remove stale markers
-    for (const [placeId, marker] of markerPool.current.entries()) {
-      if (!resultIds.has(placeId)) {
-        marker.map = null;
-        markerPool.current.delete(placeId);
-        if (openPlaceId.current === placeId) {
-          infoWindow.current?.close();
-          openPlaceId.current = null;
+  const handleMarkerClick = useCallback(
+    (result: DiscoverResult) => {
+      if (map) {
+        map.panTo({ lat: result.lat, lng: result.lng });
+        if ((map.getZoom() ?? 0) < 15) {
+          map.setZoom(15);
         }
       }
-    }
 
-    // Upsert markers
-    for (const result of discoverResults) {
-      const state = getMarkerState(result.placeId, selectedDiscoverIds, hoveredDiscoverId);
-      const existing = markerPool.current.get(result.placeId);
+      setOpenPlaceId((currentOpenId) => (
+        currentOpenId === result.placeId ? null : result.placeId
+      ));
+    },
+    [map],
+  );
 
-      if (existing) {
-        const currentState = (existing.content as HTMLElement)?.dataset?.discoverState;
-        if (currentState !== state) {
-          // State changed — update in-place (no new marker, no listener re-attachment)
-          existing.content = createDiscoverMarkerElement(state);
-          (existing as google.maps.marker.AdvancedMarkerElement).zIndex = MARKER_Z_INDEX[state];
-        }
-        continue;
-      }
+  if (!discoverResults.length && !openResult) {
+    return null;
+  }
 
-      // New marker
-      const el = createDiscoverMarkerElement(state);
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        position: { lat: result.lat, lng: result.lng },
-        map,
-        content: el,
-        title: result.displayName,
-        zIndex: MARKER_Z_INDEX[state],
-      });
-
-      // Capture result for closure
-      const capturedResult: DiscoverResult = result;
-
-      marker.addListener("click", () => {
-        if (!map) return;
-        map.panTo({ lat: capturedResult.lat, lng: capturedResult.lng });
-        if ((map.getZoom() ?? 0) < 15) map.setZoom(15);
-
-        if (!infoWindow.current) {
-          infoWindow.current = new google.maps.InfoWindow();
-          infoWindow.current.addListener("closeclick", () => {
-            openPlaceId.current = null;
-          });
-        }
-
-        // Toggle: clicking the same marker closes the InfoWindow
-        if (openPlaceId.current === capturedResult.placeId) {
-          infoWindow.current.close();
-          openPlaceId.current = null;
-          return;
-        }
-
-        const currentPins = useStore.getState().pins;
-        const alreadySaved = currentPins.some(
-          (p) =>
-            p.title.toLowerCase() === capturedResult.displayName.toLowerCase() ||
-            (Math.abs(p.lat - capturedResult.lat) < 0.001 &&
-              Math.abs(p.lng - capturedResult.lng) < 0.001),
+  return (
+    <>
+      {discoverResults.map((result) => {
+        const state = getMarkerState(result.placeId, selectedDiscoverIds, hoveredDiscoverId);
+        return (
+          <AdvancedMarker
+            key={result.placeId}
+            position={{ lat: result.lat, lng: result.lng }}
+            title={result.displayName}
+            zIndex={MARKER_Z_INDEX[state]}
+            clickable
+            onClick={() => handleMarkerClick(result)}
+          >
+            <DiscoverMarkerVisual state={state} />
+          </AdvancedMarker>
         );
+      })}
 
-        const content = buildDiscoverInfoContent({
-          result: capturedResult,
-          alreadySaved,
-          onSave: () => {
-            // Dedup check at save time (per D-21)
-            const latestPins = useStore.getState().pins;
-            const duplicate = latestPins.some(
-              (p) =>
-                p.title.toLowerCase() === capturedResult.displayName.toLowerCase() ||
-                (Math.abs(p.lat - capturedResult.lat) < 0.001 &&
-                  Math.abs(p.lng - capturedResult.lng) < 0.001),
-            );
-            if (!duplicate) {
-              useStore.getState().addPin(buildQuickSavePin(capturedResult));
-            }
-            // Button text updated in-place by buildDiscoverInfoContent — no setContent call needed
-          },
-          onAddToRoute: () => {
-            const stop: RouteStop = {
-              id: `discover_${capturedResult.placeId}`,
-              label: capturedResult.displayName,
-              address: capturedResult.address ?? "",
-              lat: capturedResult.lat,
-              lng: capturedResult.lng,
-            };
-            addStop(stop);
-          },
-        });
-
-        infoWindow.current.setContent(content);
-        infoWindow.current.open({ anchor: marker, map });
-        openPlaceId.current = capturedResult.placeId;
-      });
-
-      markerPool.current.set(result.placeId, marker);
-    }
-  }, [map, discoverResults, selectedDiscoverIds, addStop]);
-
-  // Hover sync effect — update visual state when hovered ID changes
-  useEffect(() => {
-    for (const [placeId, marker] of markerPool.current.entries()) {
-      const state = getMarkerState(placeId, selectedDiscoverIds, hoveredDiscoverId);
-      const currentState = (marker.content as HTMLElement)?.dataset?.discoverState;
-      if (currentState !== state) {
-        marker.content = createDiscoverMarkerElement(state);
-        (marker as google.maps.marker.AdvancedMarkerElement).zIndex = MARKER_Z_INDEX[state];
-      }
-    }
-  }, [hoveredDiscoverId, selectedDiscoverIds]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      for (const m of markerPool.current.values()) {
-        m.map = null;
-      }
-      markerPool.current.clear();
-      infoWindow.current?.close();
-    };
-  }, []);
-
-  return null;
+      {openResult ? (
+        <InfoWindow
+          position={{ lat: openResult.lat, lng: openResult.lng }}
+          onClose={() => setOpenPlaceId(null)}
+        >
+          <DiscoverInfoWindowCard
+            result={openResult}
+            alreadySaved={isResultAlreadyPinned(openResult, pins)}
+            isInRoute={routeStops.some((stop) => stop.id === `discover_${openResult.placeId}`)}
+            onSave={() => {
+              if (!isResultAlreadyPinned(openResult, pins)) {
+                addPin(buildQuickSavePin(openResult));
+              }
+            }}
+            onAddToRoute={() => {
+              const stop: RouteStop = {
+                id: `discover_${openResult.placeId}`,
+                label: openResult.displayName,
+                address: openResult.address ?? "",
+                lat: openResult.lat,
+                lng: openResult.lng,
+              };
+              return addStop(stop);
+            }}
+          />
+        </InfoWindow>
+      ) : null}
+    </>
+  );
 }

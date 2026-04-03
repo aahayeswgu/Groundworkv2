@@ -1,62 +1,69 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import PinList from "@/app/features/pins/PinList";
-import { useStore } from "@/app/store/index";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import PinList from "@/app/features/pins/ui/PinList";
+import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
 import AuthModal from "@/app/features/auth/AuthModal";
+import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
-
-type Theme = "dark" | "gray";
-
-function getTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const saved = localStorage.getItem("gw-theme");
-  return saved === "gray" ? "gray" : "dark";
-}
-
-function applyTheme(theme: Theme) {
-  document.body.setAttribute("data-theme", theme);
-  localStorage.setItem("gw-theme", theme);
-}
+import { OPEN_EMAIL_EVENT, OPEN_SETTINGS_EVENT } from "@/app/shared/model/mobile-events";
 
 interface SidebarProps {
   onEditPin?: (pinId: string) => void;
+  mobileOpen?: boolean;
+  mobileTab?: "pins" | "planner";
+  onMobileClose?: () => void;
 }
 
-export default function Sidebar({ onEditPin }: SidebarProps) {
+export default function Sidebar({
+  onEditPin,
+  mobileOpen = false,
+  mobileTab,
+  onMobileClose,
+}: SidebarProps) {
   const discoverMode = useStore((s) => s.discoverMode);
   const trackingEnabled = useStore((s) => s.trackingEnabled);
   const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
   const user = useStore((s) => s.user);
   const profile = useStore((s) => s.profile);
   const updateProfile = useStore((s) => s.updateProfile);
+  const { theme, setTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<"pins" | "planner">("pins");
+  const [desktopActiveTab, setDesktopActiveTab] = useState<"pins" | "planner">("pins");
   const [profileName, setProfileName] = useState("");
   const [profileCompany, setProfileCompany] = useState("");
   const [profileHomebase, setProfileHomebase] = useState("");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
-  const [theme, setTheme] = useState<Theme>("dark");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const trackingToggleTrackClass = trackingEnabled
+    ? "border-orange bg-orange"
+    : "border-[#666] bg-[#555]";
+  const trackingToggleThumbClass = trackingEnabled
+    ? "translate-x-5 bg-white"
+    : "bg-[#999]";
 
-  // Hydrate theme from localStorage on mount
-  useEffect(() => {
-    const saved = getTheme();
-    setTheme(saved);
-    applyTheme(saved);
-  }, []);
-
-  // Sync profile fields when settings opens
-  useEffect(() => {
-    if (settingsOpen && profile) {
+  const openSettings = useCallback(() => {
+    if (profile) {
       setProfileName(profile.name ?? "");
       setProfileCompany(profile.company ?? "");
       setProfileHomebase(profile.homebase ?? "");
     }
-  }, [settingsOpen, profile]);
+    setSettingsOpen(true);
+  }, [profile]);
+
+  useEffect(() => {
+    const handleOpenSettings = () => {
+      openSettings();
+    };
+    window.addEventListener(OPEN_SETTINGS_EVENT, handleOpenSettings);
+    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, handleOpenSettings);
+  }, [openSettings]);
+
+  const activeTab = mobileTab ?? desktopActiveTab;
+  const isCollapsed = collapsed && !mobileOpen;
 
   function handleSaveProfile() {
     updateProfile({ name: profileName, company: profileCompany, homebase: profileHomebase });
@@ -65,7 +72,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
   }
 
   return (
-    <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${collapsed ? "collapsed" : ""}`}>
+    <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${isCollapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
       {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed((prev) => !prev)}
@@ -77,9 +84,26 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
         </svg>
       </button>
 
+      <div className="lg:hidden flex items-center justify-center border-b border-border bg-bg-card py-2">
+        <span className="h-1.5 w-12 rounded-full bg-border" />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-bg-card">
         <div className="flex items-center gap-2.5">
+          {onMobileClose && (
+            <button
+              onClick={onMobileClose}
+              className="icon-btn-size mr-1 flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-orange-dim hover:text-orange lg:hidden"
+              title="Close drawer"
+              aria-label="Close drawer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          )}
           <div className="w-8 h-8 bg-orange rounded-[7px] flex items-center justify-center font-extrabold text-white text-[15px] tracking-tight">
             G
           </div>
@@ -87,7 +111,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
         </div>
         <div className="flex gap-1.5 items-center">
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent("gw-open-email"))}
+            onClick={() => window.dispatchEvent(new CustomEvent(OPEN_EMAIL_EVENT))}
             className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange relative"
             title="Email"
           >
@@ -97,7 +121,13 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
             </svg>
           </button>
           <button
-            onClick={() => setSettingsOpen((v) => !v)}
+            onClick={() => {
+              if (settingsOpen) {
+                setSettingsOpen(false);
+              } else {
+                openSettings();
+              }
+            }}
             className={`icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 hover:bg-orange-dim hover:text-orange ${settingsOpen ? "text-orange bg-orange-dim" : "text-text-secondary"}`}
             title="Settings"
           >
@@ -111,60 +141,59 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
 
       {/* Profile */}
       {user ? (
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
-          onClick={() => setSettingsOpen(true)}
-        >
-          <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
-            {(profile?.name?.[0] || user.email?.[0] || "?").toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-text-primary truncate">{profile?.name || "Set up profile"}</div>
-            <div className="text-[11px] text-text-secondary mt-px truncate">{profile?.company || user.email}</div>
-          </div>
-          <button
-            onClick={(e) => { e.stopPropagation(); supabase.auth.signOut(); }}
-            className="text-text-muted hover:text-gw-red transition-colors shrink-0"
-            title="Sign out"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
-        </div>
+        <SidebarProfileCard
+          avatar={(profile?.name?.[0] || user.email?.[0] || "?").toUpperCase()}
+          title={profile?.name || "Set up profile"}
+          subtitle={profile?.company || user.email || ""}
+          onClick={openSettings}
+          trailing={(
+            <button
+              onClick={(e) => { e.stopPropagation(); supabase.auth.signOut(); }}
+              className="text-text-muted hover:text-gw-red transition-colors shrink-0"
+              title="Sign out"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          )}
+        />
       ) : (
-        <div
-          className="flex items-center gap-3 px-5 py-4 border-b border-border bg-bg-card cursor-pointer transition-colors duration-150 hover:bg-orange-dim"
+        <SidebarProfileCard
+          avatar="?"
+          title="Sign in"
+          subtitle="Tap to log in or create account"
           onClick={() => setAuthOpen(true)}
-        >
-          <div className="w-[38px] h-[38px] bg-orange rounded-[10px] flex items-center justify-center font-extrabold text-white text-[15px] shrink-0">
-            ?
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-text-primary truncate">Sign in</div>
-            <div className="text-[11px] text-text-secondary mt-px">Tap to log in or create account</div>
-          </div>
-          <div className="text-text-muted shrink-0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
-          </div>
-        </div>
+          trailing={(
+            <div className="text-text-muted shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            </div>
+          )}
+        />
       )}
 
       {/* Nav Tabs */}
-      <div className="flex border-b border-border bg-bg-card">
+      <div className="hidden border-b border-border bg-bg-card lg:flex">
         <button
-          onClick={() => setActiveTab("pins")}
+          onClick={() => {
+            setDesktopActiveTab("pins");
+            setSettingsOpen(false);
+          }}
           className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${activeTab === "pins" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"}`}
         >
           Pins
         </button>
         <button
-          onClick={() => setActiveTab("planner")}
+          onClick={() => {
+            setDesktopActiveTab("planner");
+            setSettingsOpen(false);
+          }}
           className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${activeTab === "planner" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"}`}
         >
           Planner
@@ -177,7 +206,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
           <div className="flex-1 flex flex-col overflow-y-auto scrollbar-thin">
             {/* Toast */}
             {settingsToast && (
-              <div className="mx-5 mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white text-center" style={{ backgroundColor: "#C4692A", animation: "fadeInOut 2.5s ease" }}>
+              <div className="mx-5 mt-3 rounded-lg bg-orange px-4 py-2 text-center text-sm font-semibold text-white animate-[fadeInOut_2.5s_ease]">
                 {settingsToast}
               </div>
             )}
@@ -205,12 +234,10 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
                 </div>
                 <button
                   onClick={() => setTrackingEnabled(!trackingEnabled)}
-                  style={{ backgroundColor: trackingEnabled ? "#C4692A" : "#555", borderColor: trackingEnabled ? "#C4692A" : "#666" }}
-                  className="relative w-11 h-6 rounded-full transition-colors duration-200 border"
+                  className={`relative h-6 w-11 rounded-full border transition-colors duration-200 ${trackingToggleTrackClass}`}
                 >
                   <span
-                    style={{ backgroundColor: trackingEnabled ? "#fff" : "#999" }}
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${trackingEnabled ? "translate-x-5" : ""}`}
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition-transform duration-200 ${trackingToggleThumbClass}`}
                   />
                 </button>
               </div>
@@ -259,7 +286,7 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
                 {([["dark", "Dark"], ["gray", "Graphite"]] as const).map(([value, label]) => (
                   <button
                     key={value}
-                    onClick={() => { setTheme(value); applyTheme(value); }}
+                    onClick={() => setTheme(value)}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${theme === value ? "bg-orange text-white" : "bg-bg-input text-text-secondary hover:text-text-primary hover:bg-bg-card"}`}
                   >
                     {label}
@@ -277,6 +304,38 @@ export default function Sidebar({ onEditPin }: SidebarProps) {
       </div>
 
       {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+    </div>
+  );
+}
+
+interface SidebarProfileCardProps {
+  avatar: string;
+  title: string;
+  subtitle: string;
+  onClick: () => void;
+  trailing: ReactNode;
+}
+
+function SidebarProfileCard({
+  avatar,
+  title,
+  subtitle,
+  onClick,
+  trailing,
+}: SidebarProfileCardProps) {
+  return (
+    <div
+      className="flex cursor-pointer items-center gap-3 border-b border-border bg-bg-card px-5 py-4 transition-colors duration-150 hover:bg-orange-dim"
+      onClick={onClick}
+    >
+      <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] bg-orange text-[15px] font-extrabold text-white">
+        {avatar}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-bold text-text-primary">{title}</div>
+        <div className="mt-px truncate text-[11px] text-text-secondary">{subtitle}</div>
+      </div>
+      {trailing}
     </div>
   );
 }

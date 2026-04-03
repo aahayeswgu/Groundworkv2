@@ -2,29 +2,79 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
-import Map from "./features/map/Map";
-import MobileBottomBar from "./components/MobileBottomBar";
+import Map from "./features/map/ui/Map";
 import StoreHydration from "./components/StoreHydration";
 import GpsCheckin from "./features/planner/GpsCheckin";
 import AuthListener from "./features/auth/AuthListener";
 import EmailOverlay from "./features/email/EmailOverlay";
-import PinModal from "./features/pins/PinModal";
+import PinModal from "./features/pins/ui/PinModal";
 import { useStore } from "@/app/store";
+import MobileBottomBar from "@/app/widgets/mobile-navigation/ui/MobileBottomBar";
+import {
+  OPEN_EMAIL_EVENT,
+  OPEN_MOBILE_TAB_EVENT,
+  OPEN_SETTINGS_EVENT,
+  type OpenMobileTabEventDetail,
+} from "@/app/shared/model/mobile-events";
+import type { MobilePrimaryTab } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
 
 export default function Home() {
   const [editPinId, setEditPinId] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileSidebarTab, setMobileSidebarTab] = useState<"pins" | "planner">("pins");
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
   const pins = useStore((s) => s.pins);
 
   useEffect(() => {
-    function handleOpenEmail() { setEmailOpen(true); }
-    window.addEventListener("gw-open-email", handleOpenEmail);
-    return () => window.removeEventListener("gw-open-email", handleOpenEmail);
+    function handleOpenEmail() {
+      setEmailOpen(true);
+    }
+    window.addEventListener(OPEN_EMAIL_EVENT, handleOpenEmail);
+    return () => window.removeEventListener(OPEN_EMAIL_EVENT, handleOpenEmail);
   }, []);
 
   const openEditModal = useCallback((pinId: string) => {
     setEditPinId(pinId);
   }, []);
+
+  const closeMobileSidebar = useCallback(() => {
+    setMobileSidebarOpen(false);
+    setMobileActiveTab("map");
+  }, []);
+
+  const openMobileSidebarTab = useCallback((tab: "pins" | "planner") => {
+    setMobileSidebarTab(tab);
+    setMobileActiveTab(tab);
+    setMobileSidebarOpen(true);
+  }, []);
+
+  const handleMobileTabSelect = useCallback(
+    (tab: MobilePrimaryTab) => {
+      if (tab === "map") {
+        closeMobileSidebar();
+        return;
+      }
+      openMobileSidebarTab(tab);
+    },
+    [closeMobileSidebar, openMobileSidebarTab],
+  );
+
+  const handleOpenSettings = useCallback(() => {
+    openMobileSidebarTab("pins");
+    window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+  }, [openMobileSidebarTab]);
+
+  useEffect(() => {
+    const handleOpenMobileTab = (event: Event) => {
+      const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
+      if (!detail) return;
+      openMobileSidebarTab(detail.tab);
+    };
+
+    window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
+    return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
+  }, [openMobileSidebarTab]);
 
   const editPin = editPinId ? (pins.find((p) => p.id === editPinId) ?? null) : null;
 
@@ -33,19 +83,30 @@ export default function Home() {
       <StoreHydration />
       <GpsCheckin />
       <AuthListener />
-      <div className="flex h-screen w-screen">
-        <Sidebar onEditPin={openEditModal} />
-        <Map onEditPin={openEditModal} />
-      </div>
-      <MobileBottomBar />
-      {emailOpen && <EmailOverlay onClose={() => setEmailOpen(false)} />}
-      {editPin && (
-        <PinModal
-          mode="edit"
-          initialData={editPin}
-          onClose={() => setEditPinId(null)}
+      {mobileSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close mobile drawer"
+          onClick={closeMobileSidebar}
+          className="fixed inset-0 z-30 bg-black/35 lg:hidden"
         />
       )}
+      <div className="flex h-screen w-screen">
+        <Sidebar
+          onEditPin={openEditModal}
+          mobileOpen={mobileSidebarOpen}
+          mobileTab={mobileSidebarTab}
+          onMobileClose={closeMobileSidebar}
+        />
+        <Map onEditPin={openEditModal} />
+      </div>
+      <MobileBottomBar
+        activeTab={mobileActiveTab}
+        onSelectTab={handleMobileTabSelect}
+        onOpenSettings={handleOpenSettings}
+      />
+      {emailOpen && <EmailOverlay onClose={() => setEmailOpen(false)} />}
+      {editPin && <PinModal mode="edit" initialData={editPin} onClose={() => setEditPinId(null)} />}
     </>
   );
 }

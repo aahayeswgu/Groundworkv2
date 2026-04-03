@@ -1,4 +1,4 @@
-import type { RouteStop } from '@/app/types/route.types';
+import type { RouteStop } from '@/app/features/route/model/route.types';
 
 /**
  * Builds the official Google Maps directions URL.

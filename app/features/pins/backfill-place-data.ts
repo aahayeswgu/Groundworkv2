@@ -6,7 +6,7 @@ import { useStore } from "@/app/store";
  * Runs once on app startup, skips pins that already have placeId.
  */
 export async function backfillPlaceData(): Promise<void> {
-  const { Place } = (await google.maps.importLibrary("places")) as google.maps.PlacesLibrary;
+  const Place = google.maps.places.Place;
 
   const pins = useStore.getState().pins;
   const pinsToBackfill = pins.filter((p) => !p.placeId && p.title);
