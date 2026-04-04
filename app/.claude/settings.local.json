@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(find /home/wzrd/gwv2/gwv2/node_modules/next/dist/docs/01-app -name *layout* -o -name *styling* -o -name *css*)"
-    ]
-  }
-}

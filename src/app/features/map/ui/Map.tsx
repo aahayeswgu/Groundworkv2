@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { APIProvider, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
-import MapButton from "@/app/components/MapButton";
+import MapButton from "@/app/features/map/ui/MapButton";
 import { reverseGeocode } from "@/app/lib/geocoding";
 import {
   startDiscoverDrawSession,

@@ -20,7 +20,7 @@ import { useStore } from "@/app/store";
 import { computeRoute } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
-import PlacesAutocomplete from "@/app/components/PlacesAutocomplete";
+import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {

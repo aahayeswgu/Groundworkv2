@@ -2,12 +2,12 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Sidebar from "@/app/widgets/sidebar/ui/Sidebar";
-import Map from "./features/map/ui/Map";
-import StoreHydration from "./components/StoreHydration";
-import GpsCheckin from "./features/planner/GpsCheckin";
-import AuthListener from "./features/auth/AuthListener";
-import EmailOverlay from "./features/email/EmailOverlay";
-import PinModal from "./features/pins/ui/PinModal";
+import Map from "@/app/features/map/ui/Map";
+import StoreHydration from "@/app/shared/ui/StoreHydration";
+import GpsCheckin from "@/app/features/planner/GpsCheckin";
+import AuthListener from "@/app/features/auth/AuthListener";
+import EmailOverlay from "@/app/features/email/EmailOverlay";
+import PinModal from "@/app/features/pins/ui/PinModal";
 import { useStore } from "@/app/store";
 import MobileBottomBar from "@/app/widgets/mobile-navigation/ui/MobileBottomBar";
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/app/shared/model/mobile-events";
 import type { MobilePrimaryTab } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
 
-export default function Home() {
+export default function HomePageView() {
   const [editPinId, setEditPinId] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
