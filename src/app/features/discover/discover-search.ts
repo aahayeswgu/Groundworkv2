@@ -5,6 +5,8 @@ import type { DiscoverResult } from "@/app/features/discover/model/discover.type
 
 export type DrawBounds = { swLat: number; swLng: number; neLat: number; neLng: number };
 
+const DISCOVER_QUERY_CONCURRENCY = 3;
+
 // Each new search increments this id; older runs become stale and should stop.
 let activeSearchRunId = 0;
 
@@ -24,6 +26,32 @@ function isExpectedPlacesTransportError(err: unknown): boolean {
     message.includes("error code: 6") ||
     message.includes(" [0]")
   );
+}
+
+function buildSearchProgress(completed: number, total: number): string {
+  return `Searching businesses... [${completed}/${total}]`;
+}
+
+async function runWithConcurrency<T>(
+  items: readonly T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>,
+): Promise<void> {
+  if (!items.length) return;
+
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  let nextIndex = 0;
+
+  const runWorker = async () => {
+    while (true) {
+      const currentIndex = nextIndex;
+      if (currentIndex >= items.length) return;
+      nextIndex += 1;
+      await worker(items[currentIndex]);
+    }
+  };
+
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
 }
 
 export function validateBounds(bounds: DrawBounds): { valid: boolean; error?: string } {
@@ -75,56 +103,57 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   }
 
   const newResults: DiscoverResult[] = [];
+  const totalQueries = DISCOVER_QUERIES.length;
+  let completedQueries = 0;
+  setProgressForActiveRun(buildSearchProgress(completedQueries, totalQueries));
 
-  for (let i = 0; i < DISCOVER_QUERIES.length; i++) {
-    if (isCancelled()) {
-      setProgressForActiveRun("");
-      return;
-    }
+  await runWithConcurrency(
+    DISCOVER_QUERIES,
+    DISCOVER_QUERY_CONCURRENCY,
+    async (query) => {
+      if (isCancelled()) return;
 
-    const query = DISCOVER_QUERIES[i];
-    const stepLabel = `[${i + 1}/${DISCOVER_QUERIES.length}]`;
-    setProgressForActiveRun(`Searching: ${query}... ${stepLabel}`);
-    try {
-      const { places } = await Place.searchByText({
-        textQuery: query,
-        fields: [
-          "id",
-          "displayName",
-          "formattedAddress",
-          "location",
-          "types",
-          "rating",
-          "userRatingCount",
-          "photos",
-        ],
-        locationBias: new google.maps.LatLngBounds(
-          { lat: bounds.swLat, lng: bounds.swLng },
-          { lat: bounds.neLat, lng: bounds.neLng },
-        ),
-        maxResultCount: 20,
-      });
-      if (isCancelled()) {
-        setProgressForActiveRun("");
-        return;
+      try {
+        const { places } = await Place.searchByText({
+          textQuery: query,
+          fields: [
+            "id",
+            "displayName",
+            "formattedAddress",
+            "location",
+            "types",
+            "rating",
+            "userRatingCount",
+            "photos",
+          ],
+          locationBias: new google.maps.LatLngBounds(
+            { lat: bounds.swLat, lng: bounds.swLng },
+            { lat: bounds.neLat, lng: bounds.neLng },
+          ),
+          maxResultCount: 20,
+        });
+
+        if (isCancelled()) return;
+
+        for (const place of places ?? []) {
+          const result = filterAndMapPlace(
+            place as Parameters<typeof filterAndMapPlace>[0],
+            bounds,
+            seen,
+          );
+          if (result) newResults.push(result);
+        }
+      } catch (err) {
+        // Frequent transient transport/cancel noise from Places RPC should not spam console.
+        if (!isCancelled() && !isExpectedPlacesTransportError(err)) {
+          console.error(`[Discover] Query "${query}" failed:`, err);
+        }
+      } finally {
+        completedQueries += 1;
+        setProgressForActiveRun(buildSearchProgress(completedQueries, totalQueries));
       }
-      for (const place of places ?? []) {
-        const result = filterAndMapPlace(
-          place as Parameters<typeof filterAndMapPlace>[0],
-          bounds,
-          seen,
-        );
-        if (result) newResults.push(result);
-      }
-    } catch (err) {
-      // Frequent transient transport/cancel noise from Places RPC should not spam console.
-      if (isCancelled() || isExpectedPlacesTransportError(err)) {
-        continue;
-      }
-      console.error(`[Discover] Query "${query}" failed:`, err);
-    }
-    await sleep(200);
-  }
+    },
+  );
 
   if (isCancelled()) {
     setProgressForActiveRun("");
@@ -152,5 +181,3 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
 
   setProgressForActiveRun("");
 }
-
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));

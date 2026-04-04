@@ -57,6 +57,7 @@ export default function Map({ onEditPin }: MapProps) {
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
   const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
+  const isDrawing = useStore((s) => s.isDrawing);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
   const setIsDrawing = useStore((s) => s.setIsDrawing);
   const addActivityEntry = useStore((s) => s.addActivityEntry);
@@ -366,6 +367,12 @@ export default function Map({ onEditPin }: MapProps) {
         {toast && (
           <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg bg-charcoal text-white text-sm font-semibold shadow-gw-lg animate-[fadeInOut_2.5s_ease]">
             {toast}
+          </div>
+        )}
+
+        {discoverMode && isDrawing && (
+          <div className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]">
+            Drag To Select Area
           </div>
         )}
 
