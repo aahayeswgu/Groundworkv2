@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/app/lib/supabase";
+import { supabase } from "@/app/shared/api/supabase";
 
 export interface Profile {
   name: string;

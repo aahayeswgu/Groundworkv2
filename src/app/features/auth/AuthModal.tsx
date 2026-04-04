@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/app/lib/supabase";
+import { supabase } from "@/app/shared/api/supabase";
 
 interface AuthModalProps {
   onClose: () => void;

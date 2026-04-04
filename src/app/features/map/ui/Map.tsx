@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { APIProvider, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
 import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
-import { reverseGeocode } from "@/app/lib/geocoding";
+import { reverseGeocode } from "@/app/shared/api/geocoding";
 import {
   startDiscoverDrawSession,
   startDropPinSession,
@@ -12,12 +12,12 @@ import {
 } from "@/app/features/map/lib/map-interactions";
 import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/ui/PinModal";
-import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
+import DiscoverLayer from "@/app/features/discover/ui/DiscoverLayer";
 import RouteLayer from "@/app/features/route/RouteLayer";
 import {
   cancelDiscoverSearch,
   searchBusinessesInArea,
-} from "@/app/features/discover/discover-search";
+} from "@/app/features/discover/api/discover-search";
 import { useStore } from "@/app/store";
 import {
   DEFAULT_MAP_CENTER,

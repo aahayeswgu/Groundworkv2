@@ -27,7 +27,7 @@ import {
 import { useStore } from "@/app/store";
 import { computeRoute, RouteComputeError } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
-import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
+import { forwardGeocode, getCurrentGpsPosition } from "@/app/shared/api/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 

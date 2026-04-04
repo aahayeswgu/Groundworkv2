@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createPinsSlice } from "@/app/features/pins/pins.store";
-import { createDiscoverSlice } from "@/app/features/discover/discover.store";
+import { createDiscoverSlice } from "@/app/features/discover/model/discover.store";
 import { createRouteSlice } from "@/app/features/route/route.store";
 import { createPlannerSlice } from "@/app/features/planner/planner.store";
 import { createAuthSlice } from "@/app/features/auth/auth.store";
 import type { PinsSlice } from "@/app/features/pins/pins.store";
-import type { DiscoverSlice } from "@/app/features/discover/discover.store";
+import type { DiscoverSlice } from "@/app/features/discover/model/discover.store";
 import type { RouteSlice } from "@/app/features/route/route.store";
 import type { PlannerSlice } from "@/app/features/planner/model/planner.types";
 import type { AuthSlice } from "@/app/features/auth/auth.store";
