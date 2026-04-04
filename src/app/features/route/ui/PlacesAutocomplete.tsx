@@ -1,7 +1,7 @@
 "use client";
 
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, type Ref } from "react";
 
 interface Suggestion {
   description: string;
@@ -13,6 +13,8 @@ interface PlacesAutocompleteProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  inputRef?: Ref<HTMLInputElement>;
+  autoFocus?: boolean;
 }
 
 export default function PlacesAutocomplete({
@@ -20,6 +22,8 @@ export default function PlacesAutocomplete({
   onChange,
   placeholder = "Search for a location...",
   className = "",
+  inputRef,
+  autoFocus = false,
 }: PlacesAutocompleteProps) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -83,10 +87,12 @@ export default function PlacesAutocomplete({
       }}
     >
       <input
+        ref={inputRef}
         type="text"
         value={value}
         onChange={handleInputChange}
         onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+        autoFocus={autoFocus}
         placeholder={placeholder}
         className={className}
       />

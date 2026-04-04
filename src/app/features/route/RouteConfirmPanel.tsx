@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -109,6 +109,9 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
+  const startAddressInputRef = useRef<HTMLInputElement | null>(null);
+  const previewButtonRef = useRef<HTMLButtonElement | null>(null);
+  const didAutoFocusRef = useRef(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -123,6 +126,31 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const startValidationMessage = startMode === "home"
     ? "Set a home base address in Settings > Profile, or enter one here."
     : "Enter a starting address.";
+
+  useEffect(() => {
+    if (!inline && !open) {
+      didAutoFocusRef.current = false;
+      return;
+    }
+    if (routeStops.length === 0) {
+      didAutoFocusRef.current = false;
+      return;
+    }
+    if (didAutoFocusRef.current) return;
+
+    didAutoFocusRef.current = true;
+    const focusTarget = () => {
+      if ((startMode === "home" || startMode === "custom") && missingStartRequirement) {
+        startAddressInputRef.current?.focus();
+        startAddressInputRef.current?.select();
+        return;
+      }
+      previewButtonRef.current?.focus();
+    };
+
+    const timeoutId = window.setTimeout(focusTarget, 80);
+    return () => window.clearTimeout(timeoutId);
+  }, [inline, open, routeStops.length, startMode, missingStartRequirement]);
 
   function handleSendToPlanner() {
     if (routeStops.length === 0) return;
@@ -230,7 +258,9 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     setRouteResult(result);
     setRouteActive(true);
     setIsBuilding(false);
-    onClose?.();
+    if (!inline) {
+      onClose?.();
+    }
   }, [
     routeStops,
     missingStartRequirement,
@@ -240,6 +270,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     setRouteActive,
     reorderStops,
     onClose,
+    inline,
   ]);
 
   const handleOpenMaps = useCallback(async () => {
@@ -323,6 +354,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
             onChange={setCustomStartAddress}
             placeholder={startMode === "home" ? "Enter home address" : "Enter start address"}
             className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-secondary text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
+            inputRef={startAddressInputRef}
           />
         )}
         {startMode === "gps" && (
@@ -366,37 +398,38 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       {/* Action buttons */}
       <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
         <button
-          onClick={handleSendToPlanner}
-          disabled={routeStops.length === 0}
-          className="w-full py-2.5 rounded-lg border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Send to Planner
-        </button>
-        <div className="flex flex-col gap-2 sm:flex-row">
-        <button
-          onClick={() => { clearRoute(); onClose?.(); }}
-          className="w-full px-4 py-2.5 rounded-xl border border-border text-text-muted text-sm font-semibold hover:border-red-400 hover:text-red-400 transition-colors sm:w-auto"
-        >
-          Clear
-        </button>
-        <button
+          ref={previewButtonRef}
           onClick={handleBuildRoute}
           disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
-          className="w-full flex-1 py-2.5 rounded-xl bg-bg-secondary border border-border text-text-primary text-sm font-bold disabled:opacity-50 hover:border-orange hover:text-orange transition-colors"
+          className="w-full rounded-xl bg-orange px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
         >
           {isBuilding ? "Previewing..." : "Preview Route"}
         </button>
         <button
           onClick={handleOpenMaps}
           disabled={routeStops.length === 0}
-          className="w-full flex-1 py-2.5 rounded-xl bg-[#4285F4] text-white text-sm font-extrabold disabled:opacity-50 flex items-center justify-center gap-1.5"
+          className="w-full rounded-xl border border-[#4285F4]/40 bg-[#4285F4]/15 px-4 py-2.5 text-sm font-semibold text-[#7EAFFF] transition-colors hover:bg-[#4285F4]/25 disabled:opacity-50"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-            <polygon points="3 11 22 2 13 21 11 13 3 11" />
-          </svg>
           Open Maps
         </button>
-        </div>
+        <button
+          onClick={handleSendToPlanner}
+          disabled={routeStops.length === 0}
+          className="w-full py-2.5 rounded-lg border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Send to Planner
+        </button>
+        <button
+          onClick={() => {
+            clearRoute();
+            if (!inline) {
+              onClose?.();
+            }
+          }}
+          className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-text-muted transition-colors hover:border-red-400 hover:text-red-400"
+        >
+          Clear
+        </button>
       </div>
     </div>
   );
