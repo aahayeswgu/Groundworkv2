@@ -6,6 +6,16 @@ import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
 import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
 import type { RouteStop } from "@/app/features/route/model/route.types";
+import { Button } from "@/app/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/app/shared/ui/card";
+import { Loader2Icon } from "lucide-react";
 
 export default function DiscoverPanel() {
   const discoverResults = useStore((s) => s.discoverResults);
@@ -32,6 +42,12 @@ export default function DiscoverPanel() {
 
   const selectableCount = Math.min(discoverResults.length, 20);
   const allSelected = selectedDiscoverIds.size === selectableCount && selectableCount > 0;
+  const progressMatch = searchProgress?.match(/\[(\d+)\/(\d+)\]/);
+  const completedSearchSteps = progressMatch ? Number(progressMatch[1]) : 0;
+  const totalSearchSteps = progressMatch ? Number(progressMatch[2]) : 0;
+  const searchProgressPercent = totalSearchSteps > 0
+    ? Math.max(0, Math.min(100, Math.round((completedSearchSteps / totalSearchSteps) * 100)))
+    : 0;
 
   // Derived: which zone does each placeId belong to?
   const placeZoneLabel = useMemo<Record<string, string>>(() => {
@@ -75,19 +91,47 @@ export default function DiscoverPanel() {
 
       {/* Step 2: Searching progress */}
       {step === 2 && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
-          <div className="text-text-primary text-sm font-semibold text-center">{searchProgress}</div>
-          <div className="text-text-muted text-xs">This may take a moment...</div>
-          <button
-            onClick={() => {
-              cancelDiscoverSearch();
-              setDiscoverMode(false);
-              clearDiscover();
-            }}
-            className="mt-2 px-4 py-1.5 rounded-lg border border-red-400 text-red-400 text-xs font-bold hover:bg-red-400/10 transition-colors"
-          >
-            Stop Search
-          </button>
+        <div className="flex-1 flex items-center justify-center px-4 py-6">
+          <Card className="w-full max-w-sm bg-bg-card/95 ring-1 ring-border/70 shadow-gw-lg">
+            <CardHeader className="gap-2 border-b border-border/70 pb-3">
+              <CardTitle className="flex items-center gap-2 text-text-primary">
+                <Loader2Icon className="size-4 animate-spin text-orange" />
+                Discovering Businesses
+              </CardTitle>
+              <CardDescription className="text-xs text-text-secondary">
+                Searching your selected area for nearby contractors and trade businesses.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-4">
+              <div className="rounded-md border border-border/70 bg-bg px-3 py-2 text-center text-sm font-semibold text-text-primary">
+                {searchProgress}
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-bg">
+                <div
+                  className="h-full rounded-full bg-orange transition-[width] duration-300 ease-out"
+                  style={{ width: `${searchProgressPercent}%` }}
+                />
+              </div>
+              <div className="text-center text-xs text-text-muted">
+                {totalSearchSteps > 0
+                  ? `${completedSearchSteps} of ${totalSearchSteps} query groups completed`
+                  : "Initializing search..."}
+              </div>
+            </CardContent>
+            <CardFooter className="border-t border-border/70 bg-bg-card/70">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => {
+                  cancelDiscoverSearch();
+                  setDiscoverMode(false);
+                  clearDiscover();
+                }}
+              >
+                Stop Search
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       )}
 
