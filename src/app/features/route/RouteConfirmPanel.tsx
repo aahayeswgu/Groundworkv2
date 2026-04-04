@@ -25,7 +25,7 @@ import {
   SheetTitle,
 } from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
-import { computeRoute } from "@/app/features/route/route-service";
+import { computeRoute, RouteComputeError } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
@@ -240,9 +240,21 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       return;
     }
 
-    const result = await computeRoute(origin, routeStops);
-    if (!result) {
+    let result: Awaited<ReturnType<typeof computeRoute>>;
+    try {
+      result = await computeRoute(origin, routeStops);
+    } catch (err) {
       setIsBuilding(false);
+      if (err instanceof RouteComputeError && err.code === "routes-permission-denied") {
+        setBuildError(
+          "Routes API is blocked for this key/project. Enable Routes API and allow it in API key restrictions, then retry.",
+        );
+        return;
+      }
+      if (err instanceof RouteComputeError && err.code === "routes-library-unavailable") {
+        setBuildError("Routes library is unavailable. Reload and try again.");
+        return;
+      }
       setBuildError("Could not calculate route. Check your connection and try again.");
       return;
     }

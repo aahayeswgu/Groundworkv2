@@ -6,6 +6,23 @@ export interface RouteOrigin {
   lng?: number;
 }
 
+export type RouteComputeErrorCode =
+  | 'routes-permission-denied'
+  | 'routes-library-unavailable'
+  | 'routes-no-result'
+  | 'routes-request-failed';
+
+export class RouteComputeError extends Error {
+  code: RouteComputeErrorCode;
+
+  constructor(code: RouteComputeErrorCode, message: string, cause?: unknown) {
+    super(message);
+    this.name = 'RouteComputeError';
+    this.code = code;
+    this.cause = cause;
+  }
+}
+
 type RouteLocationInput =
   | string
   | google.maps.LatLng
@@ -41,6 +58,31 @@ interface RoutesLibraryWithRouteClass {
   Route?: {
     computeRoutes?: (request: ComputeRoutesRequest) => Promise<ComputeRoutesResponse>;
   };
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.message;
+  }
+  if (typeof err === 'string') {
+    return err;
+  }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
+function isPermissionDeniedError(message: string): boolean {
+  const normalized = message.toUpperCase();
+  return (
+    normalized.includes('PERMISSION_DENIED')
+    || normalized.includes('REQUEST_DENIED')
+    || normalized.includes('ARE BLOCKED')
+    || normalized.includes('API_NOT_ACTIVATED')
+    || normalized.includes('API KEY')
+  );
 }
 
 function getOriginPoint(origin: RouteOrigin): RouteLocationInput {
@@ -80,11 +122,16 @@ function normalizePathPoint(
 async function computeRouteWithRouteClass(
   origin: RouteOrigin,
   stops: RouteStop[],
-): Promise<RouteResult | null> {
+): Promise<RouteResult> {
   try {
     const routesLibrary = await google.maps.importLibrary('routes') as unknown as RoutesLibraryWithRouteClass;
     const computeRoutes = routesLibrary.Route?.computeRoutes;
-    if (!computeRoutes) return null;
+    if (!computeRoutes) {
+      throw new RouteComputeError(
+        'routes-library-unavailable',
+        'Google Maps Routes library is unavailable.',
+      );
+    }
 
     const originPoint = getOriginPoint(origin);
     const request: ComputeRoutesRequest = {
@@ -105,7 +152,9 @@ async function computeRouteWithRouteClass(
 
     const response = await computeRoutes(request);
     const route = response.routes?.[0];
-    if (!route) return null;
+    if (!route) {
+      throw new RouteComputeError('routes-no-result', 'Routes API returned no route.');
+    }
 
     const optimizedOrder = route.optimizedIntermediateWaypointIndices ?? [];
     const totalDistanceMeters = route.distanceMeters ?? 0;
@@ -119,52 +168,24 @@ async function computeRouteWithRouteClass(
 
     return { optimizedOrder, totalDistanceMeters, totalDurationSeconds, polylinePath };
   } catch (err) {
-    console.warn('[route-service] Route.computeRoutes failed, falling back to DirectionsService.', err);
-    return null;
-  }
-}
-
-async function computeRouteWithDirectionsService(
-  origin: RouteOrigin,
-  stops: RouteStop[],
-): Promise<RouteResult | null> {
-  try {
-    const directionsService = new google.maps.DirectionsService();
-    const originPoint = getOriginPoint(origin);
-
-    const waypoints = stops.map((stop) => ({
-      location: new google.maps.LatLng(stop.lat, stop.lng),
-      stopover: true,
-    }));
-
-    const response = await directionsService.route({
-      origin: originPoint,
-      destination: originPoint, // round trip back to start
-      waypoints,
-      travelMode: google.maps.TravelMode.DRIVING,
-      optimizeWaypoints: true,
-    });
-
-    const route = response.routes?.[0];
-    if (!route) return null;
-
-    let totalDistanceMeters = 0;
-    let totalDurationSeconds = 0;
-    for (const leg of route.legs) {
-      totalDistanceMeters += leg.distance?.value ?? 0;
-      totalDurationSeconds += leg.duration?.value ?? 0;
+    if (err instanceof RouteComputeError) {
+      throw err;
     }
 
-    const optimizedOrder: number[] = route.waypoint_order ?? [];
-    const polylinePath = route.overview_path.map((point) => ({
-      lat: point.lat(),
-      lng: point.lng(),
-    }));
+    const errorMessage = getErrorMessage(err);
+    if (isPermissionDeniedError(errorMessage)) {
+      throw new RouteComputeError(
+        'routes-permission-denied',
+        'Routes API permission denied for this key/project.',
+        err,
+      );
+    }
 
-    return { optimizedOrder, totalDistanceMeters, totalDurationSeconds, polylinePath };
-  } catch (err) {
-    console.error('[route-service] DirectionsService fallback failed:', err);
-    return null;
+    throw new RouteComputeError(
+      'routes-request-failed',
+      'Routes API request failed.',
+      err,
+    );
   }
 }
 
@@ -173,21 +194,11 @@ async function computeRouteWithDirectionsService(
  * Always treats origin as both start AND end (round trip).
  * ALL stops are intermediate waypoints — Google decides the best order.
  * Returns the optimized order so the UI list can reorder to match.
- * Falls back to legacy DirectionsService only if Route.computeRoutes is unavailable/fails.
+ * Throws RouteComputeError when Route.computeRoutes is unavailable or fails.
  */
 export async function computeRoute(
   origin: RouteOrigin,
   stops: RouteStop[],
-): Promise<RouteResult | null> {
-  try {
-    const routeFromRouteClass = await computeRouteWithRouteClass(origin, stops);
-    if (routeFromRouteClass) {
-      return routeFromRouteClass;
-    }
-
-    return await computeRouteWithDirectionsService(origin, stops);
-  } catch (err) {
-    console.error('[route-service] computeRoute failed:', err);
-    return null;
-  }
+): Promise<RouteResult> {
+  return await computeRouteWithRouteClass(origin, stops);
 }
