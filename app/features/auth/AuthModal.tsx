@@ -65,7 +65,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
             <div className="w-8 h-8 bg-orange rounded-[7px] flex items-center justify-center font-extrabold text-white text-[15px]">
               G
             </div>
-            <span className="text-lg font-bold text-text-primary">Groundwork</span>
+            <span className="font-heading text-lg font-bold text-text-primary">Groundwork</span>
           </div>
           <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -79,13 +79,13 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         <div className="flex border-b border-border">
           <button
             onClick={() => { setTab("signin"); setError(""); setMessage(""); }}
-            className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${tab === "signin" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent"}`}
+            className={`flex-1 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-center transition-all duration-200 ${tab === "signin" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent"}`}
           >
             Sign In
           </button>
           <button
             onClick={() => { setTab("signup"); setError(""); setMessage(""); }}
-            className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${tab === "signup" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent"}`}
+            className={`flex-1 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-center transition-all duration-200 ${tab === "signup" ? "text-orange border-b-2 border-orange" : "text-text-muted border-b-2 border-transparent"}`}
           >
             Create Account
           </button>

@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useState, type Key } from "react";
-import { Button, Dropdown } from "@heroui/react";
+import { useCallback, useState } from "react";
+import { Button } from "@/app/shared/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/shared/ui/dropdown-menu";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
@@ -52,35 +58,26 @@ export default function Sidebar({
   const isCollapsed = collapsed && !mobileOpen;
   const accountInitials = (profile?.name?.[0] || user?.email?.[0] || "?").toUpperCase();
   const accountTriggerClassName = user
-    ? "h-9 w-9 rounded-full bg-orange text-white text-[11px] font-extrabold uppercase hover:bg-orange-hover"
-    : "h-9 w-9 rounded-full border border-orange/45 bg-bg-input text-orange hover:bg-orange-dim";
+    ? "size-9 rounded-full bg-orange text-[11px] font-extrabold uppercase text-white hover:bg-orange-hover"
+    : "size-9 rounded-full border border-orange/50 bg-bg-input text-orange hover:bg-orange-dim";
 
   const handleDesktopTabChange = useCallback((tab: SidebarTab) => {
     setDesktopActiveTab(tab);
     onSettingsClose();
   }, [onSettingsClose]);
 
-  async function handleAvatarMenuAction(key: Key) {
-    const action = String(key);
-
-    if (action === "account") {
-      setAccountModalOpen(true);
+  const handleToggleSettings = useCallback(() => {
+    if (settingsOpen) {
+      onSettingsClose();
       return;
     }
 
-    if (action === "settings") {
-      if (settingsOpen) {
-        onSettingsClose();
-      } else {
-        onSettingsOpen();
-      }
-      return;
-    }
+    onSettingsOpen();
+  }, [onSettingsClose, onSettingsOpen, settingsOpen]);
 
-    if (action === "signout") {
-      await supabase.auth.signOut();
-    }
-  }
+  const handleSignOut = useCallback(async () => {
+    await supabase.auth.signOut();
+  }, []);
 
   function handleSaveProfile(values: SidebarProfileFormValues) {
     updateProfile(values);
@@ -122,7 +119,7 @@ export default function Sidebar({
           <div className="w-8 h-8 bg-orange rounded-[7px] flex items-center justify-center font-extrabold text-white text-[15px] tracking-tight">
             G
           </div>
-          <div className="text-lg font-bold text-text-primary tracking-tight">Groundwork</div>
+          <div className="font-heading text-lg font-bold text-text-primary tracking-tight">Groundwork</div>
         </div>
         <div className="flex gap-1.5 items-center">
           <button
@@ -135,14 +132,14 @@ export default function Sidebar({
               <polyline points="22,7 12,13 2,7" />
             </svg>
           </button>
-          <Dropdown>
-            <Dropdown.Trigger>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
-                isIconOnly
-                size="sm"
-                variant="secondary"
+                type="button"
+                size="icon-lg"
+                variant="ghost"
                 aria-label={user ? "Open account menu" : "Open sign-in menu"}
-                className={accountTriggerClassName}
+                className={`shrink-0 ${accountTriggerClassName}`}
               >
                 {user ? (
                   accountInitials
@@ -153,26 +150,21 @@ export default function Sidebar({
                   </svg>
                 )}
               </Button>
-            </Dropdown.Trigger>
-            <Dropdown.Popover placement="bottom end" className="min-w-[190px]">
-              <Dropdown.Menu onAction={handleAvatarMenuAction}>
-                <Dropdown.Item
-                  id="settings"
-                  textValue={settingsOpen ? "Close settings" : "Open settings"}
-                >
-                  {settingsOpen ? "Close Settings" : "Open Settings"}
-                </Dropdown.Item>
-                <Dropdown.Item id="account" textValue={user ? "Account details" : "Sign in or create account"}>
-                  {user ? "Account Details" : "Sign In / Create Account"}
-                </Dropdown.Item>
-                {user && (
-                  <Dropdown.Item id="signout" textValue="Sign out" variant="danger">
-                    Sign Out
-                  </Dropdown.Item>
-                )}
-              </Dropdown.Menu>
-            </Dropdown.Popover>
-          </Dropdown>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-auto min-w-[190px]">
+              <DropdownMenuItem onSelect={handleToggleSettings}>
+                {settingsOpen ? "Close Settings" : "Open Settings"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setAccountModalOpen(true)}>
+                {user ? "Account Details" : "Sign In / Create Account"}
+              </DropdownMenuItem>
+              {user && (
+                <DropdownMenuItem variant="destructive" onSelect={() => void handleSignOut()}>
+                  Sign Out
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

@@ -45,13 +45,13 @@ export default function SidebarSettingsPanel({
             <polyline points="12 19 5 12 12 5" />
           </svg>
         </button>
-        <span className="text-base font-bold text-text-primary">Settings</span>
+        <span className="font-heading text-base font-bold text-text-primary">Settings</span>
       </div>
 
       <div className="px-5 py-4 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted">GPS Auto Check-in</div>
+            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">GPS Auto Check-in</div>
             <div className="text-[11px] text-text-secondary mt-1">Auto-mark stops visited when nearby (~200ft)</div>
           </div>
           <button
@@ -66,7 +66,7 @@ export default function SidebarSettingsPanel({
       </div>
 
       <div className="px-5 py-4 border-b border-border">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-3">UI Theme</div>
+        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted mb-3">UI Theme</div>
         <div className="flex gap-2">
           {SIDEBAR_THEME_OPTIONS.map((option) => (
             <button

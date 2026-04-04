@@ -1,17 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Geist } from "next/font/google";
+import { Geist, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/app/features/theme/model/theme-context";
 import { isTheme } from "@/app/features/theme/model/theme.types";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { cn } from "@/app/shared/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
+const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-ibm-plex-mono",
+  weight: ["400", "500", "600"],
 });
 
 export const viewport: Viewport = {
@@ -39,7 +39,7 @@ export default async function RootLayout({
   const initialTheme = isTheme(themeCookie) ? themeCookie : "dark";
 
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn("font-sans", geist.variable, spaceGrotesk.variable, ibmPlexMono.variable)}>
       <body
         data-theme={initialTheme}
         className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300"

@@ -12,7 +12,7 @@ export default function SidebarTabs({ activeTab, onSelectTab }: SidebarTabsProps
         <button
           key={tab.id}
           onClick={() => onSelectTab(tab.id)}
-          className={`flex-1 py-3 px-2 text-[11px] font-bold uppercase tracking-wider text-center transition-all duration-200 ${
+          className={`flex-1 py-3 px-2 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-center transition-all duration-200 ${
             activeTab === tab.id
               ? "text-orange border-b-2 border-orange"
               : "text-text-muted border-b-2 border-transparent hover:text-text-secondary"
@@ -24,4 +24,3 @@ export default function SidebarTabs({ activeTab, onSelectTab }: SidebarTabsProps
     </div>
   );
 }
-

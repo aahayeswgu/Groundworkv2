@@ -75,7 +75,7 @@ export default function MobileBottomBar({
         <div className="fixed inset-x-3 z-40 rounded-3xl border border-border bg-bg-card/95 shadow-gw-lg backdrop-blur-md lg:hidden bottom-[calc(72px+env(safe-area-inset-bottom,0px))]">
           <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-border" />
           <div className="px-4 pb-4 pt-3">
-            <div className="mb-3 text-center text-[11px] font-bold uppercase tracking-widest text-text-muted">
+            <div className="mb-3 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
               Quick Actions
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -90,7 +90,7 @@ export default function MobileBottomBar({
                     <QuickActionIcon icon={action.icon} />
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-text-primary">{action.label}</span>
+                    <span className="font-heading block text-sm font-semibold text-text-primary">{action.label}</span>
                     <span className="block text-[11px] leading-4 text-text-secondary">{action.detail}</span>
                   </span>
                 </button>
@@ -113,7 +113,7 @@ export default function MobileBottomBar({
           <button
             type="button"
             onClick={() => setDrawerOpen((prev) => !prev)}
-            className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+            className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
               drawerOpen ? "text-orange" : "text-text-muted"
             }`}
           >
@@ -143,7 +143,7 @@ function MobileTabButton({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 text-[10px] font-semibold transition-colors ${
+      className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
         active ? "text-orange" : "text-text-muted"
       }`}
     >

@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { Button, Input, Surface } from "@heroui/react";
+import { Button } from "@/app/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/app/shared/ui/dialog";
+import { Input } from "@/app/shared/ui/input";
 import { supabase } from "@/app/lib/supabase";
 import { type SidebarProfileFormValues } from "@/app/widgets/sidebar/model/sidebar.model";
 
@@ -28,6 +35,9 @@ export default function SidebarAccountModal({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const inputClassName =
+    "h-9 border-border bg-bg-input text-text-primary placeholder:text-text-muted";
 
   async function handleSignIn() {
     if (!email || !password) {
@@ -106,25 +116,28 @@ export default function SidebarAccountModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
-      onClick={onClose}
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
     >
-      <Surface
-        variant="default"
-        className="w-full max-w-sm rounded-2xl border border-border bg-bg-card shadow-gw-lg"
-        onClick={(event) => event.stopPropagation()}
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-sm rounded-2xl border border-border bg-bg-card p-0 text-text-primary shadow-gw-lg"
       >
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div className="text-base font-bold text-text-primary">
+        <DialogHeader className="flex-row items-center justify-between gap-2 border-b border-border px-5 py-4">
+          <DialogTitle className="text-base font-bold text-text-primary">
             {user ? "Account" : "Welcome"}
-          </div>
+          </DialogTitle>
           <Button
-            isIconOnly
-            size="sm"
+            type="button"
+            size="icon-sm"
             variant="ghost"
             aria-label="Close account modal"
-            onPress={onClose}
+            onClick={onClose}
             className="text-text-secondary hover:text-text-primary"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -132,7 +145,7 @@ export default function SidebarAccountModal({
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </Button>
-        </div>
+        </DialogHeader>
 
         <div className="flex flex-col gap-3 px-5 py-5">
           {user ? (
@@ -140,33 +153,34 @@ export default function SidebarAccountModal({
               <Input
                 aria-label="Your name"
                 placeholder="Your name"
-                variant="secondary"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                fullWidth
+                className={inputClassName}
               />
               <Input
                 aria-label="Company"
                 placeholder="Company"
-                variant="secondary"
                 value={company}
                 onChange={(event) => setCompany(event.target.value)}
-                fullWidth
+                className={inputClassName}
               />
               <Input
                 aria-label="Home base address"
                 placeholder="Home base address"
-                variant="secondary"
                 value={homebase}
                 onChange={(event) => setHomebase(event.target.value)}
-                fullWidth
+                className={inputClassName}
               />
               {message && <div className="text-xs font-medium text-gw-green">{message}</div>}
               <div className="mt-1 flex gap-2">
-                <Button onPress={handleProfileSave} className="flex-1">
+                <Button
+                  type="button"
+                  onClick={() => void handleProfileSave()}
+                  className="flex-1 bg-orange text-white hover:bg-orange-hover"
+                >
                   Save Profile
                 </Button>
-                <Button variant="danger-soft" onPress={handleSignOut} className="flex-1">
+                <Button type="button" variant="destructive" onClick={() => void handleSignOut()} className="flex-1">
                   Sign Out
                 </Button>
               </div>
@@ -175,22 +189,34 @@ export default function SidebarAccountModal({
             <>
               <div className="grid grid-cols-2 gap-2">
                 <Button
-                  variant={tab === "signin" ? "primary" : "secondary"}
-                  onPress={() => {
+                  type="button"
+                  variant={tab === "signin" ? "default" : "outline"}
+                  onClick={() => {
                     setTab("signin");
                     setError("");
                     setMessage("");
                   }}
+                  className={
+                    tab === "signin"
+                      ? "bg-orange text-white hover:bg-orange-hover"
+                      : "border-border bg-bg-input text-text-secondary hover:bg-bg-card hover:text-text-primary"
+                  }
                 >
                   Sign In
                 </Button>
                 <Button
-                  variant={tab === "signup" ? "primary" : "secondary"}
-                  onPress={() => {
+                  type="button"
+                  variant={tab === "signup" ? "default" : "outline"}
+                  onClick={() => {
                     setTab("signup");
                     setError("");
                     setMessage("");
                   }}
+                  className={
+                    tab === "signup"
+                      ? "bg-orange text-white hover:bg-orange-hover"
+                      : "border-border bg-bg-input text-text-secondary hover:bg-bg-card hover:text-text-primary"
+                  }
                 >
                   Create Account
                 </Button>
@@ -201,18 +227,16 @@ export default function SidebarAccountModal({
                   <Input
                     aria-label="Your name"
                     placeholder="Your name"
-                    variant="secondary"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
-                    fullWidth
+                    className={inputClassName}
                   />
                   <Input
                     aria-label="Company optional"
                     placeholder="Company (optional)"
-                    variant="secondary"
                     value={company}
                     onChange={(event) => setCompany(event.target.value)}
-                    fullWidth
+                    className={inputClassName}
                   />
                 </>
               )}
@@ -221,16 +245,14 @@ export default function SidebarAccountModal({
                 aria-label="Email"
                 placeholder="Email"
                 type="email"
-                variant="secondary"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                fullWidth
+                className={inputClassName}
               />
               <Input
                 aria-label="Password"
                 placeholder="Password"
                 type="password"
-                variant="secondary"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 onKeyDown={(event) => {
@@ -242,24 +264,32 @@ export default function SidebarAccountModal({
                     }
                   }
                 }}
-                fullWidth
+                className={inputClassName}
               />
 
               {error && <div className="text-xs font-medium text-gw-red">{error}</div>}
               {message && <div className="text-xs font-medium text-gw-green">{message}</div>}
 
               <Button
-                isPending={loading}
-                onPress={tab === "signin" ? handleSignIn : handleSignUp}
-                fullWidth
+                type="button"
+                disabled={loading}
+                onClick={() => {
+                  if (tab === "signin") {
+                    void handleSignIn();
+                  } else {
+                    void handleSignUp();
+                  }
+                }}
+                className="w-full bg-orange text-white hover:bg-orange-hover disabled:bg-orange/60"
               >
-                {tab === "signin" ? "Sign In" : "Create Account"}
+                {loading ? "Working..." : tab === "signin" ? "Sign In" : "Create Account"}
               </Button>
 
               {tab === "signin" && (
                 <Button
+                  type="button"
                   variant="ghost"
-                  onPress={handleForgotPassword}
+                  onClick={() => void handleForgotPassword()}
                   className="text-sm text-text-secondary hover:text-orange"
                 >
                   Forgot password?
@@ -268,8 +298,7 @@ export default function SidebarAccountModal({
             </>
           )}
         </div>
-      </Surface>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
-

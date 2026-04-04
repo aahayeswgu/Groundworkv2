@@ -108,7 +108,7 @@ export default function PlannerPanel() {
           {/* Date display — click to toggle calendar */}
           <button
             onClick={() => setCalendarOpen(!calendarOpen)}
-            className="flex-1 text-sm font-bold text-text-primary text-center hover:text-orange transition-colors"
+            className="font-heading flex-1 text-sm font-bold text-text-primary text-center hover:text-orange transition-colors"
             title="Open calendar"
           >
             {displayDate}
@@ -129,7 +129,7 @@ export default function PlannerPanel() {
           {!isToday && (
             <button
               onClick={() => setActivePlannerDate(todayStr)}
-              className="text-[10px] font-bold text-orange border border-orange/30 hover:border-orange rounded px-1.5 py-0.5 transition-colors"
+              className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-orange border border-orange/30 hover:border-orange rounded px-1.5 py-0.5 transition-colors"
               title="Go to today"
             >
               Today
@@ -184,13 +184,13 @@ export default function PlannerPanel() {
         {/* Stops section */}
         <div className="border-b border-border">
           <div className="px-4 py-2 flex items-center justify-between bg-bg-secondary sticky top-0 z-10">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">
               Stops {day.stops.length > 0 ? `(${day.stops.length})` : ""}
             </span>
             {day.stops.length > 0 && (
               <button
                 onClick={handleRouteIt}
-                className="text-[10px] font-bold text-orange border border-orange/30 hover:border-orange hover:bg-orange-dim rounded px-2 py-1 transition-colors"
+                className="font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-orange border border-orange/30 hover:border-orange hover:bg-orange-dim rounded px-2 py-1 transition-colors"
                 title="Send to route and optimize"
               >
                 Route It
