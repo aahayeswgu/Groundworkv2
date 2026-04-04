@@ -1,5 +1,5 @@
-import { DISCOVER_QUERIES } from "@/app/config/discover-queries";
-import { filterAndMapPlace } from "@/app/features/discover/discover-filters";
+import { DISCOVER_QUERIES } from "@/app/features/discover/model/discover-queries";
+import { filterAndMapPlace } from "@/app/features/discover/lib/discover-filters";
 import { useStore } from "@/app/store";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 

@@ -25,9 +25,9 @@ import {
   SheetTitle,
 } from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
-import { computeRoute, RouteComputeError } from "@/app/features/route/route-service";
-import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
-import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
+import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
+import { buildGoogleMapsUrl } from "@/app/features/route/lib/route-url";
+import { forwardGeocode, getCurrentGpsPosition } from "@/app/shared/api/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 

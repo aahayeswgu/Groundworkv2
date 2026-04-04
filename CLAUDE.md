@@ -153,7 +153,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Sidebar width scales at breakpoints: 340px default, 380px at 1280px, 400px at 1440px, 420px at 1600px
 - Template literals with ternary expressions for dynamic classes
 - Pattern: `className={`base-classes ${condition ? "active-classes" : "inactive-classes"}`}`
-- Use `!` prefix (Tailwind important modifier) for override states (e.g., `!bg-orange !text-white`)
+- Do not use Tailwind `!` prefix modifiers; fix specificity via component structure, layer order, or tokenized variants
 ## SVG Icons
 - Standard viewBox: `0 0 24 24`
 - Standard attributes: `fill="none" stroke="currentColor" strokeWidth="2"`

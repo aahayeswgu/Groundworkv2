@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useStore } from "@/app/store";
-import { getOrCreateDay } from "./planner.store";
+import { getOrCreateDay } from "../model/planner.store";
 
 const CHECKIN_RADIUS_M = 60; // ~200ft
 

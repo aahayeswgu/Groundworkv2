@@ -1,11 +1,11 @@
 "use client";
 
 import { useStore } from "@/app/store";
-import { getOrCreateDay } from "@/app/features/planner/planner.store";
-import { PlannerStopItem } from "@/app/features/planner/PlannerStopItem";
-import PlannerNotes from "@/app/features/planner/PlannerNotes";
-import PlannerActivityLog from "@/app/features/planner/PlannerActivityLog";
-import PlannerCalendar from "@/app/features/planner/PlannerCalendar";
+import { getOrCreateDay } from "@/app/features/planner/model/planner.store";
+import { PlannerStopItem } from "@/app/features/planner/ui/PlannerStopItem";
+import PlannerNotes from "@/app/features/planner/ui/PlannerNotes";
+import PlannerActivityLog from "@/app/features/planner/ui/PlannerActivityLog";
+import PlannerCalendar from "@/app/features/planner/ui/PlannerCalendar";
 import type { PlannerStopStatus } from "@/app/features/planner/model/planner.types";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 

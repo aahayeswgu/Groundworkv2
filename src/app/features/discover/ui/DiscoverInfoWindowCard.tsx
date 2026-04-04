@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { classifyGooglePlace } from "@/app/features/discover/discover-filters";
+import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
-import { fetchAiBrief } from "@/app/lib/ask-ai";
+import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import { cn } from "@/app/shared/lib/utils";
 import { Card, CardContent } from "@/app/shared/ui/card";
 

@@ -1,6 +1,6 @@
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import type { Pin } from "@/app/features/pins/model/pin.types";
-import { classifyGooglePlace } from "@/app/features/discover/discover-filters";
+import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
 
 /**
  * Build a Pin object from a DiscoverResult for quick-save.

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { RouteStop } from '@/app/features/route/model/route.types';
 
-const { computeRoute } = await import('@/app/features/route/route-service');
+const { computeRoute } = await import('@/app/features/route/api/route-service');
 
 const makeStop = (id: string): RouteStop => ({
   id,

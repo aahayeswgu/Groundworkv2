@@ -1,4 +1,4 @@
-import { STATUS_COLORS } from "@/app/features/pins/pin-marker";
+import { STATUS_COLORS } from "@/app/features/pins/model/pin-marker";
 import { darkenColor, lightenColor, toSafeSvgId } from "../lib/marker-layer";
 import type { PinMarkerVisualProps } from "../model/marker-layer.types";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { supabase } from "@/app/lib/supabase";
+import { supabase } from "@/app/shared/api/supabase";
 import { useStore } from "@/app/store";
 
 export default function AuthListener() {

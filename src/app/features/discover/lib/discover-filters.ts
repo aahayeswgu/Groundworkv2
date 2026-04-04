@@ -1,5 +1,5 @@
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
-import type { DrawBounds } from "@/app/features/discover/discover-search";
+import type { DrawBounds } from "@/app/features/discover/api/discover-search";
 
 export const EXCLUDED_CHAINS = /home depot|lowe'?s|ace hardware|menards|harbor freight|sherwin.williams|walmart|target|costco|cvs|walgreens|publix|mcdonald|starbucks|dunkin|subway|burger king|taco bell|pizza|chase bank|wells fargo|bank of america|state farm|allstate/i;
 

@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/app/shared/ui/dialog";
 import { Input } from "@/app/shared/ui/input";
-import { supabase } from "@/app/lib/supabase";
+import { supabase } from "@/app/shared/api/supabase";
 import { type SidebarProfileFormValues } from "@/app/widgets/sidebar/model/sidebar.model";
 
 interface SidebarAccountModalProps {
