@@ -11,7 +11,6 @@ import PinModal from "@/app/features/pins/ui/PinModal";
 import { useStore } from "@/app/store";
 import MobileBottomBar from "@/app/widgets/mobile-navigation/ui/MobileBottomBar";
 import {
-  OPEN_EMAIL_EVENT,
   OPEN_MOBILE_TAB_EVENT,
   type OpenMobileTabEventDetail,
 } from "@/app/shared/model/mobile-events";
@@ -26,12 +25,8 @@ export default function HomePageView() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const pins = useStore((s) => s.pins);
 
-  useEffect(() => {
-    function handleOpenEmail() {
-      setEmailOpen(true);
-    }
-    window.addEventListener(OPEN_EMAIL_EVENT, handleOpenEmail);
-    return () => window.removeEventListener(OPEN_EMAIL_EVENT, handleOpenEmail);
+  const handleOpenEmail = useCallback(() => {
+    setEmailOpen(true);
   }, []);
 
   const openEditModal = useCallback((pinId: string) => {
@@ -97,6 +92,7 @@ export default function HomePageView() {
           mobileOpen={mobileSidebarOpen}
           mobileTab={mobileSidebarTab}
           onMobileClose={closeMobileSidebar}
+          onOpenEmail={handleOpenEmail}
           settingsOpen={settingsOpen}
           onSettingsOpen={() => setSettingsOpen(true)}
           onSettingsClose={() => setSettingsOpen(false)}
@@ -107,6 +103,7 @@ export default function HomePageView() {
         activeTab={mobileActiveTab}
         onSelectTab={handleMobileTabSelect}
         onOpenSettings={handleOpenSettings}
+        onOpenEmail={handleOpenEmail}
       />
       {emailOpen && <EmailOverlay onClose={() => setEmailOpen(false)} />}
       {editPin && <PinModal mode="edit" initialData={editPin} onClose={() => setEditPinId(null)} />}

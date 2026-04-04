@@ -14,7 +14,6 @@ import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
-import { OPEN_EMAIL_EVENT } from "@/app/shared/model/mobile-events";
 import {
   type SidebarProfileFormValues,
   type SidebarTab,
@@ -28,6 +27,7 @@ export interface SidebarProps {
   mobileOpen?: boolean;
   mobileTab?: SidebarTab;
   onMobileClose?: () => void;
+  onOpenEmail: () => void;
   settingsOpen: boolean;
   onSettingsOpen: () => void;
   onSettingsClose: () => void;
@@ -38,6 +38,7 @@ export default function Sidebar({
   mobileOpen = false,
   mobileTab,
   onMobileClose,
+  onOpenEmail,
   settingsOpen,
   onSettingsOpen,
   onSettingsClose,
@@ -123,7 +124,7 @@ export default function Sidebar({
         </div>
         <div className="flex gap-1.5 items-center">
           <button
-            onClick={() => window.dispatchEvent(new CustomEvent(OPEN_EMAIL_EVENT))}
+            onClick={onOpenEmail}
             className="icon-btn-size w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-orange-dim hover:text-orange relative"
             title="Email"
           >

@@ -11,7 +11,6 @@ import {
 import {
   dispatchMapMobileAction,
   dispatchOpenMobileTab,
-  OPEN_EMAIL_EVENT,
 } from "@/app/shared/model/mobile-events";
 import { useStore } from "@/app/store";
 
@@ -19,12 +18,14 @@ interface MobileBottomBarProps {
   activeTab: MobilePrimaryTab;
   onSelectTab: (tab: MobilePrimaryTab) => void;
   onOpenSettings: () => void;
+  onOpenEmail: () => void;
 }
 
 export default function MobileBottomBar({
   activeTab,
   onSelectTab,
   onOpenSettings,
+  onOpenEmail,
 }: MobileBottomBarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
@@ -49,7 +50,7 @@ export default function MobileBottomBar({
     }
 
     if (action.id === "email") {
-      window.dispatchEvent(new CustomEvent(OPEN_EMAIL_EVENT));
+      onOpenEmail();
       setDrawerOpen(false);
       return;
     }
