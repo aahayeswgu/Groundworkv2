@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
 import {
@@ -27,6 +27,10 @@ import {
   type SidebarProfileFormValues,
   type SidebarTab,
 } from "@/app/widgets/sidebar/model/sidebar.model";
+import {
+  OPEN_MOBILE_TAB_EVENT,
+  type OpenMobileTabEventDetail,
+} from "@/app/shared/model/mobile-events";
 import SidebarAccountModal from "@/app/widgets/sidebar/ui/SidebarAccountModal";
 import SidebarSettingsPanel from "@/app/widgets/sidebar/ui/SidebarSettingsPanel";
 import SidebarTabs from "@/app/widgets/sidebar/ui/SidebarTabs";
@@ -78,6 +82,20 @@ export default function Sidebar({
     setDesktopActiveTab(tab);
     onSettingsClose();
   }, [onSettingsClose]);
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    const handleOpenSidebarTab = (event: Event) => {
+      const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
+      if (!detail || detail.tab === "map") return;
+      onSettingsClose();
+      setDesktopActiveTab(detail.tab);
+    };
+
+    window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenSidebarTab);
+    return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenSidebarTab);
+  }, [isMobile, onSettingsClose]);
 
   const handleOpenRouteBuilder = useCallback(() => {
     onSettingsClose();

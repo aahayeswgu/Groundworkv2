@@ -4,8 +4,6 @@ export const OPEN_MOBILE_TAB_EVENT = "gw-open-mobile-tab" as const;
 export type MapMobileAction =
   | "toggle-drop-pin"
   | "toggle-discover"
-  | "toggle-route-panel"
-  | "open-route-panel"
   | "toggle-voice-entry";
 
 export interface MapMobileActionEventDetail {

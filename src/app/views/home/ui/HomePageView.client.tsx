@@ -70,6 +70,8 @@ export default function HomePageView() {
         closeMobileSidebar();
         return;
       }
+      const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+      if (!isMobileViewport) return;
       openMobileSidebarTab(detail.tab);
     };
 

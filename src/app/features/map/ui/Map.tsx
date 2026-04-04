@@ -13,7 +13,6 @@ import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/ui/PinModal";
 import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
 import RouteLayer from "@/app/features/route/RouteLayer";
-import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
 import {
   cancelDiscoverSearch,
   searchBusinessesInArea,
@@ -55,7 +54,6 @@ export default function Map({ onEditPin }: MapProps) {
   const dropSessionRef = useRef<(() => void) | null>(null);
   const discoverSessionRef = useRef<DiscoverDrawSession | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
-  const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
   const isDrawing = useStore((s) => s.isDrawing);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
@@ -259,16 +257,6 @@ export default function Map({ onEditPin }: MapProps) {
         return;
       }
 
-      if (detail.action === "toggle-route-panel") {
-        setRoutePanelOpen((prev) => !prev);
-        return;
-      }
-
-      if (detail.action === "open-route-panel") {
-        setRoutePanelOpen(true);
-        return;
-      }
-
       if (detail.action === "toggle-voice-entry") {
         toggleQuickEntry();
       }
@@ -332,9 +320,9 @@ export default function Map({ onEditPin }: MapProps) {
           </MapButton>
           <MapButton
             title="Get directions"
-            active={routePanelOpen}
+            active={routeStops.length > 0}
             badge={routeStops.length || undefined}
-            onClick={() => setRoutePanelOpen((prev) => !prev)}
+            onClick={() => dispatchOpenMobileTab("route")}
           >
             <polygon points="3 11 22 2 13 21 11 13 3 11" />
           </MapButton>
@@ -399,7 +387,6 @@ export default function Map({ onEditPin }: MapProps) {
       {mapState && <MarkerLayer onEditPin={onEditPin} />}
       {mapState && <DiscoverLayer />}
       {mapState && <RouteLayer />}
-      <RouteConfirmPanel open={routePanelOpen} onClose={() => setRoutePanelOpen(false)} />
       {pendingPin && (
         <PinModal
           mode="create"
