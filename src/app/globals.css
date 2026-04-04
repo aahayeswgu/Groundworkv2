@@ -7,6 +7,9 @@
 /* ─── Theme Variables (swapped by data-theme attribute) ─── */
 :root {
   --mobile-bottom-bar-offset: calc(72px + env(safe-area-inset-bottom, 0px));
+  --mobile-viewport-height: 100dvh;
+  --mobile-sheet-gap: 8px;
+  --mobile-sheet-max-height: calc(var(--mobile-viewport-height) - var(--mobile-bottom-bar-offset) - var(--mobile-sheet-gap));
   --orange: #C4692A;
   --orange-hover: #D47830;
   --orange-dim: rgba(196,105,42,0.12);
@@ -207,12 +210,12 @@
   .mobile-bottom-bar { display: flex; }
 
   .sidebar-wrap {
-    position: fixed; top: 0; left: 0; bottom: var(--mobile-bottom-bar-offset); height: auto; z-index: 35;
-    transform: translateX(-100%); width: 100%; min-width: 0;
+    position: fixed; left: 0; right: 0; top: 0; bottom: var(--mobile-bottom-bar-offset); height: auto; z-index: 35;
+    transform: translateY(100%); width: 100%; min-width: 0;
     transition: transform 0.3s ease;
   }
-  .sidebar-wrap.open { transform: translateX(0); }
-  .sidebar-wrap.collapsed { transform: translateX(-100%); margin-right: 0; }
+  .sidebar-wrap.open { transform: translateY(0); }
+  .sidebar-wrap.collapsed { transform: translateY(100%); margin-right: 0; }
   .sidebar-toggle { display: none; }
   .icon-btn-size { width: 44px; height: 44px; }
   .map-ctrl-size { width: 44px; height: 44px; }

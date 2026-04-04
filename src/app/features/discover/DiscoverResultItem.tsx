@@ -32,17 +32,27 @@ export function DiscoverResultItem({
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-default transition-colors duration-100 ${
+      className={`flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer transition-colors duration-100 ${
         isSelected
           ? "bg-orange-dim"
           : isHovered
           ? "bg-bg-secondary"
           : "bg-bg-card hover:bg-bg-secondary"
       }`}
+      onClick={() => onToggleSelect(result.placeId)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onToggleSelect(result.placeId);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
       onMouseEnter={() => onHoverEnter(result.placeId)}
       onMouseLeave={() => onHoverLeave()}
     >
-      {/* Checkbox — ONLY code path for selection (never row click) */}
+      {/* Checkbox remains explicit; row tap also toggles selection for mobile ergonomics */}
       <input
         type="checkbox"
         checked={isSelected}

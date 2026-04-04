@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -16,16 +16,25 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
-import { computeRoute } from "@/app/features/route/route-service";
+import { computeRoute, RouteComputeError } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {
-  open: boolean;
-  onClose: () => void;
+  open?: boolean;
+  onClose?: () => void;
+  inline?: boolean;
 }
 
 // ---- SortableStopRow (inline sub-component) ----
@@ -78,7 +87,8 @@ function SortableStopRow({
 }
 
 // ---- RouteConfirmPanel ----
-export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelProps) {
+export default function RouteConfirmPanel({ open = false, onClose, inline = false }: RouteConfirmPanelProps) {
+  const isMobile = useIsMobile();
   const routeStops = useStore((s) => s.routeStops);
   const routeResult = useStore((s) => s.routeResult);
   const startMode = useStore((s) => s.startMode);
@@ -99,8 +109,48 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
+  const startAddressInputRef = useRef<HTMLInputElement | null>(null);
+  const previewButtonRef = useRef<HTMLButtonElement | null>(null);
+  const didAutoFocusRef = useRef(false);
 
   const sensors = useSensors(useSensor(PointerSensor));
+
+  const startAddressInput = customStartAddress.trim();
+  const homeAddress = profile?.homebase?.trim() ?? "";
+  const missingStartRequirement =
+    startMode === "home"
+      ? !(homeAddress || startAddressInput)
+      : startMode === "custom"
+      ? !startAddressInput
+      : false;
+  const startValidationMessage = startMode === "home"
+    ? "Set a home base address in Settings > Profile, or enter one here."
+    : "Enter a starting address.";
+
+  useEffect(() => {
+    if (!inline && !open) {
+      didAutoFocusRef.current = false;
+      return;
+    }
+    if (routeStops.length === 0) {
+      didAutoFocusRef.current = false;
+      return;
+    }
+    if (didAutoFocusRef.current) return;
+
+    didAutoFocusRef.current = true;
+    const focusTarget = () => {
+      if ((startMode === "home" || startMode === "custom") && missingStartRequirement) {
+        startAddressInputRef.current?.focus();
+        startAddressInputRef.current?.select();
+        return;
+      }
+      previewButtonRef.current?.focus();
+    };
+
+    const timeoutId = window.setTimeout(focusTarget, 80);
+    return () => window.clearTimeout(timeoutId);
+  }, [inline, open, routeStops.length, startMode, missingStartRequirement]);
 
   function handleSendToPlanner() {
     if (routeStops.length === 0) return;
@@ -177,6 +227,11 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       setBuildError("Add at least 1 stop.");
       return;
     }
+    if (missingStartRequirement) {
+      setBuildError(startValidationMessage);
+      return;
+    }
+
     setBuildError(null);
     setIsBuilding(true);
     const origin = await resolveOrigin();
@@ -185,10 +240,21 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       return;
     }
 
-    const result = await computeRoute(origin, routeStops);
-    setIsBuilding(false);
-
-    if (!result) {
+    let result: Awaited<ReturnType<typeof computeRoute>>;
+    try {
+      result = await computeRoute(origin, routeStops);
+    } catch (err) {
+      setIsBuilding(false);
+      if (err instanceof RouteComputeError && err.code === "routes-permission-denied") {
+        setBuildError(
+          "Routes API is blocked for this key/project. Enable Routes API and allow it in API key restrictions, then retry.",
+        );
+        return;
+      }
+      if (err instanceof RouteComputeError && err.code === "routes-library-unavailable") {
+        setBuildError("Routes library is unavailable. Reload and try again.");
+        return;
+      }
       setBuildError("Could not calculate route. Check your connection and try again.");
       return;
     }
@@ -203,7 +269,21 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
 
     setRouteResult(result);
     setRouteActive(true);
-  }, [routeStops, resolveOrigin, setRouteResult, setRouteActive, reorderStops]);
+    setIsBuilding(false);
+    if (!inline) {
+      onClose?.();
+    }
+  }, [
+    routeStops,
+    missingStartRequirement,
+    startValidationMessage,
+    resolveOrigin,
+    setRouteResult,
+    setRouteActive,
+    reorderStops,
+    onClose,
+    inline,
+  ]);
 
   const handleOpenMaps = useCallback(async () => {
     if (routeStops.length === 0) return;
@@ -235,10 +315,10 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     ? Math.round(routeResult.totalDurationSeconds / 60)
     : null;
 
-  if (!open) return null;
+  if (!inline && !open) return null;
 
-  return (
-    <div className="absolute right-0 top-0 h-full z-30 flex flex-col w-full max-w-sm bg-bg-secondary border-l border-border shadow-gw overflow-hidden max-lg:left-0 max-lg:max-w-none max-lg:bottom-[var(--mobile-bottom-bar-offset)] max-lg:h-auto max-lg:border-l-0">
+  const panelContent = (
+    <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-bg-card shrink-0">
         <div>
@@ -253,11 +333,13 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
             </div>
           )}
         </div>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+        {onClose && (
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Start point selector */}
@@ -284,10 +366,14 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
             onChange={setCustomStartAddress}
             placeholder={startMode === "home" ? "Enter home address" : "Enter start address"}
             className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-secondary text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
+            inputRef={startAddressInputRef}
           />
         )}
         {startMode === "gps" && (
           <div className="text-xs text-text-muted">GPS location will be used when route is built.</div>
+        )}
+        {missingStartRequirement && (
+          <div className="mt-2 text-xs text-red-500">{startValidationMessage}</div>
         )}
       </div>
 
@@ -324,38 +410,74 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       {/* Action buttons */}
       <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
         <button
+          ref={previewButtonRef}
+          onClick={handleBuildRoute}
+          disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
+          className="w-full rounded-xl bg-orange px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
+        >
+          {isBuilding ? "Previewing..." : "Preview Route"}
+        </button>
+        <button
+          onClick={handleOpenMaps}
+          disabled={routeStops.length === 0}
+          className="w-full rounded-xl border border-[#4285F4]/40 bg-[#4285F4]/15 px-4 py-2.5 text-sm font-semibold text-[#7EAFFF] transition-colors hover:bg-[#4285F4]/25 disabled:opacity-50"
+        >
+          Open Maps
+        </button>
+        <button
           onClick={handleSendToPlanner}
           disabled={routeStops.length === 0}
           className="w-full py-2.5 rounded-lg border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Send to Planner
         </button>
-        <div className="flex gap-2">
         <button
-          onClick={() => { clearRoute(); onClose(); }}
-          className="px-4 py-2.5 rounded-xl border border-border text-text-muted text-sm font-semibold hover:border-red-400 hover:text-red-400 transition-colors"
+          onClick={() => {
+            clearRoute();
+            if (!inline) {
+              onClose?.();
+            }
+          }}
+          className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-text-muted transition-colors hover:border-red-400 hover:text-red-400"
         >
           Clear
         </button>
-        <button
-          onClick={handleBuildRoute}
-          disabled={isBuilding || routeStops.length === 0}
-          className="flex-1 py-2.5 rounded-xl bg-bg-secondary border border-border text-text-primary text-sm font-bold disabled:opacity-50 hover:border-orange hover:text-orange transition-colors"
-        >
-          {isBuilding ? "Building..." : "Build Route"}
-        </button>
-        <button
-          onClick={handleOpenMaps}
-          disabled={routeStops.length === 0}
-          className="flex-1 py-2.5 rounded-xl bg-[#4285F4] text-white text-sm font-extrabold disabled:opacity-50 flex items-center justify-center gap-1.5"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-            <polygon points="3 11 22 2 13 21 11 13 3 11" />
-          </svg>
-          Open Maps
-        </button>
-        </div>
       </div>
+    </div>
+  );
+
+  if (inline) {
+    return panelContent;
+  }
+
+  if (isMobile) {
+    return (
+      <Sheet
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) onClose?.();
+        }}
+      >
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="bottom-[var(--mobile-bottom-bar-offset)] h-[var(--mobile-sheet-max-height)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Route Planner</SheetTitle>
+            <SheetDescription>
+              Build and manage your route stops before opening directions.
+            </SheetDescription>
+          </SheetHeader>
+          {panelContent}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <div className="absolute right-0 top-0 h-full z-30 flex w-full max-w-sm flex-col overflow-hidden border-l border-border bg-bg-secondary shadow-gw">
+      {panelContent}
     </div>
   );
 }

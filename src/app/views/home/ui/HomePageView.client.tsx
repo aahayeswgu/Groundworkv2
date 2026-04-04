@@ -15,12 +15,13 @@ import {
   type OpenMobileTabEventDetail,
 } from "@/app/shared/model/mobile-events";
 import type { MobilePrimaryTab } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
+import type { SidebarTab } from "@/app/widgets/sidebar/model/sidebar.model";
 
 export default function HomePageView() {
   const [editPinId, setEditPinId] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [mobileSidebarTab, setMobileSidebarTab] = useState<"pins" | "planner">("pins");
+  const [mobileSidebarTab, setMobileSidebarTab] = useState<SidebarTab>("pins");
   const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const pins = useStore((s) => s.pins);
@@ -38,9 +39,10 @@ export default function HomePageView() {
     setMobileActiveTab("map");
   }, []);
 
-  const openMobileSidebarTab = useCallback((tab: "pins" | "planner") => {
+  const openMobileSidebarTab = useCallback((tab: SidebarTab) => {
     setMobileSidebarTab(tab);
-    setMobileActiveTab(tab);
+    const nextPrimaryTab: MobilePrimaryTab = tab === "planner" ? "planner" : "pins";
+    setMobileActiveTab(nextPrimaryTab);
     setMobileSidebarOpen(true);
   }, []);
 
@@ -64,12 +66,18 @@ export default function HomePageView() {
     const handleOpenMobileTab = (event: Event) => {
       const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
       if (!detail) return;
+      if (detail.tab === "map") {
+        closeMobileSidebar();
+        return;
+      }
+      const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+      if (!isMobileViewport) return;
       openMobileSidebarTab(detail.tab);
     };
 
     window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
     return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
-  }, [openMobileSidebarTab]);
+  }, [closeMobileSidebar, openMobileSidebarTab]);
 
   const editPin = editPinId ? (pins.find((p) => p.id === editPinId) ?? null) : null;
 
@@ -78,19 +86,12 @@ export default function HomePageView() {
       <StoreHydration />
       <GpsCheckin />
       <AuthListener />
-      {mobileSidebarOpen && (
-        <button
-          type="button"
-          aria-label="Close mobile drawer"
-          onClick={closeMobileSidebar}
-          className="fixed inset-0 z-30 bg-black/35 lg:hidden"
-        />
-      )}
-      <div className="flex h-screen w-screen">
+      <div className="flex h-[var(--mobile-viewport-height)] w-screen">
         <Sidebar
           onEditPin={openEditModal}
           mobileOpen={mobileSidebarOpen}
           mobileTab={mobileSidebarTab}
+          onMobileTabChange={openMobileSidebarTab}
           onMobileClose={closeMobileSidebar}
           onOpenEmail={handleOpenEmail}
           settingsOpen={settingsOpen}
