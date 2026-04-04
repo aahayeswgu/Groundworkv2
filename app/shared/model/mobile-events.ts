@@ -1,5 +1,4 @@
 export const OPEN_EMAIL_EVENT = "gw-open-email" as const;
-export const OPEN_SETTINGS_EVENT = "gw-open-settings" as const;
 export const MAP_ACTION_EVENT = "gw-map-action" as const;
 export const OPEN_MOBILE_TAB_EVENT = "gw-open-mobile-tab" as const;
 

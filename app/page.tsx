@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "@/app/widgets/sidebar/ui/Sidebar";
 import Map from "./features/map/ui/Map";
 import StoreHydration from "./components/StoreHydration";
 import GpsCheckin from "./features/planner/GpsCheckin";
@@ -13,7 +13,6 @@ import MobileBottomBar from "@/app/widgets/mobile-navigation/ui/MobileBottomBar"
 import {
   OPEN_EMAIL_EVENT,
   OPEN_MOBILE_TAB_EVENT,
-  OPEN_SETTINGS_EVENT,
   type OpenMobileTabEventDetail,
 } from "@/app/shared/model/mobile-events";
 import type { MobilePrimaryTab } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
@@ -24,6 +23,7 @@ export default function Home() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [mobileSidebarTab, setMobileSidebarTab] = useState<"pins" | "planner">("pins");
   const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const pins = useStore((s) => s.pins);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function Home() {
 
   const handleOpenSettings = useCallback(() => {
     openMobileSidebarTab("pins");
-    window.dispatchEvent(new CustomEvent(OPEN_SETTINGS_EVENT));
+    setSettingsOpen(true);
   }, [openMobileSidebarTab]);
 
   useEffect(() => {
@@ -97,6 +97,9 @@ export default function Home() {
           mobileOpen={mobileSidebarOpen}
           mobileTab={mobileSidebarTab}
           onMobileClose={closeMobileSidebar}
+          settingsOpen={settingsOpen}
+          onSettingsOpen={() => setSettingsOpen(true)}
+          onSettingsClose={() => setSettingsOpen(false)}
         />
         <Map onEditPin={openEditModal} />
       </div>
