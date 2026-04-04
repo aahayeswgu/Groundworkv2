@@ -299,7 +299,7 @@ export default function Map({ onEditPin }: MapProps) {
       version="weekly"
       libraries={["places", "geometry", "marker", "routes", "geocoding"]}
     >
-      <div className="flex-1 relative h-screen overflow-hidden">
+      <div className="relative flex-1 h-full overflow-hidden">
         <GoogleMap
           className="w-full h-full z-[1]"
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID"}

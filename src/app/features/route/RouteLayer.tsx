@@ -2,6 +2,14 @@
 
 import { AdvancedMarker, InfoWindow, Polyline, useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useMemo, useState } from "react";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/shared/ui/sheet";
 import { RouteStopInfoWindowCard } from "@/app/features/route/ui/RouteStopInfoWindowCard";
 import {
   ROUTE_BORDER_STYLE,
@@ -31,6 +39,7 @@ function RouteStopMarkerVisual({ label }: { label: string }) {
 
 export default function RouteLayer() {
   const map = useMap();
+  const isMobile = useIsMobile();
   const routeResult = useStore((s) => s.routeResult);
   const routeStops = useStore((s) => s.routeStops);
   const routeActive = useStore((s) => s.routeActive);
@@ -91,13 +100,40 @@ export default function RouteLayer() {
         </AdvancedMarker>
       ))}
 
-      {openStop && openStopOrder > 0 ? (
+      {openStop && openStopOrder > 0 && !isMobile ? (
         <InfoWindow
           position={{ lat: openStop.lat, lng: openStop.lng }}
           onClose={() => setOpenStopId(null)}
         >
           <RouteStopInfoWindowCard stop={openStop} order={openStopOrder} />
         </InfoWindow>
+      ) : null}
+
+      {openStop && openStopOrder > 0 && isMobile ? (
+        <Sheet
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setOpenStopId(null);
+            }
+          }}
+        >
+          <SheetContent
+            side="bottom"
+            showCloseButton={false}
+            className="bottom-[var(--mobile-bottom-bar-offset)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
+          >
+            <SheetHeader className="border-b border-border px-4 py-3">
+              <SheetTitle className="font-heading text-sm">Route Stop</SheetTitle>
+              <SheetDescription className="text-xs text-text-muted">
+                Stop {openStopOrder} details and quick map access.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="overflow-y-auto px-3 py-3">
+              <RouteStopInfoWindowCard stop={openStop} order={openStopOrder} className="min-w-0" />
+            </div>
+          </SheetContent>
+        </Sheet>
       ) : null}
     </>
   );

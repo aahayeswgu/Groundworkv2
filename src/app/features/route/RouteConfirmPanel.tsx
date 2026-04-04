@@ -16,6 +16,14 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
 import { computeRoute } from "@/app/features/route/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
@@ -79,6 +87,7 @@ function SortableStopRow({
 
 // ---- RouteConfirmPanel ----
 export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelProps) {
+  const isMobile = useIsMobile();
   const routeStops = useStore((s) => s.routeStops);
   const routeResult = useStore((s) => s.routeResult);
   const startMode = useStore((s) => s.startMode);
@@ -237,8 +246,8 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
 
   if (!open) return null;
 
-  return (
-    <div className="absolute right-0 top-0 h-full z-30 flex flex-col w-full max-w-sm bg-bg-secondary border-l border-border shadow-gw overflow-hidden max-lg:left-0 max-lg:max-w-none max-lg:bottom-[var(--mobile-bottom-bar-offset)] max-lg:h-auto max-lg:border-l-0">
+  const panelContent = (
+    <div className="flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-bg-card shrink-0">
         <div>
@@ -330,24 +339,24 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
         >
           Send to Planner
         </button>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
         <button
           onClick={() => { clearRoute(); onClose(); }}
-          className="px-4 py-2.5 rounded-xl border border-border text-text-muted text-sm font-semibold hover:border-red-400 hover:text-red-400 transition-colors"
+          className="w-full px-4 py-2.5 rounded-xl border border-border text-text-muted text-sm font-semibold hover:border-red-400 hover:text-red-400 transition-colors sm:w-auto"
         >
           Clear
         </button>
         <button
           onClick={handleBuildRoute}
           disabled={isBuilding || routeStops.length === 0}
-          className="flex-1 py-2.5 rounded-xl bg-bg-secondary border border-border text-text-primary text-sm font-bold disabled:opacity-50 hover:border-orange hover:text-orange transition-colors"
+          className="w-full flex-1 py-2.5 rounded-xl bg-bg-secondary border border-border text-text-primary text-sm font-bold disabled:opacity-50 hover:border-orange hover:text-orange transition-colors"
         >
           {isBuilding ? "Building..." : "Build Route"}
         </button>
         <button
           onClick={handleOpenMaps}
           disabled={routeStops.length === 0}
-          className="flex-1 py-2.5 rounded-xl bg-[#4285F4] text-white text-sm font-extrabold disabled:opacity-50 flex items-center justify-center gap-1.5"
+          className="w-full flex-1 py-2.5 rounded-xl bg-[#4285F4] text-white text-sm font-extrabold disabled:opacity-50 flex items-center justify-center gap-1.5"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
             <polygon points="3 11 22 2 13 21 11 13 3 11" />
@@ -356,6 +365,37 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
         </button>
         </div>
       </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) onClose();
+        }}
+      >
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="bottom-[var(--mobile-bottom-bar-offset)] h-[var(--mobile-sheet-max-height)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Route Planner</SheetTitle>
+            <SheetDescription>
+              Build and manage your route stops before opening directions.
+            </SheetDescription>
+          </SheetHeader>
+          {panelContent}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <div className="absolute right-0 top-0 h-full z-30 flex w-full max-w-sm flex-col overflow-hidden border-l border-border bg-bg-secondary shadow-gw">
+      {panelContent}
     </div>
   );
 }

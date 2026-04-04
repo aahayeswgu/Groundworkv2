@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { fetchAiBrief } from "@/app/lib/ask-ai";
 import type { Pin } from "@/app/features/pins/model/pin.types";
+import { cn } from "@/app/shared/lib/utils";
+import { Card, CardContent } from "@/app/shared/ui/card";
 import type { RouteAddResult } from "../model/marker-layer.types";
 import {
   PIN_INFO_STATUS_CLASSNAMES,
@@ -19,6 +21,7 @@ interface PinInfoWindowCardProps {
   onDeletePin: (pinId: string) => void;
   onAddRouteStop: (pin: Pin) => RouteAddResult;
   onPlanPin: (pin: Pin) => void;
+  className?: string;
 }
 
 const ACTION_BUTTON_BASE_CLASS = "rounded-md px-3.5 py-1.5 text-xs font-bold text-white transition-all";
@@ -37,6 +40,7 @@ export function PinInfoWindowCard({
   onDeletePin,
   onAddRouteStop,
   onPlanPin,
+  className,
 }: PinInfoWindowCardProps) {
   const [routeState, setRouteState] = useState<RouteState>(isInRoute ? "already" : "idle");
   const [planned, setPlanned] = useState(isPlanned);
@@ -126,16 +130,16 @@ export function PinInfoWindowCard({
     : normalizeAiText(briefText);
 
   return (
-    <div className="min-w-[280px] font-sans">
+    <Card className={cn("w-full min-w-0 gap-0 bg-bg-card font-sans ring-1 ring-border", className)}>
       {pin.photoUrl ? (
         <div
-          className="h-[140px] rounded-t-[12px] bg-cover bg-center"
+          className="h-[140px] bg-cover bg-center"
           style={{ backgroundImage: `url('${pin.photoUrl}')` }}
           aria-label={pin.title}
         />
       ) : null}
 
-      <div className={pin.photoUrl ? "px-4 pb-3.5 pt-3" : "px-4 pb-3.5 pt-3.5"}>
+      <CardContent className={pin.photoUrl ? "pb-3.5 pt-3" : "pb-3.5 pt-3.5"}>
         <div className="mb-1 text-[15px] font-bold leading-[1.3] text-[#1A1A1A]">
           {pin.title}
         </div>
@@ -261,8 +265,8 @@ export function PinInfoWindowCard({
             ) : null}
           </>
         ) : null}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

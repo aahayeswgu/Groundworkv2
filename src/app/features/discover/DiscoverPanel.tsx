@@ -45,7 +45,7 @@ export default function DiscoverPanel() {
   }, [marathonZones]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Step 1: Draw area prompt */}
       {step === 1 && (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-4">
@@ -167,7 +167,7 @@ export default function DiscoverPanel() {
           )}
 
           {/* Scrollable results list */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {discoverResults.map((result) => {
               const alreadySaved = pins.some(
                 (p) =>
@@ -207,14 +207,15 @@ export default function DiscoverPanel() {
             })}
           </div>
 
-          {/* Sticky bottom bar — shown when items are selected */}
-          {selectedDiscoverIds.size > 0 && (
-            <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex items-center justify-between">
+          {/* Bottom action bar — always visible so route CTA is discoverable */}
+          <div className="sticky bottom-0 z-10 shrink-0 border-t border-border bg-bg-card px-4 py-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-text-secondary">
                 {selectedDiscoverIds.size} selected
               </span>
               <button
                 onClick={() => {
+                  if (selectedDiscoverIds.size === 0) return;
                   for (const id of selectedDiscoverIds) {
                     const result = discoverResults.find((r) => r.placeId === id);
                     if (!result) continue;
@@ -229,12 +230,15 @@ export default function DiscoverPanel() {
                     if (!added) break; // cap reached — stop adding
                   }
                 }}
-                className="px-4 py-1.5 rounded-lg bg-orange text-white text-sm font-bold hover:bg-orange/90 transition-colors"
+                disabled={selectedDiscoverIds.size === 0}
+                className="w-full rounded-lg bg-orange px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
               >
-                Route {selectedDiscoverIds.size} Stop{selectedDiscoverIds.size !== 1 ? "s" : ""}
+                {selectedDiscoverIds.size === 0
+                  ? "Select Stops to Route"
+                  : `Route ${selectedDiscoverIds.size} Stop${selectedDiscoverIds.size !== 1 ? "s" : ""}`}
               </button>
             </div>
-          )}
+          </div>
         </>
       )}
     </div>

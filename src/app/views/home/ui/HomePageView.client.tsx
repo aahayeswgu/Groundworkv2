@@ -78,15 +78,7 @@ export default function HomePageView() {
       <StoreHydration />
       <GpsCheckin />
       <AuthListener />
-      {mobileSidebarOpen && (
-        <button
-          type="button"
-          aria-label="Close mobile drawer"
-          onClick={closeMobileSidebar}
-          className="fixed inset-0 z-30 bg-black/35 lg:hidden"
-        />
-      )}
-      <div className="flex h-screen w-screen">
+      <div className="flex h-[var(--mobile-viewport-height)] w-screen">
         <Sidebar
           onEditPin={openEditModal}
           mobileOpen={mobileSidebarOpen}

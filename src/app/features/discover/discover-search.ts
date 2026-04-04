@@ -55,13 +55,17 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     incrementMarathonCount,
   } = store;
   const setSearchProgress: (msg: string) => void = store.setSearchProgress ?? (() => {});
+  const setProgressForActiveRun = (msg: string): void => {
+    if (isCancelled()) return;
+    setSearchProgress(msg);
+  };
 
   // In normal mode clear old results; in marathon mode accumulate
   if (!marathonMode) {
     setDiscoverResults([]);
   }
   setIsDrawing(false);
-  setSearchProgress("Starting search...");
+  setProgressForActiveRun("Starting search...");
 
   const seen = new Set<string>();
 
@@ -74,12 +78,13 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
 
   for (let i = 0; i < DISCOVER_QUERIES.length; i++) {
     if (isCancelled()) {
-      setSearchProgress("");
+      setProgressForActiveRun("");
       return;
     }
 
     const query = DISCOVER_QUERIES[i];
-    setSearchProgress(`Searching: ${query}... (${newResults.length} found) [${i + 1}/${DISCOVER_QUERIES.length}]`);
+    const stepLabel = `[${i + 1}/${DISCOVER_QUERIES.length}]`;
+    setProgressForActiveRun(`Searching: ${query}... ${stepLabel}`);
     try {
       const { places } = await Place.searchByText({
         textQuery: query,
@@ -100,7 +105,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
         maxResultCount: 20,
       });
       if (isCancelled()) {
-        setSearchProgress("");
+        setProgressForActiveRun("");
         return;
       }
       for (const place of places ?? []) {
@@ -122,7 +127,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   }
 
   if (isCancelled()) {
-    setSearchProgress("");
+    setProgressForActiveRun("");
     return;
   }
 
@@ -145,7 +150,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     incrementMarathonCount();
   }
 
-  setSearchProgress("");
+  setProgressForActiveRun("");
 }
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));

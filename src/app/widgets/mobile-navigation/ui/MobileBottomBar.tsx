@@ -68,12 +68,12 @@ export default function MobileBottomBar({
           type="button"
           aria-label="Close quick actions"
           onClick={() => setDrawerOpen(false)}
-          className="fixed inset-0 z-[35] bg-black/45 lg:hidden"
+          className="fixed inset-0 z-[55] bg-black/45 lg:hidden"
         />
       )}
 
       {drawerOpen && (
-        <div className="fixed inset-x-3 z-40 rounded-3xl border border-border bg-bg-card/95 shadow-gw-lg backdrop-blur-md lg:hidden bottom-[calc(72px+env(safe-area-inset-bottom,0px))]">
+        <div className="fixed inset-x-3 z-[65] rounded-3xl border border-border bg-bg-card/95 shadow-gw-lg backdrop-blur-md lg:hidden bottom-[var(--mobile-bottom-bar-offset)]">
           <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-border" />
           <div className="px-4 pb-4 pt-3">
             <div className="mb-3 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
@@ -101,7 +101,7 @@ export default function MobileBottomBar({
         </div>
       )}
 
-      <div className="mobile-bottom-bar fixed bottom-0 inset-x-0 z-40 flex lg:hidden bg-bg-card/95 border-t border-border pb-[calc(6px+env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.15)] backdrop-blur-md">
+      <div className="mobile-bottom-bar fixed bottom-0 inset-x-0 z-[70] flex lg:hidden bg-bg-card/95 border-t border-border pb-[calc(6px+env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.15)]">
         <div className="grid w-full grid-cols-4 items-stretch gap-0 px-2">
           {MOBILE_PRIMARY_TABS.map((tab) => (
             <MobileTabButton
