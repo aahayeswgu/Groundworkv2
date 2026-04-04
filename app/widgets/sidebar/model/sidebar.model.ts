@@ -22,3 +22,8 @@ export const SIDEBAR_THEME_OPTIONS: readonly SidebarThemeOption[] = [
   { value: "gray", label: "Graphite" },
 ];
 
+export interface SidebarProfileFormValues {
+  name: string;
+  company: string;
+  homebase: string;
+}

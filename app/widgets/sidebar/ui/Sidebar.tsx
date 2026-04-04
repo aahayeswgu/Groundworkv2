@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
@@ -9,7 +9,10 @@ import AuthModal from "@/app/features/auth/AuthModal";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
 import { OPEN_EMAIL_EVENT } from "@/app/shared/model/mobile-events";
-import { type SidebarTab } from "@/app/widgets/sidebar/model/sidebar.model";
+import {
+  type SidebarProfileFormValues,
+  type SidebarTab,
+} from "@/app/widgets/sidebar/model/sidebar.model";
 import SidebarProfileCard from "@/app/widgets/sidebar/ui/SidebarProfileCard";
 import SidebarSettingsPanel from "@/app/widgets/sidebar/ui/SidebarSettingsPanel";
 import SidebarTabs from "@/app/widgets/sidebar/ui/SidebarTabs";
@@ -44,9 +47,6 @@ export default function Sidebar({
   const [desktopActiveTab, setDesktopActiveTab] = useState<SidebarTab>("pins");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
-  const profileNameRef = useRef<HTMLInputElement>(null);
-  const profileCompanyRef = useRef<HTMLInputElement>(null);
-  const profileHomebaseRef = useRef<HTMLInputElement>(null);
 
   const activeTab = mobileTab ?? desktopActiveTab;
   const isCollapsed = collapsed && !mobileOpen;
@@ -68,12 +68,8 @@ export default function Sidebar({
     onSettingsClose();
   }, [onSettingsClose]);
 
-  function handleSaveProfile() {
-    updateProfile({
-      name: profileNameRef.current?.value ?? "",
-      company: profileCompanyRef.current?.value ?? "",
-      homebase: profileHomebaseRef.current?.value ?? "",
-    });
+  function handleSaveProfile(values: SidebarProfileFormValues) {
+    updateProfile(values);
     setSettingsToast("Profile saved");
     setTimeout(() => setSettingsToast(null), 2500);
   }
@@ -189,14 +185,11 @@ export default function Sidebar({
             trackingEnabled={trackingEnabled}
             onToggleTracking={() => setTrackingEnabled(!trackingEnabled)}
             showProfile={Boolean(user)}
-            profileDefaults={{
+            initialProfileValues={{
               name: profile?.name ?? "",
               company: profile?.company ?? "",
               homebase: profile?.homebase ?? "",
             }}
-            profileNameRef={profileNameRef}
-            profileCompanyRef={profileCompanyRef}
-            profileHomebaseRef={profileHomebaseRef}
             onSaveProfile={handleSaveProfile}
             theme={theme}
             onThemeChange={setTheme}

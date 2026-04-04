@@ -1,6 +1,7 @@
-import type { RefObject } from "react";
+import { useState } from "react";
 import {
   SIDEBAR_THEME_OPTIONS,
+  type SidebarProfileFormValues,
   type SidebarTheme,
 } from "@/app/widgets/sidebar/model/sidebar.model";
 
@@ -10,15 +11,8 @@ interface SidebarSettingsPanelProps {
   trackingEnabled: boolean;
   onToggleTracking: () => void;
   showProfile: boolean;
-  profileDefaults: {
-    name: string;
-    company: string;
-    homebase: string;
-  };
-  profileNameRef: RefObject<HTMLInputElement | null>;
-  profileCompanyRef: RefObject<HTMLInputElement | null>;
-  profileHomebaseRef: RefObject<HTMLInputElement | null>;
-  onSaveProfile: () => void;
+  initialProfileValues: SidebarProfileFormValues;
+  onSaveProfile: (values: SidebarProfileFormValues) => void;
   theme: SidebarTheme;
   onThemeChange: (theme: SidebarTheme) => void;
 }
@@ -29,14 +23,14 @@ export default function SidebarSettingsPanel({
   trackingEnabled,
   onToggleTracking,
   showProfile,
-  profileDefaults,
-  profileNameRef,
-  profileCompanyRef,
-  profileHomebaseRef,
+  initialProfileValues,
   onSaveProfile,
   theme,
   onThemeChange,
 }: SidebarSettingsPanelProps) {
+  const [profileName, setProfileName] = useState(initialProfileValues.name);
+  const [profileCompany, setProfileCompany] = useState(initialProfileValues.company);
+  const [profileHomebase, setProfileHomebase] = useState(initialProfileValues.homebase);
   const trackingToggleTrackClass = trackingEnabled
     ? "border-orange bg-orange"
     : "border-[#666] bg-[#555]";
@@ -89,26 +83,30 @@ export default function SidebarSettingsPanel({
             <input
               type="text"
               placeholder="Your name"
-              defaultValue={profileDefaults.name}
-              ref={profileNameRef}
+              value={profileName}
+              onChange={(event) => setProfileName(event.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
             />
             <input
               type="text"
               placeholder="Company"
-              defaultValue={profileDefaults.company}
-              ref={profileCompanyRef}
+              value={profileCompany}
+              onChange={(event) => setProfileCompany(event.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
             />
             <input
               type="text"
               placeholder="Home base address"
-              defaultValue={profileDefaults.homebase}
-              ref={profileHomebaseRef}
+              value={profileHomebase}
+              onChange={(event) => setProfileHomebase(event.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
             />
             <button
-              onClick={onSaveProfile}
+              onClick={() => onSaveProfile({
+                name: profileName,
+                company: profileCompany,
+                homebase: profileHomebase,
+              })}
               className="w-full py-2 rounded-lg bg-orange text-white font-bold text-sm hover:bg-orange-hover transition-colors"
             >
               Save Profile
@@ -138,4 +136,3 @@ export default function SidebarSettingsPanel({
     </div>
   );
 }
-
