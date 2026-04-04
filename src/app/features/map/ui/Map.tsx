@@ -13,7 +13,7 @@ import {
 import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/ui/PinModal";
 import DiscoverLayer from "@/app/features/discover/ui/DiscoverLayer";
-import RouteLayer from "@/app/features/route/RouteLayer";
+import RouteLayer from "@/app/features/route/ui/RouteLayer";
 import {
   cancelDiscoverSearch,
   searchBusinessesInArea,
@@ -213,7 +213,7 @@ export default function Map({ onEditPin }: MapProps) {
     didStartBackfill.current = true;
 
     // Backfill Google Places data for pins missing placeId (one-time, non-blocking)
-    import("@/app/features/pins/backfill-place-data").then(({ backfillPlaceData }) => {
+    import("@/app/features/pins/api/backfill-place-data").then(({ backfillPlaceData }) => {
       backfillPlaceData();
     });
   }, [mapState]);

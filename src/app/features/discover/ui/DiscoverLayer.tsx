@@ -14,12 +14,12 @@ import { useStore } from "@/app/store";
 import {
   MARKER_Z_INDEX,
   type DiscoverMarkerState,
-} from "./discover-marker";
-import { buildQuickSavePin } from "./discover-info";
+} from "../model/discover-marker";
+import { buildQuickSavePin } from "../lib/discover-info";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import type { RouteStop } from "@/app/features/route/model/route.types";
-import { DiscoverInfoWindowCard } from "./ui/DiscoverInfoWindowCard";
+import { DiscoverInfoWindowCard } from "./DiscoverInfoWindowCard";
 
 function getMarkerState(
   placeId: string,

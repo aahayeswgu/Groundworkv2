@@ -1,7 +1,7 @@
 "use client";
 
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
-import { classifyGooglePlace } from "@/app/features/discover/discover-filters";
+import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
 
 interface DiscoverResultItemProps {
   result: DiscoverResult;

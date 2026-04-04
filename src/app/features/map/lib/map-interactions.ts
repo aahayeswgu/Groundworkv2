@@ -1,4 +1,4 @@
-import { type DrawBounds, validateBounds } from "@/app/features/discover/discover-search";
+import { type DrawBounds, validateBounds } from "@/app/features/discover/api/discover-search";
 
 export type DiscoverDrawResult =
   | { type: "bounds"; bounds: DrawBounds }

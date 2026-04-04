@@ -19,8 +19,8 @@ import {
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/ui/DiscoverPanel";
-import PlannerPanel from "@/app/features/planner/PlannerPanel";
-import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
+import PlannerPanel from "@/app/features/planner/ui/PlannerPanel";
+import RouteConfirmPanel from "@/app/features/route/ui/RouteConfirmPanel";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/shared/api/supabase";
 import {

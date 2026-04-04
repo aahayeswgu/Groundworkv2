@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useStore } from "@/app/store";
-import { buildQuickSavePin } from "@/app/features/discover/discover-info";
-import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
-import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
+import { buildQuickSavePin } from "@/app/features/discover/lib/discover-info";
+import { DiscoverResultItem } from "@/app/features/discover/ui/DiscoverResultItem";
+import { cancelDiscoverSearch } from "@/app/features/discover/api/discover-search";
 import { Button } from "@/app/shared/ui/button";
 import {
   Card,

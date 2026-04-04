@@ -7,7 +7,7 @@ import {
   getMessage, getMessageHeaders, modifyMessage, trashMessage,
   sendMessage, getLabelUnreadCount,
   type GmailMessage,
-} from "./gmail-api";
+} from "../api/gmail-api";
 
 const GMAIL_CLIENT_ID = process.env.NEXT_PUBLIC_GMAIL_CLIENT_ID ?? "";
 const GMAIL_SCOPES = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send";
