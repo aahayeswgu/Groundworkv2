@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { APIProvider, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
+import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
 import { reverseGeocode } from "@/app/lib/geocoding";
 import {
@@ -13,7 +14,6 @@ import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/ui/PinModal";
 import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
 import RouteLayer from "@/app/features/route/RouteLayer";
-import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
 import {
   cancelDiscoverSearch,
   searchBusinessesInArea,
@@ -55,8 +55,8 @@ export default function Map({ onEditPin }: MapProps) {
   const dropSessionRef = useRef<(() => void) | null>(null);
   const discoverSessionRef = useRef<DiscoverDrawSession | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
-  const [routePanelOpen, setRoutePanelOpen] = useState(false);
   const discoverMode = useStore((s) => s.discoverMode);
+  const isDrawing = useStore((s) => s.isDrawing);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
   const setIsDrawing = useStore((s) => s.setIsDrawing);
   const addActivityEntry = useStore((s) => s.addActivityEntry);
@@ -67,7 +67,6 @@ export default function Map({ onEditPin }: MapProps) {
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);
   const routeStops = useStore((s) => s.routeStops);
-  const [toast, setToast] = useState<string | null>(null);
   const prevStopCount = useRef(0);
   const [quickListening, setQuickListening] = useState(false);
   const didStartBackfill = useRef(false);
@@ -227,12 +226,14 @@ export default function Map({ onEditPin }: MapProps) {
 
   // Show toast when route stops are added
   useEffect(() => {
-    if (routeStops.length > 0 && routeStops.length > prevStopCount.current) {
-      setToast(`${routeStops.length} stop${routeStops.length === 1 ? "" : "s"} routed`);
-      const t = setTimeout(() => setToast(null), 2500);
-      return () => clearTimeout(t);
+    const stopCount = routeStops.length;
+    if (stopCount > 0 && stopCount > prevStopCount.current) {
+      toast(`${stopCount} stop${stopCount === 1 ? "" : "s"} routed`, {
+        duration: 2500,
+        id: "route-stops-routed",
+      });
     }
-    prevStopCount.current = routeStops.length;
+    prevStopCount.current = stopCount;
   }, [routeStops.length]);
 
   useEffect(() => {
@@ -255,11 +256,6 @@ export default function Map({ onEditPin }: MapProps) {
         } else {
           enterDiscoverMode();
         }
-        return;
-      }
-
-      if (detail.action === "toggle-route-panel") {
-        setRoutePanelOpen((prev) => !prev);
         return;
       }
 
@@ -299,7 +295,7 @@ export default function Map({ onEditPin }: MapProps) {
       version="weekly"
       libraries={["places", "geometry", "marker", "routes", "geocoding"]}
     >
-      <div className="flex-1 relative h-screen overflow-hidden">
+      <div className="relative flex-1 h-full overflow-hidden">
         <GoogleMap
           className="w-full h-full z-[1]"
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID"}
@@ -326,9 +322,9 @@ export default function Map({ onEditPin }: MapProps) {
           </MapButton>
           <MapButton
             title="Get directions"
-            active={routePanelOpen}
+            active={routeStops.length > 0}
             badge={routeStops.length || undefined}
-            onClick={() => setRoutePanelOpen((prev) => !prev)}
+            onClick={() => dispatchOpenMobileTab("route")}
           >
             <polygon points="3 11 22 2 13 21 11 13 3 11" />
           </MapButton>
@@ -362,10 +358,9 @@ export default function Map({ onEditPin }: MapProps) {
           </MapButton>
         </div>
 
-        {/* Toast notification */}
-        {toast && (
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg bg-charcoal text-white text-sm font-semibold shadow-gw-lg animate-[fadeInOut_2.5s_ease]">
-            {toast}
+        {discoverMode && isDrawing && (
+          <div className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]">
+            Drag To Select Area
           </div>
         )}
 
@@ -387,7 +382,6 @@ export default function Map({ onEditPin }: MapProps) {
       {mapState && <MarkerLayer onEditPin={onEditPin} />}
       {mapState && <DiscoverLayer />}
       {mapState && <RouteLayer />}
-      <RouteConfirmPanel open={routePanelOpen} onClose={() => setRoutePanelOpen(false)} />
       {pendingPin && (
         <PinModal
           mode="create"

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
 import {
   DropdownMenu,
@@ -8,16 +9,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/shared/ui/sheet";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
+import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
 import {
   type SidebarProfileFormValues,
   type SidebarTab,
 } from "@/app/widgets/sidebar/model/sidebar.model";
+import {
+  OPEN_MOBILE_TAB_EVENT,
+  type OpenMobileTabEventDetail,
+} from "@/app/shared/model/mobile-events";
 import SidebarAccountModal from "@/app/widgets/sidebar/ui/SidebarAccountModal";
 import SidebarSettingsPanel from "@/app/widgets/sidebar/ui/SidebarSettingsPanel";
 import SidebarTabs from "@/app/widgets/sidebar/ui/SidebarTabs";
@@ -26,6 +39,7 @@ export interface SidebarProps {
   onEditPin?: (pinId: string) => void;
   mobileOpen?: boolean;
   mobileTab?: SidebarTab;
+  onMobileTabChange?: (tab: SidebarTab) => void;
   onMobileClose?: () => void;
   onOpenEmail: () => void;
   settingsOpen: boolean;
@@ -37,6 +51,7 @@ export default function Sidebar({
   onEditPin,
   mobileOpen = false,
   mobileTab,
+  onMobileTabChange,
   onMobileClose,
   onOpenEmail,
   settingsOpen,
@@ -54,8 +69,9 @@ export default function Sidebar({
   const [desktopActiveTab, setDesktopActiveTab] = useState<SidebarTab>("pins");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const isMobile = useIsMobile();
 
-  const activeTab = mobileTab ?? desktopActiveTab;
+  const activeTab = isMobile ? (mobileTab ?? desktopActiveTab) : desktopActiveTab;
   const isCollapsed = collapsed && !mobileOpen;
   const accountInitials = (profile?.name?.[0] || user?.email?.[0] || "?").toUpperCase();
   const accountTriggerClassName = user
@@ -66,6 +82,37 @@ export default function Sidebar({
     setDesktopActiveTab(tab);
     onSettingsClose();
   }, [onSettingsClose]);
+
+  useEffect(() => {
+    if (isMobile) return;
+
+    const handleOpenSidebarTab = (event: Event) => {
+      const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
+      if (!detail || detail.tab === "map") return;
+      onSettingsClose();
+      setDesktopActiveTab(detail.tab);
+    };
+
+    window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenSidebarTab);
+    return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenSidebarTab);
+  }, [isMobile, onSettingsClose]);
+
+  const handleOpenRouteBuilder = useCallback(() => {
+    onSettingsClose();
+    if (isMobile) {
+      onMobileTabChange?.("route");
+      return;
+    }
+    setDesktopActiveTab("route");
+  }, [isMobile, onMobileTabChange, onSettingsClose]);
+
+  const handleCloseRouteBuilder = useCallback(() => {
+    if (isMobile) {
+      onMobileTabChange?.("pins");
+      return;
+    }
+    setDesktopActiveTab("pins");
+  }, [isMobile, onMobileTabChange]);
 
   const handleToggleSettings = useCallback(() => {
     if (settingsOpen) {
@@ -86,18 +133,8 @@ export default function Sidebar({
     setTimeout(() => setSettingsToast(null), 2500);
   }
 
-  return (
-    <div className={`sidebar-wrap relative flex flex-col h-screen bg-bg-secondary border-r border-border z-20 ${isCollapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
-      <button
-        onClick={() => setCollapsed((prev) => !prev)}
-        className="sidebar-toggle absolute z-21 flex items-center justify-center cursor-pointer bg-bg-card border border-border text-text-secondary transition-all duration-200 hover:text-orange hover:bg-orange-dim"
-        title="Toggle sidebar"
-      >
-        <svg className="sidebar-toggle-icon transition-transform duration-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-
+  const sidebarPanel = (
+    <>
       <div className="lg:hidden flex items-center justify-center border-b border-border bg-bg-card py-2">
         <span className="h-1.5 w-12 rounded-full bg-border" />
       </div>
@@ -181,8 +218,10 @@ export default function Sidebar({
             theme={theme}
             onThemeChange={setTheme}
           />
+        ) : activeTab === "route" ? (
+          <RouteConfirmPanel inline onClose={handleCloseRouteBuilder} />
         ) : discoverMode ? (
-          <DiscoverPanel />
+          <DiscoverPanel onOpenRouteBuilder={handleOpenRouteBuilder} />
         ) : activeTab === "planner" ? (
           <PlannerPanel />
         ) : (
@@ -202,6 +241,46 @@ export default function Sidebar({
           onSaveProfile={handleSaveProfile}
         />
       )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet
+        open={mobileOpen}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) onMobileClose?.();
+        }}
+      >
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="bottom-[var(--mobile-bottom-bar-offset)] h-[var(--mobile-sheet-max-height)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
+        >
+          <SheetHeader className="sr-only">
+            <SheetTitle>Sidebar</SheetTitle>
+            <SheetDescription>Access pins, planner, discover, and account tools.</SheetDescription>
+          </SheetHeader>
+          <div className="relative flex h-full flex-col overflow-hidden rounded-t-2xl border border-border border-b-0 bg-bg-secondary">
+            {sidebarPanel}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <div className={`sidebar-wrap relative flex h-full flex-col border-r border-border bg-bg-secondary z-20 ${isCollapsed ? "collapsed" : ""} ${mobileOpen ? "open" : ""}`}>
+      <button
+        onClick={() => setCollapsed((prev) => !prev)}
+        className="sidebar-toggle absolute z-21 flex items-center justify-center cursor-pointer bg-bg-card border border-border text-text-secondary transition-all duration-200 hover:text-orange hover:bg-orange-dim"
+        title="Toggle sidebar"
+      >
+        <svg className="sidebar-toggle-icon transition-transform duration-300" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      {sidebarPanel}
     </div>
   );
 }

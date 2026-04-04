@@ -2,6 +2,8 @@ import { useState } from "react";
 import { classifyGooglePlace } from "@/app/features/discover/discover-filters";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import { fetchAiBrief } from "@/app/lib/ask-ai";
+import { cn } from "@/app/shared/lib/utils";
+import { Card, CardContent } from "@/app/shared/ui/card";
 
 interface DiscoverInfoWindowCardProps {
   result: DiscoverResult;
@@ -9,6 +11,7 @@ interface DiscoverInfoWindowCardProps {
   isInRoute: boolean;
   onSave: () => void;
   onAddToRoute: () => boolean;
+  className?: string;
 }
 
 export function DiscoverInfoWindowCard({
@@ -17,6 +20,7 @@ export function DiscoverInfoWindowCard({
   isInRoute,
   onSave,
   onAddToRoute,
+  className,
 }: DiscoverInfoWindowCardProps) {
   const [saved, setSaved] = useState(alreadySaved);
   const [routeState, setRouteState] = useState<"idle" | "added" | "full">(isInRoute ? "added" : "idle");
@@ -106,16 +110,16 @@ export function DiscoverInfoWindowCard({
     : normalizeAiText(briefText);
 
   return (
-    <div className="w-[300px] font-sans">
+    <Card className={cn("w-full min-w-0 gap-0 bg-bg-card font-sans ring-1 ring-border", className)}>
       {result.photoUri ? (
         <div
-          className="h-[140px] rounded-t-[12px] bg-cover bg-center"
+          className="h-[140px] bg-cover bg-center"
           style={{ backgroundImage: `url('${result.photoUri}')` }}
           aria-label={result.displayName}
         />
       ) : null}
 
-      <div className={result.photoUri ? "px-4 pb-3.5 pt-3" : "px-4 pb-3.5 pt-3.5"}>
+      <CardContent className={result.photoUri ? "pb-3.5 pt-3" : "pb-3.5 pt-3.5"}>
         <div className="pr-4 text-[15px] font-bold leading-[1.3] text-[#1A1A1A]">{result.displayName}</div>
         <div className="mt-[3px] text-xs font-semibold text-[#D4712A]">{placeType}</div>
 
@@ -129,7 +133,7 @@ export function DiscoverInfoWindowCard({
           <div className="mt-[3px] text-[11px] leading-[1.3] text-[#777]">{result.address}</div>
         ) : null}
 
-        <div className="mt-2.5 flex items-center justify-between gap-2">
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
           <a
             href={`https://www.google.com/maps/place/?q=place_id:${result.placeId}`}
             target="_blank"
@@ -190,8 +194,8 @@ export function DiscoverInfoWindowCard({
             {aiError ?? aiText}
           </div>
         ) : null}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

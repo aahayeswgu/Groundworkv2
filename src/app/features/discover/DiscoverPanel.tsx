@@ -1,13 +1,30 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useStore } from "@/app/store";
 import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
 import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
-import type { RouteStop } from "@/app/features/route/model/route.types";
+import { Button } from "@/app/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/app/shared/ui/card";
+import { Loader2Icon } from "lucide-react";
+import {
+  addSelectedDiscoverResultsToRoute,
+  getRouteSelectionMessage,
+} from "@/app/features/discover/lib/discover-route-selection";
 
-export default function DiscoverPanel() {
+interface DiscoverPanelProps {
+  onOpenRouteBuilder?: () => void;
+}
+
+export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps) {
   const discoverResults = useStore((s) => s.discoverResults);
   const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
   const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
@@ -20,18 +37,26 @@ export default function DiscoverPanel() {
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
+  const routeStops = useStore((s) => s.routeStops);
   const addStop = useStore((s) => s.addStop);
   const marathonMode = useStore((s) => s.marathonMode);
   const marathonZones = useStore((s) => s.marathonZones);
   const marathonSearchCount = useStore((s) => s.marathonSearchCount);
   const toggleMarathonMode = useStore((s) => s.toggleMarathonMode);
   const clearMarathonZone = useStore((s) => s.clearMarathonZone);
+  const [routeActionMessage, setRouteActionMessage] = useState<string | null>(null);
 
   // Determine which step to show
   const step = discoverResults.length > 0 ? 3 : searchProgress ? 2 : 1;
 
   const selectableCount = Math.min(discoverResults.length, 20);
   const allSelected = selectedDiscoverIds.size === selectableCount && selectableCount > 0;
+  const progressMatch = searchProgress?.match(/\[(\d+)\/(\d+)\]/);
+  const completedSearchSteps = progressMatch ? Number(progressMatch[1]) : 0;
+  const totalSearchSteps = progressMatch ? Number(progressMatch[2]) : 0;
+  const searchProgressPercent = totalSearchSteps > 0
+    ? Math.max(0, Math.min(100, Math.round((completedSearchSteps / totalSearchSteps) * 100)))
+    : 0;
 
   // Derived: which zone does each placeId belong to?
   const placeZoneLabel = useMemo<Record<string, string>>(() => {
@@ -44,8 +69,29 @@ export default function DiscoverPanel() {
     return map;
   }, [marathonZones]);
 
+  const openRouteBuilder = useCallback(() => {
+    setDiscoverMode(false);
+    onOpenRouteBuilder?.();
+  }, [setDiscoverMode, onOpenRouteBuilder]);
+
+  const addSelectedStopsToRoute = useCallback((openBuilderAfterAdd: boolean) => {
+    if (selectedDiscoverIds.size === 0) return;
+
+    const addResult = addSelectedDiscoverResultsToRoute({
+      selectedDiscoverIds,
+      discoverResults,
+      existingRouteStops: routeStops,
+      addStop,
+    });
+    setRouteActionMessage(getRouteSelectionMessage(addResult));
+
+    if (openBuilderAfterAdd && (addResult.addedCount > 0 || addResult.alreadyInRouteCount > 0 || routeStops.length > 0)) {
+      openRouteBuilder();
+    }
+  }, [selectedDiscoverIds, routeStops, discoverResults, addStop, openRouteBuilder]);
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Step 1: Draw area prompt */}
       {step === 1 && (
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-4">
@@ -75,19 +121,47 @@ export default function DiscoverPanel() {
 
       {/* Step 2: Searching progress */}
       {step === 2 && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
-          <div className="text-text-primary text-sm font-semibold text-center">{searchProgress}</div>
-          <div className="text-text-muted text-xs">This may take a moment...</div>
-          <button
-            onClick={() => {
-              cancelDiscoverSearch();
-              setDiscoverMode(false);
-              clearDiscover();
-            }}
-            className="mt-2 px-4 py-1.5 rounded-lg border border-red-400 text-red-400 text-xs font-bold hover:bg-red-400/10 transition-colors"
-          >
-            Stop Search
-          </button>
+        <div className="flex-1 flex items-center justify-center px-4 py-6">
+          <Card className="w-full max-w-sm bg-bg-card/95 ring-1 ring-border/70 shadow-gw-lg">
+            <CardHeader className="gap-2 border-b border-border/70 pb-3">
+              <CardTitle className="flex items-center gap-2 text-text-primary">
+                <Loader2Icon className="size-4 animate-spin text-orange" />
+                Discovering Businesses
+              </CardTitle>
+              <CardDescription className="text-xs text-text-secondary">
+                Searching your selected area for nearby contractors and trade businesses.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-4">
+              <div className="rounded-md border border-border/70 bg-bg px-3 py-2 text-center text-sm font-semibold text-text-primary">
+                {searchProgress}
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-bg">
+                <div
+                  className="h-full rounded-full bg-orange transition-[width] duration-300 ease-out"
+                  style={{ width: `${searchProgressPercent}%` }}
+                />
+              </div>
+              <div className="text-center text-xs text-text-muted">
+                {totalSearchSteps > 0
+                  ? `${completedSearchSteps} of ${totalSearchSteps} query groups completed`
+                  : "Initializing search..."}
+              </div>
+            </CardContent>
+            <CardFooter className="border-t border-border/70 bg-bg-card/70">
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => {
+                  cancelDiscoverSearch();
+                  setDiscoverMode(false);
+                  clearDiscover();
+                }}
+              >
+                Stop Search
+              </Button>
+            </CardFooter>
+          </Card>
         </div>
       )}
 
@@ -167,7 +241,7 @@ export default function DiscoverPanel() {
           )}
 
           {/* Scrollable results list */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {discoverResults.map((result) => {
               const alreadySaved = pins.some(
                 (p) =>
@@ -207,34 +281,46 @@ export default function DiscoverPanel() {
             })}
           </div>
 
-          {/* Sticky bottom bar — shown when items are selected */}
-          {selectedDiscoverIds.size > 0 && (
-            <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex items-center justify-between">
-              <span className="text-sm text-text-secondary">
-                {selectedDiscoverIds.size} selected
-              </span>
-              <button
-                onClick={() => {
-                  for (const id of selectedDiscoverIds) {
-                    const result = discoverResults.find((r) => r.placeId === id);
-                    if (!result) continue;
-                    const stop: RouteStop = {
-                      id: `discover_${result.placeId}`,
-                      label: result.displayName,
-                      address: result.address ?? "",
-                      lat: result.lat,
-                      lng: result.lng,
-                    };
-                    const added = addStop(stop);
-                    if (!added) break; // cap reached — stop adding
-                  }
-                }}
-                className="px-4 py-1.5 rounded-lg bg-orange text-white text-sm font-bold hover:bg-orange/90 transition-colors"
-              >
-                Route {selectedDiscoverIds.size} Stop{selectedDiscoverIds.size !== 1 ? "s" : ""}
-              </button>
+          {/* Bottom action bar — always visible so route CTA is discoverable */}
+          <div className="sticky bottom-0 z-10 shrink-0 border-t border-border bg-bg-card px-4 py-3">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between text-sm text-text-secondary">
+                <span>{selectedDiscoverIds.size} selected</span>
+                <span>{routeStops.length} in route</span>
+              </div>
+              {routeActionMessage && (
+                <div className="rounded-md border border-orange/30 bg-orange-dim px-3 py-2 text-xs font-semibold text-orange">
+                  {routeActionMessage}
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button
+                  variant="outline"
+                  disabled={selectedDiscoverIds.size === 0}
+                  onClick={() => addSelectedStopsToRoute(false)}
+                  className="w-full"
+                >
+                  Add Only
+                </Button>
+                <Button
+                  disabled={selectedDiscoverIds.size === 0}
+                  onClick={() => addSelectedStopsToRoute(true)}
+                  className="w-full bg-orange text-white hover:bg-orange/90"
+                >
+                  Add + Open Route Builder
+                </Button>
+              </div>
+              {routeStops.length > 0 && (
+                <Button
+                  variant="secondary"
+                  onClick={openRouteBuilder}
+                  className="w-full"
+                >
+                  Open Route Builder ({routeStops.length})
+                </Button>
+              )}
             </div>
-          )}
+          </div>
         </>
       )}
     </div>

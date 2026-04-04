@@ -41,9 +41,8 @@ export const MOBILE_QUICK_ACTIONS: readonly MobileQuickActionItem[] = [
   {
     id: "route",
     label: "Route",
-    detail: "Open route confirmation",
+    detail: "Open route builder",
     icon: "route",
-    mapAction: "toggle-route-panel",
   },
   {
     id: "drop-pin",

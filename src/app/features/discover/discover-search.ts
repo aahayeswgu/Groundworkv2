@@ -5,6 +5,8 @@ import type { DiscoverResult } from "@/app/features/discover/model/discover.type
 
 export type DrawBounds = { swLat: number; swLng: number; neLat: number; neLng: number };
 
+const DISCOVER_QUERY_CONCURRENCY = 3;
+
 // Each new search increments this id; older runs become stale and should stop.
 let activeSearchRunId = 0;
 
@@ -24,6 +26,32 @@ function isExpectedPlacesTransportError(err: unknown): boolean {
     message.includes("error code: 6") ||
     message.includes(" [0]")
   );
+}
+
+function buildSearchProgress(completed: number, total: number): string {
+  return `Searching businesses... [${completed}/${total}]`;
+}
+
+async function runWithConcurrency<T>(
+  items: readonly T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>,
+): Promise<void> {
+  if (!items.length) return;
+
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  let nextIndex = 0;
+
+  const runWorker = async () => {
+    while (true) {
+      const currentIndex = nextIndex;
+      if (currentIndex >= items.length) return;
+      nextIndex += 1;
+      await worker(items[currentIndex]);
+    }
+  };
+
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
 }
 
 export function validateBounds(bounds: DrawBounds): { valid: boolean; error?: string } {
@@ -55,13 +83,17 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     incrementMarathonCount,
   } = store;
   const setSearchProgress: (msg: string) => void = store.setSearchProgress ?? (() => {});
+  const setProgressForActiveRun = (msg: string): void => {
+    if (isCancelled()) return;
+    setSearchProgress(msg);
+  };
 
   // In normal mode clear old results; in marathon mode accumulate
   if (!marathonMode) {
     setDiscoverResults([]);
   }
   setIsDrawing(false);
-  setSearchProgress("Starting search...");
+  setProgressForActiveRun("Starting search...");
 
   const seen = new Set<string>();
 
@@ -71,58 +103,60 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   }
 
   const newResults: DiscoverResult[] = [];
+  const totalQueries = DISCOVER_QUERIES.length;
+  let completedQueries = 0;
+  setProgressForActiveRun(buildSearchProgress(completedQueries, totalQueries));
 
-  for (let i = 0; i < DISCOVER_QUERIES.length; i++) {
-    if (isCancelled()) {
-      setSearchProgress("");
-      return;
-    }
+  await runWithConcurrency(
+    DISCOVER_QUERIES,
+    DISCOVER_QUERY_CONCURRENCY,
+    async (query) => {
+      if (isCancelled()) return;
 
-    const query = DISCOVER_QUERIES[i];
-    setSearchProgress(`Searching: ${query}... (${newResults.length} found) [${i + 1}/${DISCOVER_QUERIES.length}]`);
-    try {
-      const { places } = await Place.searchByText({
-        textQuery: query,
-        fields: [
-          "id",
-          "displayName",
-          "formattedAddress",
-          "location",
-          "types",
-          "rating",
-          "userRatingCount",
-          "photos",
-        ],
-        locationBias: new google.maps.LatLngBounds(
-          { lat: bounds.swLat, lng: bounds.swLng },
-          { lat: bounds.neLat, lng: bounds.neLng },
-        ),
-        maxResultCount: 20,
-      });
-      if (isCancelled()) {
-        setSearchProgress("");
-        return;
+      try {
+        const { places } = await Place.searchByText({
+          textQuery: query,
+          fields: [
+            "id",
+            "displayName",
+            "formattedAddress",
+            "location",
+            "types",
+            "rating",
+            "userRatingCount",
+            "photos",
+          ],
+          locationBias: new google.maps.LatLngBounds(
+            { lat: bounds.swLat, lng: bounds.swLng },
+            { lat: bounds.neLat, lng: bounds.neLng },
+          ),
+          maxResultCount: 20,
+        });
+
+        if (isCancelled()) return;
+
+        for (const place of places ?? []) {
+          const result = filterAndMapPlace(
+            place as Parameters<typeof filterAndMapPlace>[0],
+            bounds,
+            seen,
+          );
+          if (result) newResults.push(result);
+        }
+      } catch (err) {
+        // Frequent transient transport/cancel noise from Places RPC should not spam console.
+        if (!isCancelled() && !isExpectedPlacesTransportError(err)) {
+          console.error(`[Discover] Query "${query}" failed:`, err);
+        }
+      } finally {
+        completedQueries += 1;
+        setProgressForActiveRun(buildSearchProgress(completedQueries, totalQueries));
       }
-      for (const place of places ?? []) {
-        const result = filterAndMapPlace(
-          place as Parameters<typeof filterAndMapPlace>[0],
-          bounds,
-          seen,
-        );
-        if (result) newResults.push(result);
-      }
-    } catch (err) {
-      // Frequent transient transport/cancel noise from Places RPC should not spam console.
-      if (isCancelled() || isExpectedPlacesTransportError(err)) {
-        continue;
-      }
-      console.error(`[Discover] Query "${query}" failed:`, err);
-    }
-    await sleep(200);
-  }
+    },
+  );
 
   if (isCancelled()) {
-    setSearchProgress("");
+    setProgressForActiveRun("");
     return;
   }
 
@@ -145,7 +179,5 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     incrementMarathonCount();
   }
 
-  setSearchProgress("");
+  setProgressForActiveRun("");
 }
-
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));

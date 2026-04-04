@@ -66,7 +66,10 @@ export function startDropPinSession({
   map,
   onDrop,
 }: StartDropPinSessionParams): () => void {
+  const mapDiv = map.getDiv();
+  const previousCursor = mapDiv.style.cursor;
   map.setOptions({ draggableCursor: "crosshair" });
+  mapDiv.style.cursor = "crosshair";
   const clickListener = map.addListener("click", (event: google.maps.MapMouseEvent) => {
     if (!event.latLng) return;
     void onDrop(event.latLng);
@@ -75,6 +78,7 @@ export function startDropPinSession({
   return () => {
     google.maps.event.removeListener(clickListener);
     map.setOptions({ draggableCursor: "" });
+    mapDiv.style.cursor = previousCursor;
   };
 }
 
@@ -89,6 +93,7 @@ export function startDiscoverDrawSession({
   const previousDraggable = map.get("draggable");
   const previousGestureHandling = map.get("gestureHandling") as google.maps.MapOptions["gestureHandling"] | undefined;
   const previousTouchAction = mapDiv.style.touchAction;
+  const previousCursor = mapDiv.style.cursor;
 
   const clearArea = () => {
     if (!areaRect) return;
@@ -103,6 +108,7 @@ export function startDiscoverDrawSession({
       gestureHandling: previousGestureHandling ?? "greedy",
     });
     mapDiv.style.touchAction = previousTouchAction;
+    mapDiv.style.cursor = previousCursor;
     cleanupFns.forEach((cleanup) => cleanup());
     cleanupFns.length = 0;
   };
@@ -149,6 +155,7 @@ export function startDiscoverDrawSession({
     gestureHandling: "none",
   });
   mapDiv.style.touchAction = "none";
+  mapDiv.style.cursor = "crosshair";
 
   if (isCoarsePointerEnvironment(map)) {
     let touchStarted = false;

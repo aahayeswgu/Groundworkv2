@@ -3,6 +3,7 @@ import { Geist, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/app/features/theme/model/theme-context";
 import { isTheme } from "@/app/features/theme/model/theme.types";
+import { Toaster } from "@/app/shared/ui/sonner";
 import "./globals.css";
 import { cn } from "@/app/shared/lib/utils";
 
@@ -46,6 +47,7 @@ export default async function RootLayout({
       >
         <ThemeProvider initialTheme={initialTheme}>
           {children}
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>
