@@ -111,6 +111,18 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
 
   const sensors = useSensors(useSensor(PointerSensor));
 
+  const startAddressInput = customStartAddress.trim();
+  const homeAddress = profile?.homebase?.trim() ?? "";
+  const missingStartRequirement =
+    startMode === "home"
+      ? !(homeAddress || startAddressInput)
+      : startMode === "custom"
+      ? !startAddressInput
+      : false;
+  const startValidationMessage = startMode === "home"
+    ? "Set a home base address in Settings > Profile, or enter one here."
+    : "Enter a starting address.";
+
   function handleSendToPlanner() {
     if (routeStops.length === 0) return;
     const today = new Date().toISOString().slice(0, 10);
@@ -186,6 +198,11 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
       setBuildError("Add at least 1 stop.");
       return;
     }
+    if (missingStartRequirement) {
+      setBuildError(startValidationMessage);
+      return;
+    }
+
     setBuildError(null);
     setIsBuilding(true);
     const origin = await resolveOrigin();
@@ -195,9 +212,8 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     }
 
     const result = await computeRoute(origin, routeStops);
-    setIsBuilding(false);
-
     if (!result) {
+      setIsBuilding(false);
       setBuildError("Could not calculate route. Check your connection and try again.");
       return;
     }
@@ -212,7 +228,18 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
 
     setRouteResult(result);
     setRouteActive(true);
-  }, [routeStops, resolveOrigin, setRouteResult, setRouteActive, reorderStops]);
+    setIsBuilding(false);
+    onClose();
+  }, [
+    routeStops,
+    missingStartRequirement,
+    startValidationMessage,
+    resolveOrigin,
+    setRouteResult,
+    setRouteActive,
+    reorderStops,
+    onClose,
+  ]);
 
   const handleOpenMaps = useCallback(async () => {
     if (routeStops.length === 0) return;
@@ -298,6 +325,9 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
         {startMode === "gps" && (
           <div className="text-xs text-text-muted">GPS location will be used when route is built.</div>
         )}
+        {missingStartRequirement && (
+          <div className="mt-2 text-xs text-red-500">{startValidationMessage}</div>
+        )}
       </div>
 
       {/* Mobile truncation warning — removed per user request */}
@@ -348,7 +378,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
         </button>
         <button
           onClick={handleBuildRoute}
-          disabled={isBuilding || routeStops.length === 0}
+          disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
           className="w-full flex-1 py-2.5 rounded-xl bg-bg-secondary border border-border text-text-primary text-sm font-bold disabled:opacity-50 hover:border-orange hover:text-orange transition-colors"
         >
           {isBuilding ? "Previewing..." : "Preview Route"}
