@@ -19,7 +19,11 @@ import {
   searchBusinessesInArea,
 } from "@/app/features/discover/discover-search";
 import { useStore } from "@/app/store";
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "../model/map.constants";
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+  GOOGLE_MAPS_API_VERSION,
+} from "../model/map.constants";
 import {
   MAP_ACTION_EVENT,
   dispatchOpenMobileTab,
@@ -292,7 +296,7 @@ export default function Map({ onEditPin }: MapProps) {
   return (
     <APIProvider
       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      version="weekly"
+      version={GOOGLE_MAPS_API_VERSION}
       libraries={["places", "geometry", "marker", "routes", "geocoding"]}
     >
       <div className="relative flex-1 h-full overflow-hidden">
