@@ -351,7 +351,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
           disabled={isBuilding || routeStops.length === 0}
           className="w-full flex-1 py-2.5 rounded-xl bg-bg-secondary border border-border text-text-primary text-sm font-bold disabled:opacity-50 hover:border-orange hover:text-orange transition-colors"
         >
-          {isBuilding ? "Building..." : "Build Route"}
+          {isBuilding ? "Previewing..." : "Preview Route"}
         </button>
         <button
           onClick={handleOpenMaps}

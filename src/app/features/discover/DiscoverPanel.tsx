@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useStore } from "@/app/store";
 import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
 import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
-import type { RouteStop } from "@/app/features/route/model/route.types";
+import { dispatchMapMobileAction, dispatchOpenMobileTab } from "@/app/shared/model/mobile-events";
 import { Button } from "@/app/shared/ui/button";
 import {
   Card,
@@ -16,6 +16,10 @@ import {
   CardTitle,
 } from "@/app/shared/ui/card";
 import { Loader2Icon } from "lucide-react";
+import {
+  addSelectedDiscoverResultsToRoute,
+  getRouteSelectionMessage,
+} from "@/app/features/discover/lib/discover-route-selection";
 
 export default function DiscoverPanel() {
   const discoverResults = useStore((s) => s.discoverResults);
@@ -30,12 +34,14 @@ export default function DiscoverPanel() {
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
+  const routeStops = useStore((s) => s.routeStops);
   const addStop = useStore((s) => s.addStop);
   const marathonMode = useStore((s) => s.marathonMode);
   const marathonZones = useStore((s) => s.marathonZones);
   const marathonSearchCount = useStore((s) => s.marathonSearchCount);
   const toggleMarathonMode = useStore((s) => s.toggleMarathonMode);
   const clearMarathonZone = useStore((s) => s.clearMarathonZone);
+  const [routeActionMessage, setRouteActionMessage] = useState<string | null>(null);
 
   // Determine which step to show
   const step = discoverResults.length > 0 ? 3 : searchProgress ? 2 : 1;
@@ -59,6 +65,28 @@ export default function DiscoverPanel() {
     }
     return map;
   }, [marathonZones]);
+
+  const openRouteBuilder = useCallback(() => {
+    setDiscoverMode(false);
+    dispatchOpenMobileTab("map");
+    dispatchMapMobileAction("open-route-panel");
+  }, [setDiscoverMode]);
+
+  const addSelectedStopsToRoute = useCallback((openBuilderAfterAdd: boolean) => {
+    if (selectedDiscoverIds.size === 0) return;
+
+    const addResult = addSelectedDiscoverResultsToRoute({
+      selectedDiscoverIds,
+      discoverResults,
+      existingRouteStops: routeStops,
+      addStop,
+    });
+    setRouteActionMessage(getRouteSelectionMessage(addResult));
+
+    if (openBuilderAfterAdd && (addResult.addedCount > 0 || addResult.alreadyInRouteCount > 0 || routeStops.length > 0)) {
+      openRouteBuilder();
+    }
+  }, [selectedDiscoverIds, routeStops, discoverResults, addStop, openRouteBuilder]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -253,34 +281,42 @@ export default function DiscoverPanel() {
 
           {/* Bottom action bar — always visible so route CTA is discoverable */}
           <div className="sticky bottom-0 z-10 shrink-0 border-t border-border bg-bg-card px-4 py-3">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-sm text-text-secondary">
-                {selectedDiscoverIds.size} selected
-              </span>
-              <button
-                onClick={() => {
-                  if (selectedDiscoverIds.size === 0) return;
-                  for (const id of selectedDiscoverIds) {
-                    const result = discoverResults.find((r) => r.placeId === id);
-                    if (!result) continue;
-                    const stop: RouteStop = {
-                      id: `discover_${result.placeId}`,
-                      label: result.displayName,
-                      address: result.address ?? "",
-                      lat: result.lat,
-                      lng: result.lng,
-                    };
-                    const added = addStop(stop);
-                    if (!added) break; // cap reached — stop adding
-                  }
-                }}
-                disabled={selectedDiscoverIds.size === 0}
-                className="w-full rounded-lg bg-orange px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
-              >
-                {selectedDiscoverIds.size === 0
-                  ? "Select Stops to Route"
-                  : `Route ${selectedDiscoverIds.size} Stop${selectedDiscoverIds.size !== 1 ? "s" : ""}`}
-              </button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between text-sm text-text-secondary">
+                <span>{selectedDiscoverIds.size} selected</span>
+                <span>{routeStops.length} in route</span>
+              </div>
+              {routeActionMessage && (
+                <div className="rounded-md border border-orange/30 bg-orange-dim px-3 py-2 text-xs font-semibold text-orange">
+                  {routeActionMessage}
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <Button
+                  variant="outline"
+                  disabled={selectedDiscoverIds.size === 0}
+                  onClick={() => addSelectedStopsToRoute(false)}
+                  className="w-full"
+                >
+                  Add Only
+                </Button>
+                <Button
+                  disabled={selectedDiscoverIds.size === 0}
+                  onClick={() => addSelectedStopsToRoute(true)}
+                  className="w-full bg-orange text-white hover:bg-orange/90"
+                >
+                  Add + Open Route Builder
+                </Button>
+              </div>
+              {routeStops.length > 0 && (
+                <Button
+                  variant="secondary"
+                  onClick={openRouteBuilder}
+                  className="w-full"
+                >
+                  Open Route Builder ({routeStops.length})
+                </Button>
+              )}
             </div>
           </div>
         </>

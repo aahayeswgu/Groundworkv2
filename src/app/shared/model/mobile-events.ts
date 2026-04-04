@@ -5,13 +5,14 @@ export type MapMobileAction =
   | "toggle-drop-pin"
   | "toggle-discover"
   | "toggle-route-panel"
+  | "open-route-panel"
   | "toggle-voice-entry";
 
 export interface MapMobileActionEventDetail {
   action: MapMobileAction;
 }
 
-export type MobileSidebarTab = "pins" | "planner";
+export type MobileSidebarTab = "map" | "pins" | "planner";
 
 export interface OpenMobileTabEventDetail {
   tab: MobileSidebarTab;

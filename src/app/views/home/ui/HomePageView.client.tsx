@@ -64,12 +64,16 @@ export default function HomePageView() {
     const handleOpenMobileTab = (event: Event) => {
       const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
       if (!detail) return;
+      if (detail.tab === "map") {
+        closeMobileSidebar();
+        return;
+      }
       openMobileSidebarTab(detail.tab);
     };
 
     window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
     return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
-  }, [openMobileSidebarTab]);
+  }, [closeMobileSidebar, openMobileSidebarTab]);
 
   const editPin = editPinId ? (pins.find((p) => p.id === editPinId) ?? null) : null;
 

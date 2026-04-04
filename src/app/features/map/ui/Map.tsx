@@ -264,6 +264,11 @@ export default function Map({ onEditPin }: MapProps) {
         return;
       }
 
+      if (detail.action === "open-route-panel") {
+        setRoutePanelOpen(true);
+        return;
+      }
+
       if (detail.action === "toggle-voice-entry") {
         toggleQuickEntry();
       }
