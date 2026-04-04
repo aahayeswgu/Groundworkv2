@@ -1,7 +1,5 @@
-import { useState } from "react";
 import {
   SIDEBAR_THEME_OPTIONS,
-  type SidebarProfileFormValues,
   type SidebarTheme,
 } from "@/app/widgets/sidebar/model/sidebar.model";
 
@@ -10,9 +8,6 @@ interface SidebarSettingsPanelProps {
   onSettingsClose: () => void;
   trackingEnabled: boolean;
   onToggleTracking: () => void;
-  showProfile: boolean;
-  initialProfileValues: SidebarProfileFormValues;
-  onSaveProfile: (values: SidebarProfileFormValues) => void;
   theme: SidebarTheme;
   onThemeChange: (theme: SidebarTheme) => void;
 }
@@ -22,15 +17,9 @@ export default function SidebarSettingsPanel({
   onSettingsClose,
   trackingEnabled,
   onToggleTracking,
-  showProfile,
-  initialProfileValues,
-  onSaveProfile,
   theme,
   onThemeChange,
 }: SidebarSettingsPanelProps) {
-  const [profileName, setProfileName] = useState(initialProfileValues.name);
-  const [profileCompany, setProfileCompany] = useState(initialProfileValues.company);
-  const [profileHomebase, setProfileHomebase] = useState(initialProfileValues.homebase);
   const trackingToggleTrackClass = trackingEnabled
     ? "border-orange bg-orange"
     : "border-[#666] bg-[#555]";
@@ -75,45 +64,6 @@ export default function SidebarSettingsPanel({
           </button>
         </div>
       </div>
-
-      {showProfile && (
-        <div className="px-5 py-4 border-b border-border">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-3">Profile</div>
-          <div className="flex flex-col gap-2.5">
-            <input
-              type="text"
-              placeholder="Your name"
-              value={profileName}
-              onChange={(event) => setProfileName(event.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
-            />
-            <input
-              type="text"
-              placeholder="Company"
-              value={profileCompany}
-              onChange={(event) => setProfileCompany(event.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
-            />
-            <input
-              type="text"
-              placeholder="Home base address"
-              value={profileHomebase}
-              onChange={(event) => setProfileHomebase(event.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-bg-input text-text-primary placeholder:text-text-muted focus:outline-none focus:border-orange"
-            />
-            <button
-              onClick={() => onSaveProfile({
-                name: profileName,
-                company: profileCompany,
-                homebase: profileHomebase,
-              })}
-              className="w-full py-2 rounded-lg bg-orange text-white font-bold text-sm hover:bg-orange-hover transition-colors"
-            >
-              Save Profile
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="px-5 py-4 border-b border-border">
         <div className="text-[11px] font-bold uppercase tracking-wider text-text-muted mb-3">UI Theme</div>

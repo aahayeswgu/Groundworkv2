@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Geist } from "next/font/google";
 import { cookies } from "next/headers";
 import { ThemeProvider } from "@/app/features/theme/model/theme-context";
 import { isTheme } from "@/app/features/theme/model/theme.types";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -36,7 +39,7 @@ export default async function RootLayout({
   const initialTheme = isTheme(themeCookie) ? themeCookie : "dark";
 
   return (
-    <html lang="en" className={dmSans.variable}>
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body
         data-theme={initialTheme}
         className="bg-bg-primary text-text-primary h-dvh w-screen overflow-hidden transition-colors duration-300"
