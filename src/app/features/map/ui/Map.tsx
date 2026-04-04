@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { APIProvider, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
+import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
 import { reverseGeocode } from "@/app/lib/geocoding";
 import {
@@ -66,7 +67,6 @@ export default function Map({ onEditPin }: MapProps) {
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);
   const routeStops = useStore((s) => s.routeStops);
-  const [toast, setToast] = useState<string | null>(null);
   const prevStopCount = useRef(0);
   const [quickListening, setQuickListening] = useState(false);
   const didStartBackfill = useRef(false);
@@ -226,12 +226,14 @@ export default function Map({ onEditPin }: MapProps) {
 
   // Show toast when route stops are added
   useEffect(() => {
-    if (routeStops.length > 0 && routeStops.length > prevStopCount.current) {
-      setToast(`${routeStops.length} stop${routeStops.length === 1 ? "" : "s"} routed`);
-      const t = setTimeout(() => setToast(null), 2500);
-      return () => clearTimeout(t);
+    const stopCount = routeStops.length;
+    if (stopCount > 0 && stopCount > prevStopCount.current) {
+      toast(`${stopCount} stop${stopCount === 1 ? "" : "s"} routed`, {
+        duration: 2500,
+        id: "route-stops-routed",
+      });
     }
-    prevStopCount.current = routeStops.length;
+    prevStopCount.current = stopCount;
   }, [routeStops.length]);
 
   useEffect(() => {
@@ -355,13 +357,6 @@ export default function Map({ onEditPin }: MapProps) {
             <line x1="8" y1="23" x2="16" y2="23" />
           </MapButton>
         </div>
-
-        {/* Toast notification */}
-        {toast && (
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-lg bg-charcoal text-white text-sm font-semibold shadow-gw-lg animate-[fadeInOut_2.5s_ease]">
-            {toast}
-          </div>
-        )}
 
         {discoverMode && isDrawing && (
           <div className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]">
