@@ -1,0 +1,285 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Theme Variables (swapped by data-theme attribute) ─── */
+:root {
+  --mobile-bottom-bar-offset: calc(72px + env(safe-area-inset-bottom, 0px));
+  --orange: #C4692A;
+  --orange-hover: #D47830;
+  --orange-dim: rgba(196,105,42,0.12);
+  --charcoal: #1E1E1E;
+  --bg-primary: #E5DED3;
+  --bg-secondary: #ECE6DC;
+  --bg-card: #F3EEE6;
+  --bg-input: #F9F6F0;
+  --text-primary: #2C2519;
+  --text-secondary: #6B6355;
+  --text-muted: #9A9285;
+  --shadow: 0 1px 8px rgba(60,50,30,0.08);
+  --shadow-lg: 0 8px 32px rgba(60,50,30,0.12);
+  --border: oklch(0.922 0 0);
+  --gw-green: #22C55E;
+  --gw-red: #EF4444;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #1A1D23;
+  --bg-secondary: #22262E;
+  --bg-card: #282C35;
+  --bg-input: #2E333D;
+  --text-primary: #F0F0ED;
+  --text-secondary: #A0A4AD;
+  --text-muted: #6B7280;
+  --shadow: 0 1px 8px rgba(0,0,0,0.2);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.3);
+  --border: #363B45;
+}
+
+/* ─── Map CSS variables to Tailwind theme tokens ─── */
+@theme inline {
+  --color-orange: var(--orange);
+  --color-orange-hover: var(--orange-hover);
+  --color-orange-dim: var(--orange-dim);
+  --color-charcoal: var(--charcoal);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-input: var(--bg-input);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-gw-green: var(--gw-green);
+  --color-gw-red: var(--gw-red);
+  --shadow-gw: var(--shadow);
+  --shadow-gw-lg: var(--shadow-lg);
+  --font-sans: var(--font-geist);
+  --font-heading: var(--font-space-grotesk);
+  --font-mono: var(--font-ibm-plex-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ─── Base resets ─── */
+@layer base {
+  input, button, select, textarea { font-family: inherit; font-size: inherit; }
+  button { cursor: pointer; font-family: inherit; }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ─── Scrollbar styling (can't do with utilities) ─── */
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.scrollbar-thin::-webkit-scrollbar { width: 5px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─── Control styling guards (resilient against generic button resets/vendor CSS) ─── */
+.map-controls .map-action-btn {
+  border: 1px solid var(--orange);
+  background-color: var(--orange);
+  color: #fff;
+}
+.map-controls .map-action-btn:hover {
+  border-color: var(--orange-hover);
+  background-color: var(--orange-hover);
+}
+.map-controls .map-action-btn.map-action-btn-active {
+  box-shadow: var(--shadow), 0 0 0 2px rgba(255, 255, 255, 0.65);
+}
+.map-controls .map-action-badge {
+  background-color: var(--orange);
+  color: #fff;
+}
+
+.pin-status-chips .pin-status-chip {
+  border-radius: 9999px;
+  border-style: solid;
+  border-width: 1.5px;
+}
+.pin-status-chips .pin-status-chip.pin-status-chip-active {
+  border-color: var(--orange);
+  background-color: var(--orange-dim);
+  color: var(--text-primary);
+}
+.pin-status-chips .pin-status-chip.pin-status-chip-inactive {
+  border-color: var(--border);
+  background-color: var(--bg-input);
+  color: var(--text-secondary);
+}
+.pin-status-chips .pin-status-chip.pin-status-chip-inactive:hover {
+  border-color: var(--text-muted);
+}
+
+/* ─── Sidebar collapse transition (stateful, needs custom CSS) ─── */
+.sidebar-wrap {
+  width: 340px; min-width: 340px;
+  transition: transform 0.3s ease, width 0.3s ease, min-width 0.3s ease, background 0.3s;
+}
+.sidebar-wrap.collapsed { transform: translateX(-340px); margin-right: -340px; }
+.sidebar-wrap.collapsed .sidebar-toggle-icon { transform: rotate(180deg); }
+
+/* ─── Sidebar toggle tab (unique shape, easier as CSS) ─── */
+.sidebar-toggle {
+  position: absolute; top: 50%; right: -32px; transform: translateY(-50%);
+  width: 32px; height: 64px;
+  border-left: none; border-radius: 0 10px 10px 0;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+}
+
+/* ─── Responsive layout ─── */
+@media (max-width: 1024px) {
+  .mobile-bottom-bar { display: flex; }
+
+  .sidebar-wrap {
+    position: fixed; top: 0; left: 0; bottom: var(--mobile-bottom-bar-offset); height: auto; z-index: 35;
+    transform: translateX(-100%); width: 100%; min-width: 0;
+    transition: transform 0.3s ease;
+  }
+  .sidebar-wrap.open { transform: translateX(0); }
+  .sidebar-wrap.collapsed { transform: translateX(-100%); margin-right: 0; }
+  .sidebar-toggle { display: none; }
+  .icon-btn-size { width: 44px; height: 44px; }
+  .map-ctrl-size { width: 44px; height: 44px; }
+}
+
+@media (max-width: 390px) {
+  .map-controls-pos { right: 8px; top: 8px; }
+}
+
+@media (min-width: 1280px) {
+  .sidebar-wrap { width: 380px; min-width: 380px; }
+  .sidebar-wrap.collapsed { transform: translateX(-380px); margin-right: -380px; }
+}
+
+@media (min-width: 1440px) {
+  .sidebar-wrap { width: 400px; min-width: 400px; }
+  .sidebar-wrap.collapsed { transform: translateX(-400px); margin-right: -400px; }
+}
+
+@media (min-width: 1600px) {
+  .sidebar-wrap { width: 420px; min-width: 420px; }
+  .sidebar-wrap.collapsed { transform: translateX(-420px); margin-right: -420px; }
+}
+
+/* ─── Pin marker bounce animation ─── */
+@keyframes markerBounce {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-12px); }
+  60% { transform: translateY(-6px); }
+}
+.marker-bounce { animation: markerBounce 0.7s ease; }
+
+/* ─── Spin animation for loading indicators ─── */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes fadeInOut { 0% { opacity: 0; transform: translateX(-50%) translateY(-8px); } 10% { opacity: 1; transform: translateX(-50%) translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
