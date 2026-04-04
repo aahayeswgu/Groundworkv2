@@ -15,12 +15,13 @@ import {
   type OpenMobileTabEventDetail,
 } from "@/app/shared/model/mobile-events";
 import type { MobilePrimaryTab } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
+import type { SidebarTab } from "@/app/widgets/sidebar/model/sidebar.model";
 
 export default function HomePageView() {
   const [editPinId, setEditPinId] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [mobileSidebarTab, setMobileSidebarTab] = useState<"pins" | "planner">("pins");
+  const [mobileSidebarTab, setMobileSidebarTab] = useState<SidebarTab>("pins");
   const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const pins = useStore((s) => s.pins);
@@ -38,9 +39,10 @@ export default function HomePageView() {
     setMobileActiveTab("map");
   }, []);
 
-  const openMobileSidebarTab = useCallback((tab: "pins" | "planner") => {
+  const openMobileSidebarTab = useCallback((tab: SidebarTab) => {
     setMobileSidebarTab(tab);
-    setMobileActiveTab(tab);
+    const nextPrimaryTab: MobilePrimaryTab = tab === "planner" ? "planner" : "pins";
+    setMobileActiveTab(nextPrimaryTab);
     setMobileSidebarOpen(true);
   }, []);
 
@@ -87,6 +89,7 @@ export default function HomePageView() {
           onEditPin={openEditModal}
           mobileOpen={mobileSidebarOpen}
           mobileTab={mobileSidebarTab}
+          onMobileTabChange={openMobileSidebarTab}
           onMobileClose={closeMobileSidebar}
           onOpenEmail={handleOpenEmail}
           settingsOpen={settingsOpen}

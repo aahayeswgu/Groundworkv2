@@ -32,8 +32,9 @@ import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {
-  open: boolean;
-  onClose: () => void;
+  open?: boolean;
+  onClose?: () => void;
+  inline?: boolean;
 }
 
 // ---- SortableStopRow (inline sub-component) ----
@@ -86,7 +87,7 @@ function SortableStopRow({
 }
 
 // ---- RouteConfirmPanel ----
-export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelProps) {
+export default function RouteConfirmPanel({ open = false, onClose, inline = false }: RouteConfirmPanelProps) {
   const isMobile = useIsMobile();
   const routeStops = useStore((s) => s.routeStops);
   const routeResult = useStore((s) => s.routeResult);
@@ -229,7 +230,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     setRouteResult(result);
     setRouteActive(true);
     setIsBuilding(false);
-    onClose();
+    onClose?.();
   }, [
     routeStops,
     missingStartRequirement,
@@ -271,7 +272,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     ? Math.round(routeResult.totalDurationSeconds / 60)
     : null;
 
-  if (!open) return null;
+  if (!inline && !open) return null;
 
   const panelContent = (
     <div className="flex h-full min-h-0 flex-col">
@@ -289,11 +290,13 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
             </div>
           )}
         </div>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+        {onClose && (
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Start point selector */}
@@ -371,7 +374,7 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
         </button>
         <div className="flex flex-col gap-2 sm:flex-row">
         <button
-          onClick={() => { clearRoute(); onClose(); }}
+          onClick={() => { clearRoute(); onClose?.(); }}
           className="w-full px-4 py-2.5 rounded-xl border border-border text-text-muted text-sm font-semibold hover:border-red-400 hover:text-red-400 transition-colors sm:w-auto"
         >
           Clear
@@ -398,12 +401,16 @@ export default function RouteConfirmPanel({ open, onClose }: RouteConfirmPanelPr
     </div>
   );
 
+  if (inline) {
+    return panelContent;
+  }
+
   if (isMobile) {
     return (
       <Sheet
         open={open}
         onOpenChange={(nextOpen) => {
-          if (!nextOpen) onClose();
+          if (!nextOpen) onClose?.();
         }}
       >
         <SheetContent

@@ -20,6 +20,7 @@ import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/PlannerPanel";
+import RouteConfirmPanel from "@/app/features/route/RouteConfirmPanel";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/lib/supabase";
 import {
@@ -34,6 +35,7 @@ export interface SidebarProps {
   onEditPin?: (pinId: string) => void;
   mobileOpen?: boolean;
   mobileTab?: SidebarTab;
+  onMobileTabChange?: (tab: SidebarTab) => void;
   onMobileClose?: () => void;
   onOpenEmail: () => void;
   settingsOpen: boolean;
@@ -45,6 +47,7 @@ export default function Sidebar({
   onEditPin,
   mobileOpen = false,
   mobileTab,
+  onMobileTabChange,
   onMobileClose,
   onOpenEmail,
   settingsOpen,
@@ -64,7 +67,7 @@ export default function Sidebar({
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const activeTab = mobileTab ?? desktopActiveTab;
+  const activeTab = isMobile ? (mobileTab ?? desktopActiveTab) : desktopActiveTab;
   const isCollapsed = collapsed && !mobileOpen;
   const accountInitials = (profile?.name?.[0] || user?.email?.[0] || "?").toUpperCase();
   const accountTriggerClassName = user
@@ -75,6 +78,23 @@ export default function Sidebar({
     setDesktopActiveTab(tab);
     onSettingsClose();
   }, [onSettingsClose]);
+
+  const handleOpenRouteBuilder = useCallback(() => {
+    onSettingsClose();
+    if (isMobile) {
+      onMobileTabChange?.("route");
+      return;
+    }
+    setDesktopActiveTab("route");
+  }, [isMobile, onMobileTabChange, onSettingsClose]);
+
+  const handleCloseRouteBuilder = useCallback(() => {
+    if (isMobile) {
+      onMobileTabChange?.("pins");
+      return;
+    }
+    setDesktopActiveTab("pins");
+  }, [isMobile, onMobileTabChange]);
 
   const handleToggleSettings = useCallback(() => {
     if (settingsOpen) {
@@ -180,8 +200,10 @@ export default function Sidebar({
             theme={theme}
             onThemeChange={setTheme}
           />
+        ) : activeTab === "route" ? (
+          <RouteConfirmPanel inline onClose={handleCloseRouteBuilder} />
         ) : discoverMode ? (
-          <DiscoverPanel />
+          <DiscoverPanel onOpenRouteBuilder={handleOpenRouteBuilder} />
         ) : activeTab === "planner" ? (
           <PlannerPanel />
         ) : (

@@ -5,7 +5,6 @@ import { useStore } from "@/app/store";
 import { buildQuickSavePin } from "@/app/features/discover/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
 import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
-import { dispatchMapMobileAction, dispatchOpenMobileTab } from "@/app/shared/model/mobile-events";
 import { Button } from "@/app/shared/ui/button";
 import {
   Card,
@@ -21,7 +20,11 @@ import {
   getRouteSelectionMessage,
 } from "@/app/features/discover/lib/discover-route-selection";
 
-export default function DiscoverPanel() {
+interface DiscoverPanelProps {
+  onOpenRouteBuilder?: () => void;
+}
+
+export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps) {
   const discoverResults = useStore((s) => s.discoverResults);
   const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
   const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
@@ -68,9 +71,8 @@ export default function DiscoverPanel() {
 
   const openRouteBuilder = useCallback(() => {
     setDiscoverMode(false);
-    dispatchOpenMobileTab("map");
-    dispatchMapMobileAction("open-route-panel");
-  }, [setDiscoverMode]);
+    onOpenRouteBuilder?.();
+  }, [setDiscoverMode, onOpenRouteBuilder]);
 
   const addSelectedStopsToRoute = useCallback((openBuilderAfterAdd: boolean) => {
     if (selectedDiscoverIds.size === 0) return;

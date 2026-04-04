@@ -12,7 +12,7 @@ export interface MapMobileActionEventDetail {
   action: MapMobileAction;
 }
 
-export type MobileSidebarTab = "map" | "pins" | "planner";
+export type MobileSidebarTab = "map" | "pins" | "planner" | "route";
 
 export interface OpenMobileTabEventDetail {
   tab: MobileSidebarTab;

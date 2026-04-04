@@ -43,6 +43,12 @@ export default function MobileBottomBar({
       return;
     }
 
+    if (action.id === "route") {
+      dispatchOpenMobileTab("route");
+      setDrawerOpen(false);
+      return;
+    }
+
     if (action.mapAction) {
       dispatchMapMobileAction(action.mapAction);
       setDrawerOpen(false);
