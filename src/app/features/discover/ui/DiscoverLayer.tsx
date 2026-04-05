@@ -16,7 +16,10 @@ import {
   useHoveredDiscoverId,
   useSelectedDiscoverIds,
 } from "@/app/features/discover/model/discover.selectors";
-import { useAddStop, useRouteStops } from "@/app/features/route/model/route.selectors";
+import {
+  useRouteActions,
+  useRouteStops,
+} from "@/app/features/route/model/route.selectors";
 import {
   MARKER_Z_INDEX,
   type DiscoverMarkerState,
@@ -100,7 +103,7 @@ export default function DiscoverLayer() {
   const pins = useStore((s) => s.pins);
   const addPin = useStore((s) => s.addPin);
   const routeStops = useRouteStops();
-  const addStop = useAddStop();
+  const { addStop } = useRouteActions();
   const [openPlaceId, setOpenPlaceId] = useState<string | null>(null);
 
   const openResult = useMemo(

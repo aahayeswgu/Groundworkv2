@@ -20,17 +20,14 @@ import {
 } from "@/app/features/discover/api/discover-search";
 import { useStore } from "@/app/store";
 import {
+  useDiscoverActions,
   useDiscoverMode,
   useIsDrawing,
   useMarathonMode,
-  useSetDiscoverMode,
-  useSetIsDrawing,
 } from "@/app/features/discover/model/discover.selectors";
 import {
-  useAddActivityEntry,
+  usePlannerActions,
   usePlannerDays,
-  useSetActivePlannerDate,
-  useSetNotesPage,
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.selectors";
 import { useRouteStops } from "@/app/features/route/model/route.selectors";
@@ -76,12 +73,9 @@ export default function Map({ onEditPin }: MapProps) {
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
   const discoverMode = useDiscoverMode();
   const isDrawing = useIsDrawing();
-  const setDiscoverMode = useSetDiscoverMode();
-  const setIsDrawing = useSetIsDrawing();
-  const addActivityEntry = useAddActivityEntry();
-  const setActivePlannerDate = useSetActivePlannerDate();
+  const { setDiscoverMode, setIsDrawing } = useDiscoverActions();
+  const { addActivityEntry, setActivePlannerDate, setNotesPage } = usePlannerActions();
   const trackingEnabled = useTrackingEnabled();
-  const setNotesPage = useSetNotesPage();
   const plannerDays = usePlannerDays();
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);

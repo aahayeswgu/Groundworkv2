@@ -20,23 +20,19 @@ import {
   getRouteSelectionMessage,
 } from "@/app/features/discover/lib/discover-route-selection";
 import {
-  useClearDiscover,
-  useClearMarathonZone,
+  useDiscoverActions,
   useDiscoverResults,
   useHoveredDiscoverId,
   useMarathonMode,
   useMarathonSearchCount,
   useMarathonZones,
   useSearchProgress,
-  useSelectAllDiscover,
   useSelectedDiscoverIds,
-  useSetDiscoverMode,
-  useSetDiscoverResults,
-  useSetHoveredDiscoverId,
-  useToggleDiscoverSelected,
-  useToggleMarathonMode,
 } from "@/app/features/discover/model/discover.selectors";
-import { useAddStop, useRouteStops } from "@/app/features/route/model/route.selectors";
+import {
+  useRouteActions,
+  useRouteStops,
+} from "@/app/features/route/model/route.selectors";
 
 interface DiscoverPanelProps {
   onOpenRouteBuilder?: () => void;
@@ -47,22 +43,24 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
   const selectedDiscoverIds = useSelectedDiscoverIds();
   const hoveredDiscoverId = useHoveredDiscoverId();
   const searchProgress = useSearchProgress();
-  const toggleDiscoverSelected = useToggleDiscoverSelected();
-  const selectAllDiscover = useSelectAllDiscover();
-  const setHoveredDiscoverId = useSetHoveredDiscoverId();
-  const clearDiscover = useClearDiscover();
-  const setDiscoverMode = useSetDiscoverMode();
-  const setDiscoverResults = useSetDiscoverResults();
+  const {
+    toggleDiscoverSelected,
+    selectAllDiscover,
+    setHoveredDiscoverId,
+    clearDiscover,
+    setDiscoverMode,
+    setDiscoverResults,
+    toggleMarathonMode,
+    clearMarathonZone,
+  } = useDiscoverActions();
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
   const routeStops = useRouteStops();
-  const addStop = useAddStop();
+  const { addStop } = useRouteActions();
   const marathonMode = useMarathonMode();
   const marathonZones = useMarathonZones();
   const marathonSearchCount = useMarathonSearchCount();
-  const toggleMarathonMode = useToggleMarathonMode();
-  const clearMarathonZone = useClearMarathonZone();
   const [routeActionMessage, setRouteActionMessage] = useState<string | null>(null);
 
   // Determine which step to show

@@ -23,7 +23,7 @@ import PlannerPanel from "@/app/features/planner/ui/PlannerPanel";
 import RouteConfirmPanel from "@/app/features/route/ui/RouteConfirmPanel";
 import { useDiscoverMode } from "@/app/features/discover/model/discover.selectors";
 import {
-  useSetTrackingEnabled,
+  usePlannerActions,
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.selectors";
 import { useTheme } from "@/app/features/theme/model/theme-context";
@@ -65,7 +65,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const discoverMode = useDiscoverMode();
   const trackingEnabled = useTrackingEnabled();
-  const setTrackingEnabled = useSetTrackingEnabled();
+  const { setTrackingEnabled } = usePlannerActions();
   const user = useStore((s) => s.user);
   const profile = useStore((s) => s.profile);
   const updateProfile = useStore((s) => s.updateProfile);

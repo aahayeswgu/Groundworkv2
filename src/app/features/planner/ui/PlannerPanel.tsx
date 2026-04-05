@@ -4,23 +4,13 @@ import { getOrCreateDay } from "@/app/features/planner/model/planner.store";
 import {
   useActiveNotesPage,
   useActivePlannerDate,
-  useAddActivityEntry,
-  useAddNotesPage,
   useCalendarOpen,
-  useDeleteNotesPage,
   useMonthViewOpen,
   usePlannerDays,
-  useRemovePlannerStop,
-  useSetActiveNotesPage,
-  useSetActivePlannerDate,
-  useSetCalendarOpen,
-  useSetMonthViewOpen,
-  useSetNotesPage,
-  useSetPlannerStopStatus,
-  useSetTrackingEnabled,
+  usePlannerActions,
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.selectors";
-import { useAddStop, useClearRoute } from "@/app/features/route/model/route.selectors";
+import { useRouteActions } from "@/app/features/route/model/route.selectors";
 import { PlannerStopItem } from "@/app/features/planner/ui/PlannerStopItem";
 import PlannerNotes from "@/app/features/planner/ui/PlannerNotes";
 import PlannerActivityLog from "@/app/features/planner/ui/PlannerActivityLog";
@@ -31,23 +21,24 @@ import type { RouteStop } from "@/app/features/route/model/route.types";
 export default function PlannerPanel() {
   const plannerDays = usePlannerDays();
   const activePlannerDate = useActivePlannerDate();
-  const setActivePlannerDate = useSetActivePlannerDate();
-  const setPlannerStopStatus = useSetPlannerStopStatus();
-  const removePlannerStop = useRemovePlannerStop();
-  const addActivityEntry = useAddActivityEntry();
+  const {
+    setActivePlannerDate,
+    setPlannerStopStatus,
+    removePlannerStop,
+    addActivityEntry,
+    setNotesPage,
+    addNotesPage,
+    deleteNotesPage,
+    setActiveNotesPage,
+    setTrackingEnabled,
+    setCalendarOpen,
+    setMonthViewOpen,
+  } = usePlannerActions();
   const trackingEnabled = useTrackingEnabled();
   const activeNotesPage = useActiveNotesPage();
-  const setNotesPage = useSetNotesPage();
-  const addNotesPage = useAddNotesPage();
-  const deleteNotesPage = useDeleteNotesPage();
-  const setActiveNotesPage = useSetActiveNotesPage();
-  const setTrackingEnabled = useSetTrackingEnabled();
-  const addStop = useAddStop();
-  const clearRoute = useClearRoute();
+  const { addStop, clearRoute } = useRouteActions();
   const calendarOpen = useCalendarOpen();
   const monthViewOpen = useMonthViewOpen();
-  const setCalendarOpen = useSetCalendarOpen();
-  const setMonthViewOpen = useSetMonthViewOpen();
 
   const day = getOrCreateDay(plannerDays, activePlannerDate);
   const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;

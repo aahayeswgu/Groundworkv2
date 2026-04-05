@@ -3,9 +3,8 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "@/app/store";
 import {
-  selectAddActivityEntry,
+  selectPlannerActions,
   selectPlannerDays,
-  selectSetPlannerStopStatus,
   selectTrackingEnabled,
 } from "@/app/features/planner/model/planner.selectors";
 import { getOrCreateDay } from "../model/planner.store";
@@ -36,8 +35,7 @@ export default function GpsCheckin() {
 
         const today = new Date().toISOString().slice(0, 10);
         const day = getOrCreateDay(selectPlannerDays(state), today);
-        const setPlannerStopStatus = selectSetPlannerStopStatus(state);
-        const addActivityEntry = selectAddActivityEntry(state);
+        const { setPlannerStopStatus, addActivityEntry } = selectPlannerActions(state);
 
         for (const stop of day.stops) {
           if (stop.status !== "planned") continue;

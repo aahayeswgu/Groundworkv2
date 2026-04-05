@@ -30,23 +30,14 @@ import { buildGoogleMapsUrl } from "@/app/features/route/lib/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/shared/api/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import {
-  useClearRoute,
   useCustomStartAddress,
-  useRemoveStop,
-  useReorderStops,
+  useRouteActions,
   useRouteResult,
   useRouteStops,
-  useSetCustomStartAddress,
-  useSetRouteActive,
-  useSetRouteResult,
-  useSetShareableUrl,
-  useSetStartMode,
   useStartMode,
 } from "@/app/features/route/model/route.selectors";
 import {
-  useAddActivityEntry,
-  useAddPlannerStop,
-  useSetActivePlannerDate,
+  usePlannerActions,
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.selectors";
 import type { RouteStop } from "@/app/features/route/model/route.types";
@@ -152,17 +143,17 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const startMode = useStartMode();
   const customStartAddress = useCustomStartAddress();
   const profile = useStore((s) => s.profile);
-  const reorderStops = useReorderStops();
-  const removeStop = useRemoveStop();
-  const setRouteResult = useSetRouteResult();
-  const setRouteActive = useSetRouteActive();
-  const setStartMode = useSetStartMode();
-  const setCustomStartAddress = useSetCustomStartAddress();
-  const setShareableUrl = useSetShareableUrl();
-  const clearRoute = useClearRoute();
-  const addPlannerStop = useAddPlannerStop();
-  const setActivePlannerDate = useSetActivePlannerDate();
-  const addActivityEntry = useAddActivityEntry();
+  const {
+    reorderStops,
+    removeStop,
+    setRouteResult,
+    setRouteActive,
+    setStartMode,
+    setCustomStartAddress,
+    setShareableUrl,
+    clearRoute,
+  } = useRouteActions();
+  const { addPlannerStop, setActivePlannerDate, addActivityEntry } = usePlannerActions();
   const trackingEnabled = useTrackingEnabled();
 
   const [isBuilding, setIsBuilding] = useState(false);

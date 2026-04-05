@@ -1,14 +1,10 @@
 import { DISCOVER_QUERIES } from "@/app/features/discover/model/discover-queries";
 import { filterAndMapPlace } from "@/app/features/discover/lib/discover-filters";
 import {
-  selectAddMarathonZone,
+  selectDiscoverActions,
   selectDiscoverResults,
-  selectIncrementMarathonCount,
   selectMarathonMode,
   selectMarathonSearchCount,
-  selectSetDiscoverResults,
-  selectSetIsDrawing,
-  selectSetSearchProgress,
 } from "@/app/features/discover/model/discover.selectors";
 import { useStore } from "@/app/store";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
@@ -82,13 +78,15 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
   const Place = google.maps.places.Place;
 
   const state = useStore.getState();
-  const setDiscoverResults = selectSetDiscoverResults(state);
-  const setIsDrawing = selectSetIsDrawing(state);
+  const {
+    setDiscoverResults,
+    setIsDrawing,
+    addMarathonZone,
+    incrementMarathonCount,
+    setSearchProgress,
+  } = selectDiscoverActions(state);
   const marathonMode = selectMarathonMode(state);
   const existingResults = selectDiscoverResults(state);
-  const addMarathonZone = selectAddMarathonZone(state);
-  const incrementMarathonCount = selectIncrementMarathonCount(state);
-  const setSearchProgress = selectSetSearchProgress(state);
   const setProgressForActiveRun = (msg: string): void => {
     if (isCancelled()) return;
     setSearchProgress(msg);

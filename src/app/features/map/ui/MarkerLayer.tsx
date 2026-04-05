@@ -13,11 +13,13 @@ import {
 } from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
 import {
-  useAddPlannerStop,
+  usePlannerActions,
   usePlannerDays,
-  useSetActivePlannerDate,
 } from "@/app/features/planner/model/planner.selectors";
-import { useAddStop, useRouteStops } from "@/app/features/route/model/route.selectors";
+import {
+  useRouteActions,
+  useRouteStops,
+} from "@/app/features/route/model/route.selectors";
 import {
   buildPlannerStopFromPin,
   buildRouteStopFromPin,
@@ -37,11 +39,10 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
   const pinsVisible = useStore((s) => s.pinsVisible);
   const deletePin = useStore((s) => s.deletePin);
-  const addStop = useAddStop();
+  const { addStop } = useRouteActions();
   const routeStops = useRouteStops();
-  const addPlannerStop = useAddPlannerStop();
+  const { addPlannerStop, setActivePlannerDate } = usePlannerActions();
   const plannerDays = usePlannerDays();
-  const setActivePlannerDate = useSetActivePlannerDate();
   const selectedPinId = useStore((s) => s.selectedPinId);
   const selectedPinNonce = useStore((s) => s.selectedPinNonce);
   const [openPinId, setOpenPinId] = useState<string | null>(null);
