@@ -4,6 +4,7 @@ export default function MapButton({
   title,
   children,
   active = false,
+  pressed,
   badge,
   onClick,
   className = "",
@@ -11,6 +12,7 @@ export default function MapButton({
   title: string;
   children: React.ReactNode;
   active?: boolean;
+  pressed?: boolean;
   badge?: number;
   onClick?: () => void;
   className?: string;
@@ -25,9 +27,12 @@ export default function MapButton({
         </span>
       )}
       <button
+        type="button"
         title={title}
+        aria-label={title}
+        aria-pressed={pressed}
         onClick={onClick}
-        className={`map-action-btn map-ctrl-size flex h-10 w-10 items-center justify-center rounded-lg shadow-gw transition-all duration-200 max-lg:h-11 max-lg:w-11 ${buttonStateClass} ${className}`}
+        className={`map-action-btn map-ctrl-size flex h-10 w-10 items-center justify-center rounded-lg shadow-gw transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange/80 focus-visible:ring-offset-2 focus-visible:ring-offset-bg-card max-lg:h-11 max-lg:w-11 ${buttonStateClass} ${className}`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           {children}

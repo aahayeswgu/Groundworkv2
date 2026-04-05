@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   MOBILE_PRIMARY_TABS,
   MOBILE_QUICK_ACTIONS,
@@ -28,8 +28,22 @@ export default function MobileBottomBar({
   onOpenEmail,
 }: MobileBottomBarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const quickActionsId = useId();
   const discoverMode = useStore((s) => s.discoverMode);
   const isDrawing = useStore((s) => s.isDrawing);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerOpen]);
 
   function handlePrimaryTab(tab: MobilePrimaryTab) {
     setDrawerOpen(false);
@@ -79,7 +93,13 @@ export default function MobileBottomBar({
       )}
 
       {drawerOpen && (
-        <div className="fixed inset-x-3 z-[65] rounded-3xl border border-border bg-bg-card/95 shadow-gw-lg backdrop-blur-md lg:hidden bottom-[var(--mobile-bottom-bar-offset)]">
+        <div
+          id={quickActionsId}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Quick actions"
+          className="fixed inset-x-3 z-[65] rounded-3xl border border-border bg-bg-card/95 shadow-gw-lg backdrop-blur-md lg:hidden bottom-[var(--mobile-bottom-bar-offset)]"
+        >
           <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-border" />
           <div className="px-4 pb-4 pt-3">
             <div className="mb-3 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
@@ -107,7 +127,10 @@ export default function MobileBottomBar({
         </div>
       )}
 
-      <div className="mobile-bottom-bar fixed bottom-0 inset-x-0 z-[70] flex lg:hidden bg-bg-card/95 border-t border-border pb-[calc(6px+env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.15)]">
+      <nav
+        aria-label="Primary mobile navigation"
+        className="mobile-bottom-bar fixed bottom-0 inset-x-0 z-[70] flex lg:hidden bg-bg-card/95 border-t border-border pb-[calc(6px+env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.15)]"
+      >
         <div className="grid w-full grid-cols-4 items-stretch gap-0 px-2">
           {MOBILE_PRIMARY_TABS.map((tab) => (
             <MobileTabButton
@@ -120,6 +143,10 @@ export default function MobileBottomBar({
           <button
             type="button"
             onClick={() => setDrawerOpen((prev) => !prev)}
+            aria-label={drawerOpen ? "Close quick actions" : "Open quick actions"}
+            aria-expanded={drawerOpen}
+            aria-controls={quickActionsId}
+            aria-haspopup="dialog"
             className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
               drawerOpen ? "text-orange" : "text-text-muted"
             }`}
@@ -132,7 +159,7 @@ export default function MobileBottomBar({
             More
           </button>
         </div>
-      </div>
+      </nav>
     </>
   );
 }
@@ -150,6 +177,8 @@ function MobileTabButton({
     <button
       type="button"
       onClick={onClick}
+      aria-label={tab.label}
+      aria-current={active ? "page" : undefined}
       className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
         active ? "text-orange" : "text-text-muted"
       }`}

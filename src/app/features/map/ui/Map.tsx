@@ -92,7 +92,7 @@ export default function Map({ onEditPin }: MapProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      alert("Speech recognition is not supported in this browser. Try Chrome.");
+      toast.error("Speech recognition isn't supported in this browser. Try Chrome.");
       return;
     }
 
@@ -202,7 +202,7 @@ export default function Map({ onEditPin }: MapProps) {
         setIsDrawing(false);
         setDiscoverMode(false);
         if (result.type === "invalid") {
-          alert(result.error);
+          toast.error(result.error);
         }
       },
     });
@@ -292,6 +292,15 @@ export default function Map({ onEditPin }: MapProps) {
   const satelliteButtonStateClass = satellite
     ? "border-white bg-white text-orange"
     : "border-orange bg-orange text-white";
+  const mapStatusMessage = quickListening
+    ? "Voice note capture active."
+    : discoverMode && isDrawing
+    ? "Draw on the map to select a search area."
+    : discoverMode
+    ? "Discover mode active."
+    : dropMode
+    ? "Drop pin mode active."
+    : "Map ready.";
 
   return (
     <APIProvider
@@ -300,6 +309,9 @@ export default function Map({ onEditPin }: MapProps) {
       libraries={["places", "geometry", "marker", "routes", "geocoding"]}
     >
       <div className="relative flex-1 h-full overflow-hidden">
+        <div aria-live="polite" className="sr-only">
+          {mapStatusMessage}
+        </div>
         <GoogleMap
           className="w-full h-full z-[1]"
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID"}
@@ -319,6 +331,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title="Drop a pin"
             active={dropMode}
+            pressed={dropMode}
             onClick={dropMode ? exitDropMode : enterDropMode}
           >
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -335,6 +348,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title="Discover businesses"
             active={discoverMode}
+            pressed={discoverMode}
             onClick={discoverMode ? exitDiscoverMode : enterDiscoverMode}
           >
             <circle cx="11" cy="11" r="8" />
@@ -345,6 +359,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title="Show/hide pins"
             active={!pinsVisible}
+            pressed={!pinsVisible}
             onClick={togglePinVisibility}
           >
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -353,6 +368,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title={quickListening ? "Listening... tap to stop" : "Quick Entry — voice note to planner"}
             active={quickListening}
+            pressed={quickListening}
             onClick={toggleQuickEntry}
           >
             <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
@@ -363,13 +379,19 @@ export default function Map({ onEditPin }: MapProps) {
         </div>
 
         {discoverMode && isDrawing && (
-          <div className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]">
+          <div
+            role="status"
+            aria-live="polite"
+            className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]"
+          >
             Drag To Select Area
           </div>
         )}
 
         {/* Floating satellite label (bottom-left, Google Maps style) */}
         <button
+          type="button"
+          aria-pressed={satellite}
           onClick={toggleSatellite}
           className={`absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110 max-lg:bottom-[calc(84px+env(safe-area-inset-bottom,0px))] ${satelliteButtonStateClass}`}
         >
