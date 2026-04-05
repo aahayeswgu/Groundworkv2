@@ -5,11 +5,11 @@ import { PIN_STATUS_BADGE_CLASSNAMES } from "@/app/features/pins/model/pin-statu
 import {
   usePlannerActions,
   usePlannerDays,
-} from "@/app/features/planner/model/planner.selectors";
+} from "@/app/features/planner/model/planner.hooks";
 import {
   useRouteActions,
   useRouteStops,
-} from "@/app/features/route/model/route.selectors";
+} from "@/app/features/route/model/route.hooks";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 
 interface PinListItemProps {

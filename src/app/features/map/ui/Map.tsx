@@ -24,13 +24,13 @@ import {
   useDiscoverMode,
   useIsDrawing,
   useMarathonMode,
-} from "@/app/features/discover/model/discover.selectors";
+} from "@/app/features/discover/model/discover.hooks";
 import {
   usePlannerActions,
   usePlannerDays,
   useTrackingEnabled,
-} from "@/app/features/planner/model/planner.selectors";
-import { useRouteStops } from "@/app/features/route/model/route.selectors";
+} from "@/app/features/planner/model/planner.hooks";
+import { useRouteStops } from "@/app/features/route/model/route.hooks";
 import {
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_ZOOM,

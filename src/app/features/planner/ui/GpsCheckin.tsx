@@ -2,11 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { useStore } from "@/app/store";
-import {
-  selectPlannerActions,
-  selectPlannerDays,
-  selectTrackingEnabled,
-} from "@/app/features/planner/model/planner.selectors";
 import { getOrCreateDay } from "../model/planner.store";
 
 const CHECKIN_RADIUS_M = 60; // ~200ft
@@ -31,11 +26,10 @@ export default function GpsCheckin() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         const state = useStore.getState();
-        if (!selectTrackingEnabled(state)) return;
+        if (!state.trackingEnabled) return;
 
         const today = new Date().toISOString().slice(0, 10);
-        const day = getOrCreateDay(selectPlannerDays(state), today);
-        const { setPlannerStopStatus, addActivityEntry } = selectPlannerActions(state);
+        const day = getOrCreateDay(state.plannerDays, today);
 
         for (const stop of day.stops) {
           if (stop.status !== "planned") continue;
@@ -44,8 +38,8 @@ export default function GpsCheckin() {
           const dist = distanceMeters(latitude, longitude, stop.lat, stop.lng);
           if (dist <= CHECKIN_RADIUS_M) {
             checkedIds.current.add(stop.id);
-            setPlannerStopStatus(stop.id, "visited");
-            addActivityEntry({
+            state.setPlannerStopStatus(stop.id, "visited");
+            state.addActivityEntry({
               time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
               text: `Auto check-in: ${stop.label}`,
             });

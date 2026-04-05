@@ -21,11 +21,11 @@ import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/ui/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/ui/PlannerPanel";
 import RouteConfirmPanel from "@/app/features/route/ui/RouteConfirmPanel";
-import { useDiscoverMode } from "@/app/features/discover/model/discover.selectors";
+import { useDiscoverMode } from "@/app/features/discover/model/discover.hooks";
 import {
   usePlannerActions,
   useTrackingEnabled,
-} from "@/app/features/planner/model/planner.selectors";
+} from "@/app/features/planner/model/planner.hooks";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/shared/api/supabase";
 import {

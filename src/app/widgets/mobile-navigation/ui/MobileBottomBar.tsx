@@ -15,7 +15,7 @@ import {
 import {
   useDiscoverMode,
   useIsDrawing,
-} from "@/app/features/discover/model/discover.selectors";
+} from "@/app/features/discover/model/discover.hooks";
 
 interface MobileBottomBarProps {
   activeTab: MobilePrimaryTab;

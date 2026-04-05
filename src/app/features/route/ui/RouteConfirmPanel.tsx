@@ -35,11 +35,11 @@ import {
   useRouteResult,
   useRouteStops,
   useStartMode,
-} from "@/app/features/route/model/route.selectors";
+} from "@/app/features/route/model/route.hooks";
 import {
   usePlannerActions,
   useTrackingEnabled,
-} from "@/app/features/planner/model/planner.selectors";
+} from "@/app/features/planner/model/planner.hooks";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {

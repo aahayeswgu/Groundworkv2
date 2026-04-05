@@ -1,11 +1,5 @@
 import { DISCOVER_QUERIES } from "@/app/features/discover/model/discover-queries";
 import { filterAndMapPlace } from "@/app/features/discover/lib/discover-filters";
-import {
-  selectDiscoverActions,
-  selectDiscoverResults,
-  selectMarathonMode,
-  selectMarathonSearchCount,
-} from "@/app/features/discover/model/discover.selectors";
 import { useStore } from "@/app/store";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 
@@ -84,9 +78,9 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
     addMarathonZone,
     incrementMarathonCount,
     setSearchProgress,
-  } = selectDiscoverActions(state);
-  const marathonMode = selectMarathonMode(state);
-  const existingResults = selectDiscoverResults(state);
+    marathonMode,
+    discoverResults: existingResults,
+  } = state;
   const setProgressForActiveRun = (msg: string): void => {
     if (isCancelled()) return;
     setSearchProgress(msg);
@@ -172,7 +166,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
 
   // Register the zone after search completes (marathon mode only)
   if (marathonMode) {
-    const zoneCount = selectMarathonSearchCount(useStore.getState()) + 1;
+    const zoneCount = useStore.getState().marathonSearchCount + 1;
     addMarathonZone({
       id: crypto.randomUUID(),
       label: `Zone ${zoneCount}`,

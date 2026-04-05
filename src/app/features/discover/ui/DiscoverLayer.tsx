@@ -15,11 +15,11 @@ import {
   useDiscoverResults,
   useHoveredDiscoverId,
   useSelectedDiscoverIds,
-} from "@/app/features/discover/model/discover.selectors";
+} from "@/app/features/discover/model/discover.hooks";
 import {
   useRouteActions,
   useRouteStops,
-} from "@/app/features/route/model/route.selectors";
+} from "@/app/features/route/model/route.hooks";
 import {
   MARKER_Z_INDEX,
   type DiscoverMarkerState,

@@ -21,7 +21,7 @@ import {
   useRouteActive,
   useRouteResult,
   useRouteStops,
-} from "@/app/features/route/model/route.selectors";
+} from "@/app/features/route/model/route.hooks";
 
 function isRouteRenderable(routeStopCount: number, polylinePointCount: number): boolean {
   return routeStopCount > 0 && polylinePointCount >= 2;

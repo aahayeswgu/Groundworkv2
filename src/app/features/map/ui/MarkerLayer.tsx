@@ -15,11 +15,11 @@ import { useStore } from "@/app/store";
 import {
   usePlannerActions,
   usePlannerDays,
-} from "@/app/features/planner/model/planner.selectors";
+} from "@/app/features/planner/model/planner.hooks";
 import {
   useRouteActions,
   useRouteStops,
-} from "@/app/features/route/model/route.selectors";
+} from "@/app/features/route/model/route.hooks";
 import {
   buildPlannerStopFromPin,
   buildRouteStopFromPin,
