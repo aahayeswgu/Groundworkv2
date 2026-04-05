@@ -13,7 +13,9 @@ export function usePinSync(): void {
 
   useEffect(() => {
     // Step 1: Restore from localStorage
-    useStore.persist.rehydrate();
+    if (!useStore.persist.hasHydrated()) {
+      void useStore.persist.rehydrate();
+    }
 
     // Step 2: Pull from Supabase and merge with local state
     async function pullAndMerge(): Promise<void> {
@@ -34,7 +36,9 @@ export function usePinSync(): void {
     pullAndMerge();
 
     // Step 3: Watch for mutations and debounce push to Supabase
-    const unsubscribe = useStore.subscribe((state) => {
+    const unsubscribe = useStore.subscribe((state, previousState) => {
+      if (state.pins === previousState.pins) return;
+
       const pins = state.pins;
       const prevIds = prevPinIdsRef.current;
       const currentIds = new Set(pins.map((p) => p.id));

@@ -6,14 +6,20 @@ export default function StoreHydration() {
   const purgeStaleDays = useStore((s) => s.purgeStaleDays);
 
   useEffect(() => {
-    useStore.persist.rehydrate();
-  }, []);
+    if (useStore.persist.hasHydrated()) {
+      purgeStaleDays();
+      return;
+    }
 
-  useEffect(() => {
-    // purgeStaleDays runs after rehydrate() on mount
-    // The purge can run anytime after mount safely
-    purgeStaleDays();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const unsubscribe = useStore.persist.onFinishHydration(() => {
+      purgeStaleDays();
+    });
+    void useStore.persist.rehydrate();
+
+    return () => {
+      unsubscribe();
+    };
+  }, [purgeStaleDays]);
 
   return null;
 }
