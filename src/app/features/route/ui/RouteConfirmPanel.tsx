@@ -29,6 +29,26 @@ import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-
 import { buildGoogleMapsUrl } from "@/app/features/route/lib/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/shared/api/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
+import {
+  useClearRoute,
+  useCustomStartAddress,
+  useRemoveStop,
+  useReorderStops,
+  useRouteResult,
+  useRouteStops,
+  useSetCustomStartAddress,
+  useSetRouteActive,
+  useSetRouteResult,
+  useSetShareableUrl,
+  useSetStartMode,
+  useStartMode,
+} from "@/app/features/route/model/route.selectors";
+import {
+  useAddActivityEntry,
+  useAddPlannerStop,
+  useSetActivePlannerDate,
+  useTrackingEnabled,
+} from "@/app/features/planner/model/planner.selectors";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {
@@ -127,23 +147,23 @@ function SortableStopRow({
 // ---- RouteConfirmPanel ----
 export default function RouteConfirmPanel({ open = false, onClose, inline = false }: RouteConfirmPanelProps) {
   const isMobile = useIsMobile();
-  const routeStops = useStore((s) => s.routeStops);
-  const routeResult = useStore((s) => s.routeResult);
-  const startMode = useStore((s) => s.startMode);
-  const customStartAddress = useStore((s) => s.customStartAddress);
+  const routeStops = useRouteStops();
+  const routeResult = useRouteResult();
+  const startMode = useStartMode();
+  const customStartAddress = useCustomStartAddress();
   const profile = useStore((s) => s.profile);
-  const reorderStops = useStore((s) => s.reorderStops);
-  const removeStop = useStore((s) => s.removeStop);
-  const setRouteResult = useStore((s) => s.setRouteResult);
-  const setRouteActive = useStore((s) => s.setRouteActive);
-  const setStartMode = useStore((s) => s.setStartMode);
-  const setCustomStartAddress = useStore((s) => s.setCustomStartAddress);
-  const setShareableUrl = useStore((s) => s.setShareableUrl);
-  const clearRoute = useStore((s) => s.clearRoute);
-  const addPlannerStop = useStore((s) => s.addPlannerStop);
-  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
-  const addActivityEntry = useStore((s) => s.addActivityEntry);
-  const trackingEnabled = useStore((s) => s.trackingEnabled);
+  const reorderStops = useReorderStops();
+  const removeStop = useRemoveStop();
+  const setRouteResult = useSetRouteResult();
+  const setRouteActive = useSetRouteActive();
+  const setStartMode = useSetStartMode();
+  const setCustomStartAddress = useSetCustomStartAddress();
+  const setShareableUrl = useSetShareableUrl();
+  const clearRoute = useClearRoute();
+  const addPlannerStop = useAddPlannerStop();
+  const setActivePlannerDate = useSetActivePlannerDate();
+  const addActivityEntry = useAddActivityEntry();
+  const trackingEnabled = useTrackingEnabled();
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);

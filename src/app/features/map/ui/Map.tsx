@@ -20,6 +20,21 @@ import {
 } from "@/app/features/discover/api/discover-search";
 import { useStore } from "@/app/store";
 import {
+  useDiscoverMode,
+  useIsDrawing,
+  useMarathonMode,
+  useSetDiscoverMode,
+  useSetIsDrawing,
+} from "@/app/features/discover/model/discover.selectors";
+import {
+  useAddActivityEntry,
+  usePlannerDays,
+  useSetActivePlannerDate,
+  useSetNotesPage,
+  useTrackingEnabled,
+} from "@/app/features/planner/model/planner.selectors";
+import { useRouteStops } from "@/app/features/route/model/route.selectors";
+import {
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_ZOOM,
   GOOGLE_MAPS_API_VERSION,
@@ -59,19 +74,19 @@ export default function Map({ onEditPin }: MapProps) {
   const dropSessionRef = useRef<(() => void) | null>(null);
   const discoverSessionRef = useRef<DiscoverDrawSession | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
-  const discoverMode = useStore((s) => s.discoverMode);
-  const isDrawing = useStore((s) => s.isDrawing);
-  const setDiscoverMode = useStore((s) => s.setDiscoverMode);
-  const setIsDrawing = useStore((s) => s.setIsDrawing);
-  const addActivityEntry = useStore((s) => s.addActivityEntry);
-  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
-  const trackingEnabled = useStore((s) => s.trackingEnabled);
-  const setNotesPage = useStore((s) => s.setNotesPage);
-  const plannerDays = useStore((s) => s.plannerDays);
+  const discoverMode = useDiscoverMode();
+  const isDrawing = useIsDrawing();
+  const setDiscoverMode = useSetDiscoverMode();
+  const setIsDrawing = useSetIsDrawing();
+  const addActivityEntry = useAddActivityEntry();
+  const setActivePlannerDate = useSetActivePlannerDate();
+  const trackingEnabled = useTrackingEnabled();
+  const setNotesPage = useSetNotesPage();
+  const plannerDays = usePlannerDays();
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);
-  const routeStops = useStore((s) => s.routeStops);
-  const marathonMode = useStore((s) => s.marathonMode);
+  const routeStops = useRouteStops();
+  const marathonMode = useMarathonMode();
   const prevStopCount = useRef(0);
   const [quickListening, setQuickListening] = useState(false);
   const didStartBackfill = useRef(false);

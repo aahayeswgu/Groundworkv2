@@ -21,6 +21,11 @@ import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/ui/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/ui/PlannerPanel";
 import RouteConfirmPanel from "@/app/features/route/ui/RouteConfirmPanel";
+import { useDiscoverMode } from "@/app/features/discover/model/discover.selectors";
+import {
+  useSetTrackingEnabled,
+  useTrackingEnabled,
+} from "@/app/features/planner/model/planner.selectors";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/shared/api/supabase";
 import {
@@ -58,9 +63,9 @@ export default function Sidebar({
   onSettingsOpen,
   onSettingsClose,
 }: SidebarProps) {
-  const discoverMode = useStore((s) => s.discoverMode);
-  const trackingEnabled = useStore((s) => s.trackingEnabled);
-  const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
+  const discoverMode = useDiscoverMode();
+  const trackingEnabled = useTrackingEnabled();
+  const setTrackingEnabled = useSetTrackingEnabled();
   const user = useStore((s) => s.user);
   const profile = useStore((s) => s.profile);
   const updateProfile = useStore((s) => s.updateProfile);

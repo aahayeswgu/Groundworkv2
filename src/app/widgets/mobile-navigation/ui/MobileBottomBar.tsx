@@ -12,7 +12,10 @@ import {
   dispatchMapMobileAction,
   dispatchOpenMobileTab,
 } from "@/app/shared/model/mobile-events";
-import { useStore } from "@/app/store";
+import {
+  useDiscoverMode,
+  useIsDrawing,
+} from "@/app/features/discover/model/discover.selectors";
 
 interface MobileBottomBarProps {
   activeTab: MobilePrimaryTab;
@@ -29,8 +32,8 @@ export default function MobileBottomBar({
 }: MobileBottomBarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const quickActionsId = useId();
-  const discoverMode = useStore((s) => s.discoverMode);
-  const isDrawing = useStore((s) => s.isDrawing);
+  const discoverMode = useDiscoverMode();
+  const isDrawing = useIsDrawing();
 
   useEffect(() => {
     if (!drawerOpen) return;

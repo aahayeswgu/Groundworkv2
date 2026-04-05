@@ -19,32 +19,50 @@ import {
   addSelectedDiscoverResultsToRoute,
   getRouteSelectionMessage,
 } from "@/app/features/discover/lib/discover-route-selection";
+import {
+  useClearDiscover,
+  useClearMarathonZone,
+  useDiscoverResults,
+  useHoveredDiscoverId,
+  useMarathonMode,
+  useMarathonSearchCount,
+  useMarathonZones,
+  useSearchProgress,
+  useSelectAllDiscover,
+  useSelectedDiscoverIds,
+  useSetDiscoverMode,
+  useSetDiscoverResults,
+  useSetHoveredDiscoverId,
+  useToggleDiscoverSelected,
+  useToggleMarathonMode,
+} from "@/app/features/discover/model/discover.selectors";
+import { useAddStop, useRouteStops } from "@/app/features/route/model/route.selectors";
 
 interface DiscoverPanelProps {
   onOpenRouteBuilder?: () => void;
 }
 
 export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps) {
-  const discoverResults = useStore((s) => s.discoverResults);
-  const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
-  const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
-  const searchProgress = useStore((s) => s.searchProgress);
-  const toggleDiscoverSelected = useStore((s) => s.toggleDiscoverSelected);
-  const selectAllDiscover = useStore((s) => s.selectAllDiscover);
-  const setHoveredDiscoverId = useStore((s) => s.setHoveredDiscoverId);
-  const clearDiscover = useStore((s) => s.clearDiscover);
-  const setDiscoverMode = useStore((s) => s.setDiscoverMode);
-  const setDiscoverResults = useStore((s) => s.setDiscoverResults);
+  const discoverResults = useDiscoverResults();
+  const selectedDiscoverIds = useSelectedDiscoverIds();
+  const hoveredDiscoverId = useHoveredDiscoverId();
+  const searchProgress = useSearchProgress();
+  const toggleDiscoverSelected = useToggleDiscoverSelected();
+  const selectAllDiscover = useSelectAllDiscover();
+  const setHoveredDiscoverId = useSetHoveredDiscoverId();
+  const clearDiscover = useClearDiscover();
+  const setDiscoverMode = useSetDiscoverMode();
+  const setDiscoverResults = useSetDiscoverResults();
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
-  const routeStops = useStore((s) => s.routeStops);
-  const addStop = useStore((s) => s.addStop);
-  const marathonMode = useStore((s) => s.marathonMode);
-  const marathonZones = useStore((s) => s.marathonZones);
-  const marathonSearchCount = useStore((s) => s.marathonSearchCount);
-  const toggleMarathonMode = useStore((s) => s.toggleMarathonMode);
-  const clearMarathonZone = useStore((s) => s.clearMarathonZone);
+  const routeStops = useRouteStops();
+  const addStop = useAddStop();
+  const marathonMode = useMarathonMode();
+  const marathonZones = useMarathonZones();
+  const marathonSearchCount = useMarathonSearchCount();
+  const toggleMarathonMode = useToggleMarathonMode();
+  const clearMarathonZone = useClearMarathonZone();
   const [routeActionMessage, setRouteActionMessage] = useState<string | null>(null);
 
   // Determine which step to show

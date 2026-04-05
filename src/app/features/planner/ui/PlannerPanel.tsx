@@ -1,7 +1,26 @@
 "use client";
 
-import { useStore } from "@/app/store";
 import { getOrCreateDay } from "@/app/features/planner/model/planner.store";
+import {
+  useActiveNotesPage,
+  useActivePlannerDate,
+  useAddActivityEntry,
+  useAddNotesPage,
+  useCalendarOpen,
+  useDeleteNotesPage,
+  useMonthViewOpen,
+  usePlannerDays,
+  useRemovePlannerStop,
+  useSetActiveNotesPage,
+  useSetActivePlannerDate,
+  useSetCalendarOpen,
+  useSetMonthViewOpen,
+  useSetNotesPage,
+  useSetPlannerStopStatus,
+  useSetTrackingEnabled,
+  useTrackingEnabled,
+} from "@/app/features/planner/model/planner.selectors";
+import { useAddStop, useClearRoute } from "@/app/features/route/model/route.selectors";
 import { PlannerStopItem } from "@/app/features/planner/ui/PlannerStopItem";
 import PlannerNotes from "@/app/features/planner/ui/PlannerNotes";
 import PlannerActivityLog from "@/app/features/planner/ui/PlannerActivityLog";
@@ -10,25 +29,25 @@ import type { PlannerStopStatus } from "@/app/features/planner/model/planner.typ
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 export default function PlannerPanel() {
-  const plannerDays = useStore((s) => s.plannerDays);
-  const activePlannerDate = useStore((s) => s.activePlannerDate);
-  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
-  const setPlannerStopStatus = useStore((s) => s.setPlannerStopStatus);
-  const removePlannerStop = useStore((s) => s.removePlannerStop);
-  const addActivityEntry = useStore((s) => s.addActivityEntry);
-  const trackingEnabled = useStore((s) => s.trackingEnabled);
-  const activeNotesPage = useStore((s) => s.activeNotesPage);
-  const setNotesPage = useStore((s) => s.setNotesPage);
-  const addNotesPage = useStore((s) => s.addNotesPage);
-  const deleteNotesPage = useStore((s) => s.deleteNotesPage);
-  const setActiveNotesPage = useStore((s) => s.setActiveNotesPage);
-  const setTrackingEnabled = useStore((s) => s.setTrackingEnabled);
-  const addStop = useStore((s) => s.addStop);
-  const clearRoute = useStore((s) => s.clearRoute);
-  const calendarOpen = useStore((s) => s.calendarOpen);
-  const monthViewOpen = useStore((s) => s.monthViewOpen);
-  const setCalendarOpen = useStore((s) => s.setCalendarOpen);
-  const setMonthViewOpen = useStore((s) => s.setMonthViewOpen);
+  const plannerDays = usePlannerDays();
+  const activePlannerDate = useActivePlannerDate();
+  const setActivePlannerDate = useSetActivePlannerDate();
+  const setPlannerStopStatus = useSetPlannerStopStatus();
+  const removePlannerStop = useRemovePlannerStop();
+  const addActivityEntry = useAddActivityEntry();
+  const trackingEnabled = useTrackingEnabled();
+  const activeNotesPage = useActiveNotesPage();
+  const setNotesPage = useSetNotesPage();
+  const addNotesPage = useAddNotesPage();
+  const deleteNotesPage = useDeleteNotesPage();
+  const setActiveNotesPage = useSetActiveNotesPage();
+  const setTrackingEnabled = useSetTrackingEnabled();
+  const addStop = useAddStop();
+  const clearRoute = useClearRoute();
+  const calendarOpen = useCalendarOpen();
+  const monthViewOpen = useMonthViewOpen();
+  const setCalendarOpen = useSetCalendarOpen();
+  const setMonthViewOpen = useSetMonthViewOpen();
 
   const day = getOrCreateDay(plannerDays, activePlannerDate);
   const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;

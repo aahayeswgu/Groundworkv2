@@ -12,6 +12,12 @@ import {
 } from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
 import {
+  useDiscoverResults,
+  useHoveredDiscoverId,
+  useSelectedDiscoverIds,
+} from "@/app/features/discover/model/discover.selectors";
+import { useAddStop, useRouteStops } from "@/app/features/route/model/route.selectors";
+import {
   MARKER_Z_INDEX,
   type DiscoverMarkerState,
 } from "../model/discover-marker";
@@ -88,13 +94,13 @@ function MarkerShell({ children, state }: MarkerShellProps) {
 export default function DiscoverLayer() {
   const map = useMap();
   const isMobile = useIsMobile();
-  const discoverResults = useStore((s) => s.discoverResults);
-  const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
-  const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
+  const discoverResults = useDiscoverResults();
+  const selectedDiscoverIds = useSelectedDiscoverIds();
+  const hoveredDiscoverId = useHoveredDiscoverId();
   const pins = useStore((s) => s.pins);
   const addPin = useStore((s) => s.addPin);
-  const routeStops = useStore((s) => s.routeStops);
-  const addStop = useStore((s) => s.addStop);
+  const routeStops = useRouteStops();
+  const addStop = useAddStop();
   const [openPlaceId, setOpenPlaceId] = useState<string | null>(null);
 
   const openResult = useMemo(

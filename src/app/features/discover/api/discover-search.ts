@@ -1,5 +1,15 @@
 import { DISCOVER_QUERIES } from "@/app/features/discover/model/discover-queries";
 import { filterAndMapPlace } from "@/app/features/discover/lib/discover-filters";
+import {
+  selectAddMarathonZone,
+  selectDiscoverResults,
+  selectIncrementMarathonCount,
+  selectMarathonMode,
+  selectMarathonSearchCount,
+  selectSetDiscoverResults,
+  selectSetIsDrawing,
+  selectSetSearchProgress,
+} from "@/app/features/discover/model/discover.selectors";
 import { useStore } from "@/app/store";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 
@@ -71,18 +81,14 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
 
   const Place = google.maps.places.Place;
 
-  const store = useStore.getState() as ReturnType<typeof useStore.getState> & {
-    setSearchProgress?: (msg: string) => void;
-  };
-  const {
-    setDiscoverResults,
-    setIsDrawing,
-    marathonMode,
-    discoverResults: existingResults,
-    addMarathonZone,
-    incrementMarathonCount,
-  } = store;
-  const setSearchProgress: (msg: string) => void = store.setSearchProgress ?? (() => {});
+  const state = useStore.getState();
+  const setDiscoverResults = selectSetDiscoverResults(state);
+  const setIsDrawing = selectSetIsDrawing(state);
+  const marathonMode = selectMarathonMode(state);
+  const existingResults = selectDiscoverResults(state);
+  const addMarathonZone = selectAddMarathonZone(state);
+  const incrementMarathonCount = selectIncrementMarathonCount(state);
+  const setSearchProgress = selectSetSearchProgress(state);
   const setProgressForActiveRun = (msg: string): void => {
     if (isCancelled()) return;
     setSearchProgress(msg);
@@ -168,7 +174,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
 
   // Register the zone after search completes (marathon mode only)
   if (marathonMode) {
-    const zoneCount = useStore.getState().marathonSearchCount + 1;
+    const zoneCount = selectMarathonSearchCount(useStore.getState()) + 1;
     addMarathonZone({
       id: crypto.randomUUID(),
       label: `Zone ${zoneCount}`,
