@@ -34,6 +34,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
   const setHoveredDiscoverId = useStore((s) => s.setHoveredDiscoverId);
   const clearDiscover = useStore((s) => s.clearDiscover);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
+  const setDiscoverResults = useStore((s) => s.setDiscoverResults);
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
@@ -225,10 +226,10 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   <button
                     onClick={() => {
                       const zoneIds = new Set(zone.results.map((r) => r.placeId));
-                      const remaining = useStore.getState().discoverResults.filter(
+                      const remaining = discoverResults.filter(
                         (r) => !zoneIds.has(r.placeId)
                       );
-                      useStore.getState().setDiscoverResults(remaining);
+                      setDiscoverResults(remaining);
                       clearMarathonZone(zone.id);
                     }}
                     className="text-red-400 hover:underline ml-3"
@@ -258,8 +259,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   onHoverEnter={setHoveredDiscoverId}
                   onHoverLeave={() => setHoveredDiscoverId(null)}
                   onQuickSave={(r) => {
-                    const currentPins = useStore.getState().pins;
-                    const dup = currentPins.some(
+                    const dup = pins.some(
                       (p) =>
                         p.title.toLowerCase() === r.displayName.toLowerCase() ||
                         (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),
@@ -267,7 +267,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                     if (!dup) addPin(buildQuickSavePin(r));
                   }}
                   onUnsave={(r) => {
-                    const match = useStore.getState().pins.find(
+                    const match = pins.find(
                       (p) =>
                         p.title.toLowerCase() === r.displayName.toLowerCase() ||
                         (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),

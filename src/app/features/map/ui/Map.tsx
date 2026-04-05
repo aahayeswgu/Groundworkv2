@@ -71,6 +71,7 @@ export default function Map({ onEditPin }: MapProps) {
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);
   const routeStops = useStore((s) => s.routeStops);
+  const marathonMode = useStore((s) => s.marathonMode);
   const prevStopCount = useRef(0);
   const [quickListening, setQuickListening] = useState(false);
   const didStartBackfill = useRef(false);
@@ -191,8 +192,7 @@ export default function Map({ onEditPin }: MapProps) {
           setIsDrawing(false);
           searchBusinessesInArea(result.bounds);
           const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
-          const marathonModeEnabled = useStore.getState().marathonMode;
-          if (isMobileViewport && !marathonModeEnabled) {
+          if (isMobileViewport && !marathonMode) {
             dispatchOpenMobileTab("pins");
           }
           return;
@@ -206,7 +206,7 @@ export default function Map({ onEditPin }: MapProps) {
         }
       },
     });
-  }, [setDiscoverMode, setIsDrawing, stopDiscoverSession]);
+  }, [marathonMode, setDiscoverMode, setIsDrawing, stopDiscoverSession]);
 
   useEffect(() => {
     if (!mapState || didStartBackfill.current) return;
