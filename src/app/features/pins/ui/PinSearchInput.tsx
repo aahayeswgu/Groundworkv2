@@ -69,7 +69,7 @@ export default function PinSearchInput({ value, onChange }: PinSearchInputProps)
       const result = await geocoder.geocode({ placeId: suggestion.placeId });
       const location = result.results[0]?.geometry?.location;
       if (location) {
-        dispatchPanToLocation(location.lat(), location.lng(), 16);
+        dispatchPanToLocation(location.lat(), location.lng(), 16, suggestion.description);
       }
     } catch {
       // silently fail — user can still search

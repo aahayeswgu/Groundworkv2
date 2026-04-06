@@ -34,10 +34,11 @@ export interface PanToLocationEventDetail {
   lat: number;
   lng: number;
   zoom?: number;
+  label?: string;
 }
 
-export function dispatchPanToLocation(lat: number, lng: number, zoom?: number) {
+export function dispatchPanToLocation(lat: number, lng: number, zoom?: number, label?: string) {
   window.dispatchEvent(new CustomEvent<PanToLocationEventDetail>(PAN_TO_LOCATION_EVENT, {
-    detail: { lat, lng, zoom },
+    detail: { lat, lng, zoom, label },
   }));
 }

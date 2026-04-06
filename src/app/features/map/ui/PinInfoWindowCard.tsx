@@ -140,7 +140,7 @@ export function PinInfoWindowCard({
       ) : null}
 
       <CardContent className={pin.photoUrl ? "pb-3.5 pt-3" : "pb-3.5 pt-3.5"}>
-        <div className="mb-1 text-[15px] font-bold leading-[1.3] text-[#1A1A1A]">
+        <div className="mb-1 text-[15px] font-bold leading-[1.3] text-text-primary">
           {pin.title}
         </div>
 
@@ -160,17 +160,17 @@ export function PinInfoWindowCard({
                 className="cursor-pointer no-underline"
               >
                 <span className="tracking-[1px] text-[#F59E0B]">{stars}</span>{" "}
-                <span className="font-bold text-[#1A1A1A]">{pin.rating}</span>
+                <span className="font-bold text-text-primary">{pin.rating}</span>
                 {pin.ratingCount ? (
-                  <span className="text-[#888]"> ({pin.ratingCount} reviews)</span>
+                  <span className="text-text-muted"> ({pin.ratingCount} reviews)</span>
                 ) : null}
               </a>
             ) : (
               <>
                 <span className="tracking-[1px] text-[#F59E0B]">{stars}</span>{" "}
-                <span className="font-bold text-[#1A1A1A]">{pin.rating}</span>
+                <span className="font-bold text-text-primary">{pin.rating}</span>
                 {pin.ratingCount ? (
-                  <span className="text-[#888]"> ({pin.ratingCount})</span>
+                  <span className="text-text-muted"> ({pin.ratingCount})</span>
                 ) : null}
               </>
             )}
@@ -178,19 +178,19 @@ export function PinInfoWindowCard({
         ) : null}
 
         {pin.address ? (
-          <div className="mb-1 text-xs leading-[1.4] text-[#555]">
+          <div className="mb-1 text-xs leading-[1.4] text-text-muted">
             {pin.address}
           </div>
         ) : null}
 
         {pin.contact ? (
-          <div className="mb-0.5 text-xs text-[#333]">
+          <div className="mb-0.5 text-xs text-text-secondary">
             {"\u{1F464}"} {pin.contact}
           </div>
         ) : null}
 
         {pin.phone ? (
-          <div className="mb-2 text-xs text-[#333]">
+          <div className="mb-2 text-xs text-text-secondary">
             {"\u{1F4DE}"} {pin.phone}
           </div>
         ) : null}
@@ -201,7 +201,7 @@ export function PinInfoWindowCard({
               href={`https://www.google.com/maps/place/?q=place_id:${pin.placeId}`}
               target="_blank"
               rel="noopener"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#4285F4] no-underline"
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-input px-3 py-1.5 text-xs font-semibold text-text-secondary no-underline transition-colors hover:border-orange hover:text-orange"
             >
               View on Google Maps
             </a>
@@ -254,10 +254,8 @@ export function PinInfoWindowCard({
 
             {showAi ? (
               <div
-                className={`mt-2 max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg border px-3 py-3 text-[13px] leading-[1.6] ${
-                  aiError
-                    ? "border-[#e0e0e0] bg-[#f8f9fa] text-gw-red"
-                    : "border-[#e0e0e0] bg-[#f8f9fa] text-[#1A1A1A]"
+                className={`mt-2 max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-bg-input px-3 py-3 text-[13px] leading-[1.6] ${
+                  aiError ? "text-gw-red" : "text-text-primary"
                 }`}
               >
                 {aiError ?? aiText}

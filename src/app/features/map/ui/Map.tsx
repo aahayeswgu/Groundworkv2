@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
 import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
 import { reverseGeocode } from "@/app/lib/geocoding";
@@ -29,6 +29,7 @@ import {
 } from "@/app/shared/model/mobile-events";
 
 interface PendingPin { lat: number; lng: number; address: string; }
+interface TempMarker { lat: number; lng: number; label: string; }
 
 interface MapProps {
   onEditPin: (pinId: string) => void;
@@ -57,6 +58,8 @@ export default function Map({ onEditPin }: MapProps) {
   const dropSessionRef = useRef<(() => void) | null>(null);
   const discoverSessionRef = useRef<DiscoverDrawSession | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
+  const [tempMarker, setTempMarker] = useState<TempMarker | null>(null);
+  const tempMarkerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const discoverMode = useStore((s) => s.discoverMode);
   const isDrawing = useStore((s) => s.isDrawing);
   const setDiscoverMode = useStore((s) => s.setDiscoverMode);
@@ -286,6 +289,13 @@ export default function Map({ onEditPin }: MapProps) {
       if (!map) return;
       map.panTo({ lat: detail.lat, lng: detail.lng });
       if (detail.zoom) map.setZoom(detail.zoom);
+
+      // Show a temporary marker at the search location
+      if (detail.label) {
+        if (tempMarkerTimerRef.current) clearTimeout(tempMarkerTimerRef.current);
+        setTempMarker({ lat: detail.lat, lng: detail.lng, label: detail.label });
+        tempMarkerTimerRef.current = setTimeout(() => setTempMarker(null), 15000);
+      }
     };
 
     window.addEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
@@ -320,6 +330,23 @@ export default function Map({ onEditPin }: MapProps) {
           clickableIcons={false}
         >
           <MapInstanceBridge onMapChange={handleMapChange} />
+          {tempMarker && (
+            <AdvancedMarker
+              position={{ lat: tempMarker.lat, lng: tempMarker.lng }}
+              title={tempMarker.label}
+              onClick={() => setTempMarker(null)}
+            >
+              <div className="flex flex-col items-center">
+                <div className="rounded-lg bg-bg-card px-3 py-1.5 text-xs font-bold text-text-primary shadow-gw-lg ring-1 ring-border">
+                  {tempMarker.label}
+                </div>
+                <svg width="24" height="32" viewBox="0 0 24 32" className="drop-shadow-lg">
+                  <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#C4692A" />
+                  <circle cx="12" cy="12" r="5" fill="white" />
+                </svg>
+              </div>
+            </AdvancedMarker>
+          )}
         </GoogleMap>
 
         {/* Floating controls */}
@@ -383,22 +410,34 @@ export default function Map({ onEditPin }: MapProps) {
               toast("Geolocation is not supported by this browser.", { duration: 3000 });
               return;
             }
-            toast("Locating...", { duration: 2000, id: "locate-me" });
+            toast("Locating...", { duration: 5000, id: "locate-me" });
+
+            const onSuccess = (pos: GeolocationPosition) => {
+              const map = mapInstance.current;
+              if (!map) return;
+              map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              map.setZoom(16);
+              toast("Found you!", { duration: 2000, id: "locate-me" });
+            };
+
+            const onError = (err: GeolocationPositionError) => {
+              const msg = err.code === 1
+                ? "Location permission denied. Allow location access in your browser."
+                : "Unable to get your location. Try again.";
+              toast(msg, { duration: 4000, id: "locate-me" });
+            };
+
+            // Try fast (network-based) first, then fall back to high accuracy
             navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                const map = mapInstance.current;
-                if (!map) return;
-                map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-                map.setZoom(16);
-                toast("Found you!", { duration: 2000, id: "locate-me" });
+              onSuccess,
+              () => {
+                navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+                  enableHighAccuracy: true,
+                  timeout: 15000,
+                  maximumAge: 60000,
+                });
               },
-              (err) => {
-                const msg = err.code === 1
-                  ? "Location permission denied. Allow location access in your browser."
-                  : "Unable to get your location. Try again.";
-                toast(msg, { duration: 4000, id: "locate-me" });
-              },
-              { enableHighAccuracy: true, timeout: 10000 },
+              { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
             );
           }}
           title="Where am I?"
