@@ -415,9 +415,15 @@ export default function Map({ onEditPin }: MapProps) {
             const onSuccess = (pos: GeolocationPosition) => {
               const map = mapInstance.current;
               if (!map) return;
-              map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+              map.panTo({ lat, lng });
               map.setZoom(16);
               toast("Found you!", { duration: 2000, id: "locate-me" });
+
+              if (tempMarkerTimerRef.current) clearTimeout(tempMarkerTimerRef.current);
+              setTempMarker({ lat, lng, label: "You are here" });
+              tempMarkerTimerRef.current = setTimeout(() => setTempMarker(null), 15000);
             };
 
             const onError = (err: GeolocationPositionError) => {
