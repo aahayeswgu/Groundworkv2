@@ -11,6 +11,7 @@ import {
 } from "../model/pin-list.model";
 import { PinListEmptyState } from "./PinListEmptyState";
 import { PinListItem } from "./PinListItem";
+import PinSearchInput from "./PinSearchInput";
 
 interface PinListProps {
   onEditPin: (pinId: string) => void;
@@ -35,29 +36,9 @@ export function PinList({ onEditPin }: PinListProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search input */}
+      {/* Search input with Google Places autocomplete */}
       <div className="px-4 py-3 border-b border-border bg-bg-card relative">
-        <div className="flex items-center bg-bg-input border-[1.5px] border-border rounded-lg px-3 transition-colors duration-200 focus-within:border-orange">
-          <svg
-            className="text-text-muted shrink-0"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="M21 21l-4.35-4.35" />
-          </svg>
-          <input
-            className="flex-1 border-none bg-transparent py-2.5 px-2 text-sm text-text-primary outline-none placeholder:text-text-muted"
-            placeholder="Search pins or enter address..."
-            autoComplete="off"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        </div>
+        <PinSearchInput value={searchText} onChange={setSearchText} />
       </div>
 
       {/* Pin count row */}

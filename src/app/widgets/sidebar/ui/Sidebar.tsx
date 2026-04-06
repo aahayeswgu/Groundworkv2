@@ -45,6 +45,7 @@ export interface SidebarProps {
   settingsOpen: boolean;
   onSettingsOpen: () => void;
   onSettingsClose: () => void;
+  onReplayTutorial: () => void;
 }
 
 export default function Sidebar({
@@ -57,6 +58,7 @@ export default function Sidebar({
   settingsOpen,
   onSettingsOpen,
   onSettingsClose,
+  onReplayTutorial,
 }: SidebarProps) {
   const discoverMode = useStore((s) => s.discoverMode);
   const trackingEnabled = useStore((s) => s.trackingEnabled);
@@ -217,6 +219,8 @@ export default function Sidebar({
             onToggleTracking={() => setTrackingEnabled(!trackingEnabled)}
             theme={theme}
             onThemeChange={setTheme}
+            onReplayTutorial={onReplayTutorial}
+            onSignOut={user ? handleSignOut : undefined}
           />
         ) : activeTab === "route" ? (
           <RouteConfirmPanel inline onClose={handleCloseRouteBuilder} />

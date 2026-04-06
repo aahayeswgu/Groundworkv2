@@ -27,3 +27,17 @@ export function dispatchOpenMobileTab(tab: MobileSidebarTab) {
     detail: { tab },
   }));
 }
+
+export const PAN_TO_LOCATION_EVENT = "gw-pan-to-location" as const;
+
+export interface PanToLocationEventDetail {
+  lat: number;
+  lng: number;
+  zoom?: number;
+}
+
+export function dispatchPanToLocation(lat: number, lng: number, zoom?: number) {
+  window.dispatchEvent(new CustomEvent<PanToLocationEventDetail>(PAN_TO_LOCATION_EVENT, {
+    detail: { lat, lng, zoom },
+  }));
+}

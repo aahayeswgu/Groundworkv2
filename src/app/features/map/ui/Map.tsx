@@ -22,8 +22,10 @@ import { useStore } from "@/app/store";
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "../model/map.constants";
 import {
   MAP_ACTION_EVENT,
+  PAN_TO_LOCATION_EVENT,
   dispatchOpenMobileTab,
   type MapMobileActionEventDetail,
+  type PanToLocationEventDetail,
 } from "@/app/shared/model/mobile-events";
 
 interface PendingPin { lat: number; lng: number; address: string; }
@@ -276,6 +278,20 @@ export default function Map({ onEditPin }: MapProps) {
     toggleQuickEntry,
   ]);
 
+  useEffect(() => {
+    const handlePanToLocation = (event: Event) => {
+      const detail = (event as CustomEvent<PanToLocationEventDetail>).detail;
+      if (!detail) return;
+      const map = mapInstance.current;
+      if (!map) return;
+      map.panTo({ lat: detail.lat, lng: detail.lng });
+      if (detail.zoom) map.setZoom(detail.zoom);
+    };
+
+    window.addEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
+    return () => window.removeEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
+  }, []);
+
   const toggleSatellite = useCallback(() => {
     setSatellite((prev) => {
       const next = !prev;
@@ -363,6 +379,34 @@ export default function Map({ onEditPin }: MapProps) {
             Drag To Select Area
           </div>
         )}
+
+        {/* Locate me button (bottom-right) */}
+        <button
+          onClick={() => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                const map = mapInstance.current;
+                if (!map) return;
+                map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+                map.setZoom(16);
+              },
+              () => {
+                toast("Unable to get your location. Check browser permissions.", { duration: 3000 });
+              },
+              { enableHighAccuracy: true, timeout: 8000 },
+            );
+          }}
+          title="Where am I?"
+          className="absolute bottom-8 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-lg border border-orange bg-orange text-white shadow-gw transition-all duration-200 hover:bg-orange-hover max-lg:bottom-[calc(84px+env(safe-area-inset-bottom,0px))]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="4" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="22" y2="12" />
+          </svg>
+        </button>
 
         {/* Floating satellite label (bottom-left, Google Maps style) */}
         <button

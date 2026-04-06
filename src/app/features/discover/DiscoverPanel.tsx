@@ -298,7 +298,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   variant="outline"
                   disabled={selectedDiscoverIds.size === 0}
                   onClick={() => addSelectedStopsToRoute(false)}
-                  className="w-full"
+                  className="w-full border-orange text-orange hover:bg-orange-dim hover:text-orange"
                 >
                   Add Only
                 </Button>

@@ -120,17 +120,17 @@ export function DiscoverInfoWindowCard({
       ) : null}
 
       <CardContent className={result.photoUri ? "pb-3.5 pt-3" : "pb-3.5 pt-3.5"}>
-        <div className="pr-4 text-[15px] font-bold leading-[1.3] text-[#1A1A1A]">{result.displayName}</div>
-        <div className="mt-[3px] text-xs font-semibold text-[#D4712A]">{placeType}</div>
+        <div className="pr-4 text-[15px] font-bold leading-[1.3] text-text-primary">{result.displayName}</div>
+        <div className="mt-[3px] text-xs font-semibold text-orange">{placeType}</div>
 
         {result.rating ? (
-          <div className="mt-1 text-xs">
+          <div className="mt-1 text-xs text-text-secondary">
             <span className="tracking-[1px] text-[#F59E0B]">{stars}</span> {result.rating}
           </div>
         ) : null}
 
         {result.address ? (
-          <div className="mt-[3px] text-[11px] leading-[1.3] text-[#777]">{result.address}</div>
+          <div className="mt-[3px] text-[11px] leading-[1.3] text-text-muted">{result.address}</div>
         ) : null}
 
         <div className="mt-2.5 flex flex-wrap items-center gap-2">
@@ -138,7 +138,7 @@ export function DiscoverInfoWindowCard({
             href={`https://www.google.com/maps/place/?q=place_id:${result.placeId}`}
             target="_blank"
             rel="noopener"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#4285F4] no-underline"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-input px-3 py-1.5 text-xs font-semibold text-text-secondary no-underline transition-colors hover:border-orange hover:text-orange"
           >
             Google Maps
           </a>
@@ -150,7 +150,7 @@ export function DiscoverInfoWindowCard({
             className={`inline-flex items-center gap-1 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
               saved
                 ? "cursor-default bg-transparent text-gw-green"
-                : "cursor-pointer bg-[#D4712A] text-white hover:brightness-110"
+                : "cursor-pointer bg-orange text-white hover:bg-orange-hover"
             }`}
           >
             {saved ? "\u2713 Pinned" : "Save as Pin"}
@@ -161,10 +161,10 @@ export function DiscoverInfoWindowCard({
           type="button"
           onClick={handleAddToRoute}
           disabled={routeState !== "idle"}
-          className={`mt-2 flex w-full items-center justify-center gap-1 rounded-md border px-2 py-[7px] text-xs font-bold text-[#D4712A] transition-all ${
+          className={`mt-2 flex w-full items-center justify-center gap-1 rounded-md border px-2 py-[7px] text-xs font-bold text-orange transition-all ${
             routeState === "idle"
-              ? "cursor-pointer border-[#D4712A]"
-              : "cursor-default border-[#D4712A] opacity-70"
+              ? "cursor-pointer border-orange"
+              : "cursor-default border-orange opacity-70"
           }`}
         >
           {routeState === "full" ? "Max 25 Stops" : routeState === "added" ? "\u2713 Added to Route" : "+ Add to Route"}
@@ -185,10 +185,8 @@ export function DiscoverInfoWindowCard({
 
         {showAi ? (
           <div
-            className={`mt-2 max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg border px-3 py-3 text-[13px] leading-[1.6] ${
-              aiError
-                ? "border-[#e0e0e0] bg-[#f8f9fa] text-gw-red"
-                : "border-[#e0e0e0] bg-[#f8f9fa] text-[#1A1A1A]"
+            className={`mt-2 max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-bg-input px-3 py-3 text-[13px] leading-[1.6] ${
+              aiError ? "text-gw-red" : "text-text-primary"
             }`}
           >
             {aiError ?? aiText}

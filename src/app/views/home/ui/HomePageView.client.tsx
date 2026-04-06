@@ -8,6 +8,7 @@ import GpsCheckin from "@/app/features/planner/GpsCheckin";
 import AuthListener from "@/app/features/auth/AuthListener";
 import EmailOverlay from "@/app/features/email/EmailOverlay";
 import PinModal from "@/app/features/pins/ui/PinModal";
+import TutorialOverlay from "@/app/features/tutorial/ui/TutorialOverlay";
 import { useStore } from "@/app/store";
 import MobileBottomBar from "@/app/widgets/mobile-navigation/ui/MobileBottomBar";
 import {
@@ -24,6 +25,7 @@ export default function HomePageView() {
   const [mobileSidebarTab, setMobileSidebarTab] = useState<SidebarTab>("pins");
   const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const pins = useStore((s) => s.pins);
 
   const handleOpenEmail = useCallback(() => {
@@ -97,6 +99,7 @@ export default function HomePageView() {
           settingsOpen={settingsOpen}
           onSettingsOpen={() => setSettingsOpen(true)}
           onSettingsClose={() => setSettingsOpen(false)}
+          onReplayTutorial={() => setTutorialOpen(true)}
         />
         <Map onEditPin={openEditModal} />
       </div>
@@ -108,6 +111,10 @@ export default function HomePageView() {
       />
       {emailOpen && <EmailOverlay onClose={() => setEmailOpen(false)} />}
       {editPin && <PinModal mode="edit" initialData={editPin} onClose={() => setEditPinId(null)} />}
+      <TutorialOverlay
+        forceOpen={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+      />
     </>
   );
 }

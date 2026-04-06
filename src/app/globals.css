@@ -166,7 +166,7 @@
   box-shadow: var(--shadow), 0 0 0 2px rgba(255, 255, 255, 0.65);
 }
 .map-controls .map-action-badge {
-  background-color: var(--orange);
+  background-color: var(--gw-red);
   color: #fff;
 }
 
