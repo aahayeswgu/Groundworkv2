@@ -1,0 +1,16 @@
+{
+  "name": "Groundwork",
+  "short_name": "Groundwork",
+  "description": "Field sales CRM for construction teams",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A1D23",
+  "theme_color": "#D4712A",
+  "icons": [
+    {
+      "src": "/globe.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { APIProvider, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
+import { ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
 import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
 import { reverseGeocode } from "@/app/lib/geocoding";
@@ -306,11 +306,7 @@ export default function Map({ onEditPin }: MapProps) {
     : "border-orange bg-orange text-white";
 
   return (
-    <APIProvider
-      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      version="weekly"
-      libraries={["places", "geometry", "marker", "routes", "geocoding"]}
-    >
+    <>
       <div className="relative flex-1 h-full overflow-hidden">
         <GoogleMap
           className="w-full h-full z-[1]"
@@ -383,17 +379,26 @@ export default function Map({ onEditPin }: MapProps) {
         {/* Locate me button (bottom-right) */}
         <button
           onClick={() => {
+            if (!navigator.geolocation) {
+              toast("Geolocation is not supported by this browser.", { duration: 3000 });
+              return;
+            }
+            toast("Locating...", { duration: 2000, id: "locate-me" });
             navigator.geolocation.getCurrentPosition(
               (pos) => {
                 const map = mapInstance.current;
                 if (!map) return;
                 map.panTo({ lat: pos.coords.latitude, lng: pos.coords.longitude });
                 map.setZoom(16);
+                toast("Found you!", { duration: 2000, id: "locate-me" });
               },
-              () => {
-                toast("Unable to get your location. Check browser permissions.", { duration: 3000 });
+              (err) => {
+                const msg = err.code === 1
+                  ? "Location permission denied. Allow location access in your browser."
+                  : "Unable to get your location. Try again.";
+                toast(msg, { duration: 4000, id: "locate-me" });
               },
-              { enableHighAccuracy: true, timeout: 8000 },
+              { enableHighAccuracy: true, timeout: 10000 },
             );
           }}
           title="Where am I?"
@@ -433,6 +438,6 @@ export default function Map({ onEditPin }: MapProps) {
           onClose={() => setPendingPin(null)}
         />
       )}
-    </APIProvider>
+    </>
   );
 }

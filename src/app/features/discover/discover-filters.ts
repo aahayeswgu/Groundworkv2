@@ -21,6 +21,7 @@ export function classifyGooglePlace(types: string[], displayName: string): strin
   if (name.match(/pav|asphalt/)) return 'Paving';
   if (name.match(/mason|brick/)) return 'Masonry';
   if (name.match(/fence|fencing/)) return 'Fencing';
+  if (name.match(/drill|boring|well service/)) return 'Drilling';
   if (name.match(/manufactur|industrial.*supply|production.*facility/)) return 'Manufacturing';
   if (name.match(/construct|contract|builder/)) return 'Construction';
   return 'Trade/Contractor';
@@ -45,6 +46,17 @@ const EXCLUDED_TYPES = new Set([
   "transit_station",
   "subway_station",
   "bus_station",
+  "premise",
+  "subpremise",
+  "street_address",
+  "neighborhood",
+  "single_family_residential",
+  "multi_family_residential",
+  "housing_complex",
+  "apartment_building",
+  "apartment_rental_agency",
+  "condominium_complex",
+  "real_estate_agency",
 ]);
 
 type PlaceLike = {
@@ -89,6 +101,11 @@ export function filterAndMapPlace(
   // Exclude irrelevant types.
   const types = place.types ?? [];
   if (types.some((t) => EXCLUDED_TYPES.has(t))) return null;
+
+  // Exclude chains and residential by name.
+  const displayName = place.displayName;
+  if (EXCLUDED_CHAINS.test(displayName)) return null;
+  if (EXCLUDED_NAME_PATTERNS.test(displayName)) return null;
 
   const photoUri = place.photos?.[0]?.getURI?.({ maxWidth: 400 }) ?? null;
 

@@ -51,14 +51,6 @@ export default function SidebarSettingsPanel({
     setConfirmDeleteAll(false);
   }
 
-  function handleBugReport() {
-    const subject = encodeURIComponent("Groundwork Bug Report");
-    const body = encodeURIComponent(
-      `Describe the bug:\n\n\nSteps to reproduce:\n1. \n2. \n3. \n\nExpected behavior:\n\n\nDevice/Browser: ${navigator.userAgent}\n`,
-    );
-    window.open(`mailto:support@groundwork.app?subject=${subject}&body=${body}`, "_blank");
-  }
-
   return (
     <div className="flex-1 flex flex-col overflow-y-auto scrollbar-thin">
       {settingsToast && (
@@ -164,29 +156,6 @@ export default function SidebarSettingsPanel({
             Cancel
           </button>
         )}
-      </div>
-
-      {/* Bug Report */}
-      <div className="px-5 py-4 border-b border-border">
-        <button
-          onClick={handleBugReport}
-          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-orange-dim hover:text-orange"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M8 2l1.88 1.88" />
-            <path d="M14.12 3.88L16 2" />
-            <path d="M9 7.13v-1a3.003 3.003 0 116 0v1" />
-            <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6" />
-            <path d="M12 20v-9" />
-            <path d="M6.53 9C4.6 8.8 3 7.1 3 5" />
-            <path d="M6 13H2" />
-            <path d="M3 21c0-2.1 1.7-3.9 3.8-4" />
-            <path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" />
-            <path d="M22 13h-4" />
-            <path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" />
-          </svg>
-          Report a Bug
-        </button>
       </div>
 
       {/* Sign Out */}

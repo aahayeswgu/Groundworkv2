@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { APIProvider } from "@vis.gl/react-google-maps";
 import Sidebar from "@/app/widgets/sidebar/ui/Sidebar";
 import Map from "@/app/features/map/ui/Map";
 import StoreHydration from "@/app/shared/ui/StoreHydration";
@@ -84,7 +85,11 @@ export default function HomePageView() {
   const editPin = editPinId ? (pins.find((p) => p.id === editPinId) ?? null) : null;
 
   return (
-    <>
+    <APIProvider
+      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+      version="weekly"
+      libraries={["places", "geometry", "marker", "routes", "geocoding"]}
+    >
       <StoreHydration />
       <GpsCheckin />
       <AuthListener />
@@ -115,6 +120,6 @@ export default function HomePageView() {
         forceOpen={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
       />
-    </>
+    </APIProvider>
   );
 }

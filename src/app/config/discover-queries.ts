@@ -20,4 +20,6 @@ export const DISCOVER_QUERIES: string[] = [
   "solar panel installer",
   "home builder",
   "construction company",
+  "onshore drilling contractor",
+  "offshore drilling company",
 ];
