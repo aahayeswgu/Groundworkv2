@@ -83,7 +83,6 @@ export default function Map({ onEditPin }: MapProps) {
   const marathonMode = useMarathonMode();
   const prevStopCount = useRef(0);
   const [quickListening, setQuickListening] = useState(false);
-  const didStartBackfill = useRef(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quickRecognitionRef = useRef<any>(null);
 
@@ -216,16 +215,6 @@ export default function Map({ onEditPin }: MapProps) {
       },
     });
   }, [marathonMode, setDiscoverMode, setIsDrawing, stopDiscoverSession]);
-
-  useEffect(() => {
-    if (!mapState || didStartBackfill.current) return;
-    didStartBackfill.current = true;
-
-    // Backfill Google Places data for pins missing placeId (one-time, non-blocking)
-    import("@/app/features/pins/api/backfill-place-data").then(({ backfillPlaceData }) => {
-      backfillPlaceData();
-    });
-  }, [mapState]);
 
   useEffect(() => {
     return () => {

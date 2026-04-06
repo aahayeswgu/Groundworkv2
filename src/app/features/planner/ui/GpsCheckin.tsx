@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "@/app/store";
 import { getOrCreateDay } from "../model/planner.store";
+import { useStoreHydrated } from "@/app/shared/lib/use-store-hydrated";
 
 const CHECKIN_RADIUS_M = 60; // ~200ft
 
@@ -18,8 +19,10 @@ function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number):
 
 export default function GpsCheckin() {
   const checkedIds = useRef<Set<string>>(new Set());
+  const storeHydrated = useStoreHydrated();
 
   useEffect(() => {
+    if (!storeHydrated) return;
     if (!("geolocation" in navigator)) return;
 
     const id = navigator.geolocation.watchPosition(
@@ -51,7 +54,7 @@ export default function GpsCheckin() {
     );
 
     return () => navigator.geolocation.clearWatch(id);
-  }, []);
+  }, [storeHydrated]);
 
   return null;
 }

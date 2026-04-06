@@ -2,6 +2,13 @@
 for this codebase should be pragmatic and it should follow dry coding principles focused on reusability, not repeating yourself and clean code.
 This is a feature driven style, organize code by application domain or features.
 
+## UI Granularity Rule
+
+- Do not over-fragment single-use UI into many tiny files.
+- Keep small one-off sections (roughly under 60 lines) in the parent feature component by default.
+- Extract subcomponents only when there is concrete reuse, better testability, or clear complexity reduction.
+- For tightly-coupled modal/panel sections (header/footer/simple field groups), prefer local composition in the parent file.
+
 ## Hard Frontend Ban
 
 - Imperative script injection is strictly forbidden in app code.
