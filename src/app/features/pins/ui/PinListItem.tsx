@@ -2,6 +2,14 @@
 
 import { useStore } from "@/app/store";
 import { PIN_STATUS_BADGE_CLASSNAMES } from "@/app/features/pins/model/pin-status-palette";
+import {
+  usePlannerActions,
+  usePlannerDays,
+} from "@/app/features/planner/model/planner.hooks";
+import {
+  useRouteActions,
+  useRouteStops,
+} from "@/app/features/route/model/route.hooks";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 
 interface PinListItemProps {
@@ -11,14 +19,11 @@ interface PinListItemProps {
 
 export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const focusPin = useStore((s) => s.focusPin);
-  const addStop = useStore((s) => s.addStop);
-  const removeStop = useStore((s) => s.removeStop);
-  const routeStops = useStore((s) => s.routeStops);
+  const { addStop, removeStop } = useRouteActions();
+  const routeStops = useRouteStops();
   const isInRoute = routeStops.some((s) => s.id === pin.id);
-  const addPlannerStop = useStore((s) => s.addPlannerStop);
-  const removePlannerStop = useStore((s) => s.removePlannerStop);
-  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
-  const plannerDays = useStore((s) => s.plannerDays);
+  const { addPlannerStop, removePlannerStop, setActivePlannerDate } = usePlannerActions();
+  const plannerDays = usePlannerDays();
   const today = new Date().toISOString().slice(0, 10);
   const todayStops = plannerDays[today]?.stops ?? [];
   const isPlanned = todayStops.some((s) => s.pinId === pin.id);

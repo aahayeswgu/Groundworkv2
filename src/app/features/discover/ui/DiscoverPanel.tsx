@@ -2,9 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useStore } from "@/app/store";
-import { buildQuickSavePin } from "@/app/features/discover/discover-info";
-import { DiscoverResultItem } from "@/app/features/discover/DiscoverResultItem";
-import { cancelDiscoverSearch } from "@/app/features/discover/discover-search";
+import { buildQuickSavePin } from "@/app/features/discover/lib/discover-info";
+import { DiscoverResultItem } from "@/app/features/discover/ui/DiscoverResultItem";
+import { cancelDiscoverSearch } from "@/app/features/discover/api/discover-search";
 import { Button } from "@/app/shared/ui/button";
 import {
   Card,
@@ -19,31 +19,48 @@ import {
   addSelectedDiscoverResultsToRoute,
   getRouteSelectionMessage,
 } from "@/app/features/discover/lib/discover-route-selection";
+import {
+  useDiscoverActions,
+  useDiscoverResults,
+  useHoveredDiscoverId,
+  useMarathonMode,
+  useMarathonSearchCount,
+  useMarathonZones,
+  useSearchProgress,
+  useSelectedDiscoverIds,
+} from "@/app/features/discover/model/discover.hooks";
+import {
+  useRouteActions,
+  useRouteStops,
+} from "@/app/features/route/model/route.hooks";
 
 interface DiscoverPanelProps {
   onOpenRouteBuilder?: () => void;
 }
 
 export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps) {
-  const discoverResults = useStore((s) => s.discoverResults);
-  const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
-  const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
-  const searchProgress = useStore((s) => s.searchProgress);
-  const toggleDiscoverSelected = useStore((s) => s.toggleDiscoverSelected);
-  const selectAllDiscover = useStore((s) => s.selectAllDiscover);
-  const setHoveredDiscoverId = useStore((s) => s.setHoveredDiscoverId);
-  const clearDiscover = useStore((s) => s.clearDiscover);
-  const setDiscoverMode = useStore((s) => s.setDiscoverMode);
+  const discoverResults = useDiscoverResults();
+  const selectedDiscoverIds = useSelectedDiscoverIds();
+  const hoveredDiscoverId = useHoveredDiscoverId();
+  const searchProgress = useSearchProgress();
+  const {
+    toggleDiscoverSelected,
+    selectAllDiscover,
+    setHoveredDiscoverId,
+    clearDiscover,
+    setDiscoverMode,
+    setDiscoverResults,
+    toggleMarathonMode,
+    clearMarathonZone,
+  } = useDiscoverActions();
   const addPin = useStore((s) => s.addPin);
   const deletePin = useStore((s) => s.deletePin);
   const pins = useStore((s) => s.pins);
-  const routeStops = useStore((s) => s.routeStops);
-  const addStop = useStore((s) => s.addStop);
-  const marathonMode = useStore((s) => s.marathonMode);
-  const marathonZones = useStore((s) => s.marathonZones);
-  const marathonSearchCount = useStore((s) => s.marathonSearchCount);
-  const toggleMarathonMode = useStore((s) => s.toggleMarathonMode);
-  const clearMarathonZone = useStore((s) => s.clearMarathonZone);
+  const routeStops = useRouteStops();
+  const { addStop } = useRouteActions();
+  const marathonMode = useMarathonMode();
+  const marathonZones = useMarathonZones();
+  const marathonSearchCount = useMarathonSearchCount();
   const [routeActionMessage, setRouteActionMessage] = useState<string | null>(null);
 
   // Determine which step to show
@@ -225,10 +242,10 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   <button
                     onClick={() => {
                       const zoneIds = new Set(zone.results.map((r) => r.placeId));
-                      const remaining = useStore.getState().discoverResults.filter(
+                      const remaining = discoverResults.filter(
                         (r) => !zoneIds.has(r.placeId)
                       );
-                      useStore.getState().setDiscoverResults(remaining);
+                      setDiscoverResults(remaining);
                       clearMarathonZone(zone.id);
                     }}
                     className="text-red-400 hover:underline ml-3"
@@ -258,8 +275,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   onHoverEnter={setHoveredDiscoverId}
                   onHoverLeave={() => setHoveredDiscoverId(null)}
                   onQuickSave={(r) => {
-                    const currentPins = useStore.getState().pins;
-                    const dup = currentPins.some(
+                    const dup = pins.some(
                       (p) =>
                         p.title.toLowerCase() === r.displayName.toLowerCase() ||
                         (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),
@@ -267,7 +283,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                     if (!dup) addPin(buildQuickSavePin(r));
                   }}
                   onUnsave={(r) => {
-                    const match = useStore.getState().pins.find(
+                    const match = pins.find(
                       (p) =>
                         p.title.toLowerCase() === r.displayName.toLowerCase() ||
                         (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),

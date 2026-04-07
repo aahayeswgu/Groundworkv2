@@ -1,5 +1,5 @@
-import { DISCOVER_QUERIES } from "@/app/config/discover-queries";
-import { filterAndMapPlace } from "@/app/features/discover/discover-filters";
+import { DISCOVER_QUERIES } from "@/app/features/discover/model/discover-queries";
+import { filterAndMapPlace } from "@/app/features/discover/lib/discover-filters";
 import { useStore } from "@/app/store";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 
@@ -71,18 +71,16 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
 
   const Place = google.maps.places.Place;
 
-  const store = useStore.getState() as ReturnType<typeof useStore.getState> & {
-    setSearchProgress?: (msg: string) => void;
-  };
+  const state = useStore.getState();
   const {
     setDiscoverResults,
     setIsDrawing,
-    marathonMode,
-    discoverResults: existingResults,
     addMarathonZone,
     incrementMarathonCount,
-  } = store;
-  const setSearchProgress: (msg: string) => void = store.setSearchProgress ?? (() => {});
+    setSearchProgress,
+    marathonMode,
+    discoverResults: existingResults,
+  } = state;
   const setProgressForActiveRun = (msg: string): void => {
     if (isCancelled()) return;
     setSearchProgress(msg);

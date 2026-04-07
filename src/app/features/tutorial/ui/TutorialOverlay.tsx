@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { hasTutorialBeenSeen, markTutorialSeen } from "../model/tutorial.model";
 
 interface TutorialSlide {
@@ -77,23 +77,14 @@ interface TutorialOverlayProps {
 }
 
 export default function TutorialOverlay({ forceOpen = false, onClose }: TutorialOverlayProps) {
-  const [visible, setVisible] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => hasTutorialBeenSeen());
   const [slide, setSlide] = useState(0);
-
-  useEffect(() => {
-    if (forceOpen) {
-      setSlide(0);
-      setVisible(true);
-      return;
-    }
-    if (!hasTutorialBeenSeen()) {
-      setVisible(true);
-    }
-  }, [forceOpen]);
+  const visible = forceOpen || !isDismissed;
 
   const close = useCallback(() => {
     markTutorialSeen();
-    setVisible(false);
+    setIsDismissed(true);
+    setSlide(0);
     onClose?.();
   }, [onClose]);
 

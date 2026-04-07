@@ -17,7 +17,11 @@ import {
   ROUTE_LINE_STYLE,
   ROUTE_MARKER_Z_INDEX_BASE,
 } from "@/app/features/route/model/route-layer.constants";
-import { useStore } from "@/app/store";
+import {
+  useRouteActive,
+  useRouteResult,
+  useRouteStops,
+} from "@/app/features/route/model/route.hooks";
 
 function isRouteRenderable(routeStopCount: number, polylinePointCount: number): boolean {
   return routeStopCount > 0 && polylinePointCount >= 2;
@@ -40,9 +44,9 @@ function RouteStopMarkerVisual({ label }: { label: string }) {
 export default function RouteLayer() {
   const map = useMap();
   const isMobile = useIsMobile();
-  const routeResult = useStore((s) => s.routeResult);
-  const routeStops = useStore((s) => s.routeStops);
-  const routeActive = useStore((s) => s.routeActive);
+  const routeResult = useRouteResult();
+  const routeStops = useRouteStops();
+  const routeActive = useRouteActive();
   const [openStopId, setOpenStopId] = useState<string | null>(null);
 
   const canRenderRoute = useMemo(

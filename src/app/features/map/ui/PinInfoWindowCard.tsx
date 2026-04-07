@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchAiBrief } from "@/app/lib/ask-ai";
+import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import { cn } from "@/app/shared/lib/utils";
 import { Card, CardContent } from "@/app/shared/ui/card";

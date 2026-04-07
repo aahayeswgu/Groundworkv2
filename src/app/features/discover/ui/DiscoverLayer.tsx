@@ -12,14 +12,23 @@ import {
 } from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
 import {
+  useDiscoverResults,
+  useHoveredDiscoverId,
+  useSelectedDiscoverIds,
+} from "@/app/features/discover/model/discover.hooks";
+import {
+  useRouteActions,
+  useRouteStops,
+} from "@/app/features/route/model/route.hooks";
+import {
   MARKER_Z_INDEX,
   type DiscoverMarkerState,
-} from "./discover-marker";
-import { buildQuickSavePin } from "./discover-info";
+} from "../model/discover-marker";
+import { buildQuickSavePin } from "../lib/discover-info";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import type { RouteStop } from "@/app/features/route/model/route.types";
-import { DiscoverInfoWindowCard } from "./ui/DiscoverInfoWindowCard";
+import { DiscoverInfoWindowCard } from "./DiscoverInfoWindowCard";
 
 function getMarkerState(
   placeId: string,
@@ -88,13 +97,13 @@ function MarkerShell({ children, state }: MarkerShellProps) {
 export default function DiscoverLayer() {
   const map = useMap();
   const isMobile = useIsMobile();
-  const discoverResults = useStore((s) => s.discoverResults);
-  const selectedDiscoverIds = useStore((s) => s.selectedDiscoverIds);
-  const hoveredDiscoverId = useStore((s) => s.hoveredDiscoverId);
+  const discoverResults = useDiscoverResults();
+  const selectedDiscoverIds = useSelectedDiscoverIds();
+  const hoveredDiscoverId = useHoveredDiscoverId();
   const pins = useStore((s) => s.pins);
   const addPin = useStore((s) => s.addPin);
-  const routeStops = useStore((s) => s.routeStops);
-  const addStop = useStore((s) => s.addStop);
+  const routeStops = useRouteStops();
+  const { addStop } = useRouteActions();
   const [openPlaceId, setOpenPlaceId] = useState<string | null>(null);
 
   const openResult = useMemo(

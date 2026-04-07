@@ -21,6 +21,10 @@ interface BuildUpdatePinPatchInput {
   followUpDate: string;
   notes: NoteEntry[];
   timestamp: string;
+  placeId?: string;
+  photoUrl?: string;
+  rating?: number;
+  ratingCount?: number;
 }
 
 export function buildCreatePin({
@@ -47,6 +51,10 @@ export function buildCreatePin({
     lng: initialData.lng ?? 0,
     createdAt: timestamp,
     updatedAt: timestamp,
+    placeId: initialData.placeId,
+    photoUrl: initialData.photoUrl,
+    rating: initialData.rating,
+    ratingCount: initialData.ratingCount,
   };
 }
 
@@ -59,6 +67,10 @@ export function buildUpdatePinPatch({
   followUpDate,
   notes,
   timestamp,
+  placeId,
+  photoUrl,
+  rating,
+  ratingCount,
 }: BuildUpdatePinPatchInput): Partial<Pin> {
   return {
     title,
@@ -69,6 +81,10 @@ export function buildUpdatePinPatch({
     followUpDate,
     notes,
     updatedAt: timestamp,
+    placeId,
+    photoUrl,
+    rating,
+    ratingCount,
   };
 }
 

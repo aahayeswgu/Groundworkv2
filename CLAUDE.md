@@ -2,6 +2,13 @@
 for this codebase should be pragmatic and it should follow dry coding principles focused on reusability, not repeating yourself and clean code.
 This is a feature driven style, organize code by application domain or features.
 
+## UI Granularity Rule
+
+- Do not over-fragment single-use UI into many tiny files.
+- Keep small one-off sections (roughly under 60 lines) in the parent feature component by default.
+- Extract subcomponents only when there is concrete reuse, better testability, or clear complexity reduction.
+- For tightly-coupled modal/panel sections (header/footer/simple field groups), prefer local composition in the parent file.
+
 ## Hard Frontend Ban
 
 - Imperative script injection is strictly forbidden in app code.
@@ -153,7 +160,7 @@ A construction field sales CRM for Gillman Services, rebuilt from a monolithic 1
 - Sidebar width scales at breakpoints: 340px default, 380px at 1280px, 400px at 1440px, 420px at 1600px
 - Template literals with ternary expressions for dynamic classes
 - Pattern: `className={`base-classes ${condition ? "active-classes" : "inactive-classes"}`}`
-- Use `!` prefix (Tailwind important modifier) for override states (e.g., `!bg-orange !text-white`)
+- Do not use Tailwind `!` prefix modifiers; fix specificity via component structure, layer order, or tokenized variants
 ## SVG Icons
 - Standard viewBox: `0 0 24 24`
 - Standard attributes: `fill="none" stroke="currentColor" strokeWidth="2"`

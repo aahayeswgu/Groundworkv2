@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { localToRemote, remoteToLocal } from '@/app/features/pins/sync/merge';
+import { localToRemote, remoteToLocal } from '@/app/features/pins/api/sync/merge';
 import type { Pin } from '@/app/features/pins/model/pin.types';
-import type { RemotePin } from '@/app/features/pins/sync/merge';
+import type { RemotePin } from '@/app/features/pins/api/sync/merge';
 
 const basePin: Pin = {
   id: 'pin-abc',

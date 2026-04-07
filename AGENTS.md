@@ -10,13 +10,13 @@ These rules are mandatory for all frontend work in this repository.
 
 1. Frontend architecture must follow Feature-Sliced Design (FSD): `layers -> slices -> segments`.
 2. Organize by business domains, not by technical file-type buckets.
-3. The Next.js App Router lives in `app/` and route files (`page.tsx`, `layout.tsx`) must stay thin and mostly compose/import FSD view modules.
-4. FSD layers live under `app/` and must follow this hierarchy:
-   1. `app/views`
-   2. `app/widgets`
-   3. `app/features`
-   4. `app/entities`
-   5. `app/shared`
+3. The Next.js App Router lives in `src/app/` and route files (`page.tsx`, `layout.tsx`) must stay thin and mostly compose/import FSD view modules.
+4. FSD layers live under `src/app/` and must follow this hierarchy:
+   1. `src/app/views`
+   2. `src/app/widgets`
+   3. `src/app/features`
+   4. `src/app/entities`
+   5. `src/app/shared`
 5. Golden dependency rule: modules may only import from strictly lower layers; never upward.
 6. Standard slice segments must be used — do not dump everything into a single file:
    1. `ui` — React components (JSX). No raw data arrays, no type-only files.
@@ -46,22 +46,27 @@ These rules are mandatory for all frontend work in this repository.
    2. Keep extracted reusable UI in `ui/`, static variants/config in `model/`, and pure transformers/helpers in `lib/`.
    3. Prefer narrow, explicit props over boolean-heavy “god components”.
    4. Avoid copy-pasting near-identical `div` trees across tabs/panels/cards; compose shared primitives instead.
-12. External script loading policy (strictly enforced):
+12. UI granularity policy (enforced):
+   1. Do not over-fragment one-off UI into tiny files.
+   2. If a subcomponent is single-use and small (roughly under 60 lines), keep it in the parent feature UI file by default.
+   3. Extract only when there is clear reuse, independent testability, or a meaningful complexity reduction.
+   4. For tightly-coupled modal/panel sections (header/footer/simple field groups), prefer local composition over separate files.
+13. External script loading policy (strictly enforced):
    1. Do not inject scripts imperatively with `document.createElement("script")`, `appendChild`, or `removeChild` in React components.
    2. Do not load third-party SDKs via manual DOM mutation inside `useEffect`.
    3. Use framework-native loading mechanisms (for Next.js: `next/script`) or server-safe integration points.
    4. Any exception requires explicit user approval in the same task.
-13. Unsafe HTML injection policy (strictly enforced):
+14. Unsafe HTML injection policy (strictly enforced):
    1. `dangerouslySetInnerHTML` is prohibited in this repository.
    2. Do not pass raw HTML strings into the DOM from APIs, SDKs, or user input.
    3. Prefer plain text rendering or explicitly modeled/sanitized render pipelines that do not require `dangerouslySetInnerHTML`.
    4. Any exception requires explicit user approval in the same task.
-14. DOM HTML API policy (strictly enforced):
+15. DOM HTML API policy (strictly enforced):
    1. Do not read or write `innerHTML` / `outerHTML` in app code.
    2. Do not use `insertAdjacentHTML` or `document.write`.
    3. In form handlers, do not pull markup from `e.currentTarget.innerHTML`; use controlled state, refs, or typed values instead.
    4. Any exception requires explicit user approval in the same task.
-15. CSS specificity policy (strictly enforced):
+16. CSS specificity policy (strictly enforced):
    1. Do not use CSS `!important`.
    2. Do not use Tailwind `!` modifier utilities (for example `!bg-*`, `!text-*`, `!border-*`).
    3. Fix the underlying cascade/layer issue instead of forcing specificity.
@@ -117,11 +122,11 @@ For AI Agents:
 - Accessibility:
   - Use semantic HTML where meaningful.
 - Frontend cleanup guardrails (required before finalizing frontend edits):
-  - Run `rg -n 'style=\\{\\{' app --glob '*.tsx' --glob '*.ts'` and justify any remaining inline styles in the PR/summary.
-  - Run `rg -n 'document\\.createElement\\(\\s*[\"\\x27]script[\"\\x27]\\s*\\)|\\.appendChild\\(|\\.removeChild\\(' app --glob '*.tsx' --glob '*.ts'` and remove violations.
-  - Run `rg -n 'dangerouslySetInnerHTML' app --glob '*.tsx' --glob '*.ts'` and remove all matches.
-  - Run `rg -n '\\b(innerHTML|outerHTML|insertAdjacentHTML|document\\.write)\\b' app --glob '*.tsx' --glob '*.ts'` and remove all matches.
-  - Run `rg -n '!important|className=.*![A-Za-z\\[]' app --glob '*.tsx' --glob '*.ts' --glob '*.css'` and remove all matches.
+  - Run `rg -n 'style=\\{\\{' src/app --glob '*.tsx' --glob '*.ts'` and justify any remaining inline styles in the PR/summary.
+  - Run `rg -n 'document\\.createElement\\(\\s*[\"\\x27]script[\"\\x27]\\s*\\)|\\.appendChild\\(|\\.removeChild\\(' src/app --glob '*.tsx' --glob '*.ts'` and remove violations.
+  - Run `rg -n 'dangerouslySetInnerHTML' src/app --glob '*.tsx' --glob '*.ts'` and remove all matches.
+  - Run `rg -n '\\b(innerHTML|outerHTML|insertAdjacentHTML|document\\.write)\\b' src/app --glob '*.tsx' --glob '*.ts'` and remove all matches.
+  - Run `rg -n '!important|className=.*![A-Za-z\\[]' src/app --glob '*.tsx' --glob '*.ts' --glob '*.css'` and remove all matches.
   - Remove duplicated JSX blocks introduced during the change by extracting reusable components.
   - If a file grows beyond ~300 lines, split static data to `model/` and helpers to `lib/`.
 

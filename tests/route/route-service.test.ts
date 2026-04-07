@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { RouteStop } from '@/app/features/route/model/route.types';
 
-const { computeRoute } = await import('@/app/features/route/route-service');
+const { computeRoute } = await import('@/app/features/route/api/route-service');
 
 const makeStop = (id: string): RouteStop => ({
   id,
@@ -18,12 +18,13 @@ class FakeLatLng {
   constructor(lat: number, lng: number) { this.lat = lat; this.lng = lng; }
 }
 
-function buildGoogleMock(directionsServiceImpl: unknown) {
+function buildGoogleMock(computeRoutesImpl: unknown) {
   return {
     maps: {
-      DirectionsService: directionsServiceImpl,
+      importLibrary: vi.fn().mockResolvedValue({
+        Route: { computeRoutes: computeRoutesImpl },
+      }),
       LatLng: FakeLatLng,
-      TravelMode: { DRIVING: 'DRIVING' },
     },
   };
 }
@@ -33,25 +34,21 @@ describe('computeRoute', () => {
     vi.clearAllMocks();
   });
 
-  it('returns RouteResult with optimizedOrder from DirectionsService', async () => {
+  it('returns RouteResult with optimized order from Route.computeRoutes', async () => {
     const mockResponse = {
       routes: [{
-        legs: [
-          { distance: { value: 3000 }, duration: { value: 300 } },
-          { distance: { value: 2000 }, duration: { value: 200 } },
-        ],
-        waypoint_order: [1, 0],
-        overview_path: [
+        distanceMeters: 5000,
+        durationMillis: 500000,
+        optimizedIntermediateWaypointIndices: [1, 0],
+        path: [
           { lat: () => 37.7749, lng: () => -122.4194 },
           { lat: () => 37.8, lng: () => -122.4 },
         ],
       }],
-    } as unknown as google.maps.DirectionsResult;
+    };
 
-    const FakeDS = vi.fn(function () {
-      return { route: vi.fn().mockResolvedValue(mockResponse) };
-    });
-    vi.stubGlobal('google', buildGoogleMock(FakeDS));
+    const computeRoutes = vi.fn().mockResolvedValue(mockResponse);
+    vi.stubGlobal('google', buildGoogleMock(computeRoutes));
 
     const origin = { address: 'Home' };
     const stops = [makeStop('a'), makeStop('b')];
@@ -67,34 +64,32 @@ describe('computeRoute', () => {
     ]);
   });
 
-  it('returns null when DirectionsService.route throws', async () => {
-    const FakeDS = vi.fn(function () {
-      return { route: vi.fn().mockRejectedValue(new Error('API quota exceeded')) };
-    });
-    vi.stubGlobal('google', buildGoogleMock(FakeDS));
+  it('throws RouteComputeError when Route.computeRoutes fails', async () => {
+    const computeRoutes = vi.fn().mockRejectedValue(new Error('API quota exceeded'));
+    vi.stubGlobal('google', buildGoogleMock(computeRoutes));
 
-    const result = await computeRoute({ address: 'Home' }, [makeStop('a')]);
-    expect(result).toBeNull();
+    await expect(computeRoute({ address: 'Home' }, [makeStop('a')]))
+      .rejects
+      .toMatchObject({
+        name: 'RouteComputeError',
+        code: 'routes-request-failed',
+      });
   });
 
-  it('sums duration across all legs correctly', async () => {
+  it('uses route-level durationMillis for total duration seconds', async () => {
     const mockResponse = {
       routes: [{
-        legs: [
-          { distance: { value: 5000 }, duration: { value: 1800 } },
-          { distance: { value: 5000 }, duration: { value: 1800 } },
-        ],
-        waypoint_order: [],
-        overview_path: [
+        distanceMeters: 10000,
+        durationMillis: 3600000,
+        optimizedIntermediateWaypointIndices: [],
+        path: [
           { lat: () => 37.7749, lng: () => -122.4194 },
         ],
       }],
-    } as unknown as google.maps.DirectionsResult;
+    };
 
-    const FakeDS = vi.fn(function () {
-      return { route: vi.fn().mockResolvedValue(mockResponse) };
-    });
-    vi.stubGlobal('google', buildGoogleMock(FakeDS));
+    const computeRoutes = vi.fn().mockResolvedValue(mockResponse);
+    vi.stubGlobal('google', buildGoogleMock(computeRoutes));
 
     const result = await computeRoute({ address: 'Home' }, [makeStop('a')]);
     expect(result!.totalDurationSeconds).toBe(3600);

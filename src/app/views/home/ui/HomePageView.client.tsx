@@ -4,10 +4,11 @@ import { useState, useCallback, useEffect } from "react";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import Sidebar from "@/app/widgets/sidebar/ui/Sidebar";
 import Map from "@/app/features/map/ui/Map";
+import { GOOGLE_MAPS_API_VERSION } from "@/app/features/map/model/map.constants";
 import StoreHydration from "@/app/shared/ui/StoreHydration";
-import GpsCheckin from "@/app/features/planner/GpsCheckin";
-import AuthListener from "@/app/features/auth/AuthListener";
-import EmailOverlay from "@/app/features/email/EmailOverlay";
+import GpsCheckin from "@/app/features/planner/ui/GpsCheckin";
+import AuthListener from "@/app/features/auth/ui/AuthListener";
+import EmailOverlay from "@/app/features/email/ui/EmailOverlay";
 import PinModal from "@/app/features/pins/ui/PinModal";
 import TutorialOverlay from "@/app/features/tutorial/ui/TutorialOverlay";
 import { useStore } from "@/app/store";
@@ -87,7 +88,7 @@ export default function HomePageView() {
   return (
     <APIProvider
       apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      version="weekly"
+      version={GOOGLE_MAPS_API_VERSION}
       libraries={["places", "geometry", "marker", "routes", "geocoding"]}
     >
       <StoreHydration />

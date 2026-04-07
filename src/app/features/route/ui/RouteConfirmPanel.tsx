@@ -25,10 +25,21 @@ import {
   SheetTitle,
 } from "@/app/shared/ui/sheet";
 import { useStore } from "@/app/store";
-import { computeRoute, RouteComputeError } from "@/app/features/route/route-service";
-import { buildGoogleMapsUrl } from "@/app/features/route/route-url";
-import { forwardGeocode, getCurrentGpsPosition } from "@/app/lib/geocoding";
+import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
+import { buildGoogleMapsUrl } from "@/app/features/route/lib/route-url";
+import { forwardGeocode, getCurrentGpsPosition } from "@/app/shared/api/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
+import {
+  useCustomStartAddress,
+  useRouteActions,
+  useRouteResult,
+  useRouteStops,
+  useStartMode,
+} from "@/app/features/route/model/route.hooks";
+import {
+  usePlannerActions,
+  useTrackingEnabled,
+} from "@/app/features/planner/model/planner.hooks";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
 interface RouteConfirmPanelProps {
@@ -41,10 +52,18 @@ interface RouteConfirmPanelProps {
 function SortableStopRow({
   stop,
   index,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
   onRemove,
 }: {
   stop: RouteStop;
   index: number;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: (id: string) => void;
+  onMoveDown: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -72,16 +91,46 @@ function SortableStopRow({
           <div className="text-xs text-text-muted truncate">{stop.address}</div>
         )}
       </div>
-      <button
-        onPointerDown={(e) => e.stopPropagation()} // prevent drag from stealing remove click
-        onClick={() => onRemove(stop.id)}
-        className="shrink-0 text-text-muted hover:text-red-400 p-1"
-        title="Remove stop"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveUp(stop.id)}
+          disabled={!canMoveUp}
+          aria-label={`Move ${stop.label} up`}
+          className="rounded p-1 text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+          title="Move up"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveDown(stop.id)}
+          disabled={!canMoveDown}
+          aria-label={`Move ${stop.label} down`}
+          className="rounded p-1 text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+          title="Move down"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()} // prevent drag from stealing remove click
+          onClick={() => onRemove(stop.id)}
+          aria-label={`Remove ${stop.label}`}
+          className="rounded p-1 text-text-muted transition-colors hover:text-red-400"
+          title="Remove stop"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
@@ -89,23 +138,23 @@ function SortableStopRow({
 // ---- RouteConfirmPanel ----
 export default function RouteConfirmPanel({ open = false, onClose, inline = false }: RouteConfirmPanelProps) {
   const isMobile = useIsMobile();
-  const routeStops = useStore((s) => s.routeStops);
-  const routeResult = useStore((s) => s.routeResult);
-  const startMode = useStore((s) => s.startMode);
-  const customStartAddress = useStore((s) => s.customStartAddress);
+  const routeStops = useRouteStops();
+  const routeResult = useRouteResult();
+  const startMode = useStartMode();
+  const customStartAddress = useCustomStartAddress();
   const profile = useStore((s) => s.profile);
-  const reorderStops = useStore((s) => s.reorderStops);
-  const removeStop = useStore((s) => s.removeStop);
-  const setRouteResult = useStore((s) => s.setRouteResult);
-  const setRouteActive = useStore((s) => s.setRouteActive);
-  const setStartMode = useStore((s) => s.setStartMode);
-  const setCustomStartAddress = useStore((s) => s.setCustomStartAddress);
-  const setShareableUrl = useStore((s) => s.setShareableUrl);
-  const clearRoute = useStore((s) => s.clearRoute);
-  const addPlannerStop = useStore((s) => s.addPlannerStop);
-  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
-  const addActivityEntry = useStore((s) => s.addActivityEntry);
-  const trackingEnabled = useStore((s) => s.trackingEnabled);
+  const {
+    reorderStops,
+    removeStop,
+    setRouteResult,
+    setRouteActive,
+    setStartMode,
+    setCustomStartAddress,
+    setShareableUrl,
+    clearRoute,
+  } = useRouteActions();
+  const { addPlannerStop, setActivePlannerDate, addActivityEntry } = usePlannerActions();
+  const trackingEnabled = useTrackingEnabled();
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -207,19 +256,37 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     return coords;
   }, [startMode, customStartAddress, profile?.homebase]);
 
+  const clearRoutePreview = useCallback(() => {
+    // Any manual reordering invalidates a previously computed optimized path.
+    setRouteResult(null);
+    setRouteActive(false);
+  }, [setRouteResult, setRouteActive]);
+
+  const applyStopOrder = useCallback((nextOrder: RouteStop[]) => {
+    reorderStops(nextOrder);
+    clearRoutePreview();
+  }, [reorderStops, clearRoutePreview]);
+
+  const moveStop = useCallback((stopId: string, direction: "up" | "down") => {
+    const currentIndex = routeStops.findIndex((stop) => stop.id === stopId);
+    if (currentIndex < 0) return;
+
+    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= routeStops.length) return;
+
+    applyStopOrder(arrayMove(routeStops, currentIndex, targetIndex));
+  }, [routeStops, applyStopOrder]);
+
   const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
+    (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
       const oldIndex = routeStops.findIndex((s) => s.id === active.id);
       const newIndex = routeStops.findIndex((s) => s.id === over.id);
       const newOrder = arrayMove(routeStops, oldIndex, newIndex);
-      reorderStops(newOrder);
-      // Clear stale route display — polyline no longer matches stop order
-      setRouteResult(null);
-      setRouteActive(false);
+      applyStopOrder(newOrder);
     },
-    [routeStops, reorderStops, setRouteResult, setRouteActive],
+    [routeStops, applyStopOrder],
   );
 
   const handleBuildRoute = useCallback(async () => {
@@ -334,7 +401,12 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           )}
         </div>
         {onClose && (
-          <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close route planner"
+            className="text-text-muted hover:text-text-primary p-1"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -348,8 +420,10 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         <div className="flex gap-1 mb-2">
           {(["home", "gps", "custom"] as const).map((mode) => (
             <button
+              type="button"
               key={mode}
               onClick={() => setStartMode(mode)}
+              aria-pressed={startMode === mode}
               className={`flex-1 py-1.5 rounded-md text-xs font-bold capitalize transition-colors ${
                 startMode === mode
                   ? "bg-orange text-white"
@@ -390,10 +464,24 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto">
+          {routeStops.length > 1 && (
+            <div className="border-b border-border bg-bg-card/70 px-4 py-2 text-[11px] text-text-muted">
+              Drag stops to reorder, or use the up/down controls on each row.
+            </div>
+          )}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={routeStops.map((s) => s.id)} strategy={verticalListSortingStrategy}>
               {routeStops.map((stop, i) => (
-                <SortableStopRow key={stop.id} stop={stop} index={i} onRemove={removeStop} />
+                <SortableStopRow
+                  key={stop.id}
+                  stop={stop}
+                  index={i}
+                  canMoveUp={i > 0}
+                  canMoveDown={i < routeStops.length - 1}
+                  onMoveUp={(id) => moveStop(id, "up")}
+                  onMoveDown={(id) => moveStop(id, "down")}
+                  onRemove={removeStop}
+                />
               ))}
             </SortableContext>
           </DndContext>
@@ -402,7 +490,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
       {/* Error message */}
       {buildError && (
-        <div className="mx-4 mb-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg shrink-0">
+        <div role="alert" className="mx-4 mb-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg shrink-0">
           <div className="text-xs text-red-500 font-semibold">{buildError}</div>
         </div>
       )}
@@ -410,6 +498,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       {/* Action buttons */}
       <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
         <button
+          type="button"
           ref={previewButtonRef}
           onClick={handleBuildRoute}
           disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
@@ -418,6 +507,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           {isBuilding ? "Previewing..." : "Preview Route"}
         </button>
         <button
+          type="button"
           onClick={handleOpenMaps}
           disabled={routeStops.length === 0}
           className="w-full rounded-xl border border-[#4285F4]/40 bg-[#4285F4]/15 px-4 py-2.5 text-sm font-semibold text-[#7EAFFF] transition-colors hover:bg-[#4285F4]/25 disabled:opacity-50"
@@ -425,6 +515,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           Open Maps
         </button>
         <button
+          type="button"
           onClick={handleSendToPlanner}
           disabled={routeStops.length === 0}
           className="w-full py-2.5 rounded-lg border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -432,6 +523,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           Send to Planner
         </button>
         <button
+          type="button"
           onClick={() => {
             clearRoute();
             if (!inline) {

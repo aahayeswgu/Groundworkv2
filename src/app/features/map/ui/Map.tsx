@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { AdvancedMarker, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
 import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
-import { reverseGeocode } from "@/app/lib/geocoding";
+import { reverseGeocode } from "@/app/shared/api/geocoding";
 import {
   startDiscoverDrawSession,
   startDropPinSession,
@@ -12,14 +12,29 @@ import {
 } from "@/app/features/map/lib/map-interactions";
 import MarkerLayer from "./MarkerLayer";
 import PinModal from "@/app/features/pins/ui/PinModal";
-import DiscoverLayer from "@/app/features/discover/DiscoverLayer";
-import RouteLayer from "@/app/features/route/RouteLayer";
+import DiscoverLayer from "@/app/features/discover/ui/DiscoverLayer";
+import RouteLayer from "@/app/features/route/ui/RouteLayer";
 import {
   cancelDiscoverSearch,
   searchBusinessesInArea,
-} from "@/app/features/discover/discover-search";
+} from "@/app/features/discover/api/discover-search";
 import { useStore } from "@/app/store";
-import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "../model/map.constants";
+import {
+  useDiscoverActions,
+  useDiscoverMode,
+  useIsDrawing,
+  useMarathonMode,
+} from "@/app/features/discover/model/discover.hooks";
+import {
+  usePlannerActions,
+  usePlannerDays,
+  useTrackingEnabled,
+} from "@/app/features/planner/model/planner.hooks";
+import { useRouteStops } from "@/app/features/route/model/route.hooks";
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+} from "../model/map.constants";
 import {
   MAP_ACTION_EVENT,
   PAN_TO_LOCATION_EVENT,
@@ -60,21 +75,18 @@ export default function Map({ onEditPin }: MapProps) {
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
   const [tempMarker, setTempMarker] = useState<TempMarker | null>(null);
   const tempMarkerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const discoverMode = useStore((s) => s.discoverMode);
-  const isDrawing = useStore((s) => s.isDrawing);
-  const setDiscoverMode = useStore((s) => s.setDiscoverMode);
-  const setIsDrawing = useStore((s) => s.setIsDrawing);
-  const addActivityEntry = useStore((s) => s.addActivityEntry);
-  const setActivePlannerDate = useStore((s) => s.setActivePlannerDate);
-  const trackingEnabled = useStore((s) => s.trackingEnabled);
-  const setNotesPage = useStore((s) => s.setNotesPage);
-  const plannerDays = useStore((s) => s.plannerDays);
+  const discoverMode = useDiscoverMode();
+  const isDrawing = useIsDrawing();
+  const { setDiscoverMode, setIsDrawing } = useDiscoverActions();
+  const { addActivityEntry, setActivePlannerDate, setNotesPage } = usePlannerActions();
+  const trackingEnabled = useTrackingEnabled();
+  const plannerDays = usePlannerDays();
   const pinsVisible = useStore((s) => s.pinsVisible);
   const togglePinVisibility = useStore((s) => s.togglePinVisibility);
-  const routeStops = useStore((s) => s.routeStops);
+  const routeStops = useRouteStops();
+  const marathonMode = useMarathonMode();
   const prevStopCount = useRef(0);
   const [quickListening, setQuickListening] = useState(false);
-  const didStartBackfill = useRef(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quickRecognitionRef = useRef<any>(null);
 
@@ -93,7 +105,7 @@ export default function Map({ onEditPin }: MapProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      alert("Speech recognition is not supported in this browser. Try Chrome.");
+      toast.error("Speech recognition isn't supported in this browser. Try Chrome.");
       return;
     }
 
@@ -192,8 +204,7 @@ export default function Map({ onEditPin }: MapProps) {
           setIsDrawing(false);
           searchBusinessesInArea(result.bounds);
           const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
-          const marathonModeEnabled = useStore.getState().marathonMode;
-          if (isMobileViewport && !marathonModeEnabled) {
+          if (isMobileViewport && !marathonMode) {
             dispatchOpenMobileTab("pins");
           }
           return;
@@ -203,21 +214,11 @@ export default function Map({ onEditPin }: MapProps) {
         setIsDrawing(false);
         setDiscoverMode(false);
         if (result.type === "invalid") {
-          alert(result.error);
+          toast.error(result.error);
         }
       },
     });
-  }, [setDiscoverMode, setIsDrawing, stopDiscoverSession]);
-
-  useEffect(() => {
-    if (!mapState || didStartBackfill.current) return;
-    didStartBackfill.current = true;
-
-    // Backfill Google Places data for pins missing placeId (one-time, non-blocking)
-    import("@/app/features/pins/backfill-place-data").then(({ backfillPlaceData }) => {
-      backfillPlaceData();
-    });
-  }, [mapState]);
+  }, [marathonMode, setDiscoverMode, setIsDrawing, stopDiscoverSession]);
 
   useEffect(() => {
     return () => {
@@ -314,10 +315,22 @@ export default function Map({ onEditPin }: MapProps) {
   const satelliteButtonStateClass = satellite
     ? "border-white bg-white text-orange"
     : "border-orange bg-orange text-white";
+  const mapStatusMessage = quickListening
+    ? "Voice note capture active."
+    : discoverMode && isDrawing
+    ? "Draw on the map to select a search area."
+    : discoverMode
+    ? "Discover mode active."
+    : dropMode
+    ? "Drop pin mode active."
+    : "Map ready.";
 
   return (
     <>
       <div className="relative flex-1 h-full overflow-hidden">
+        <div aria-live="polite" className="sr-only">
+          {mapStatusMessage}
+        </div>
         <GoogleMap
           className="w-full h-full z-[1]"
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAP_ID ?? "DEMO_MAP_ID"}
@@ -354,6 +367,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title="Drop a pin"
             active={dropMode}
+            pressed={dropMode}
             onClick={dropMode ? exitDropMode : enterDropMode}
           >
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -370,6 +384,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title="Discover businesses"
             active={discoverMode}
+            pressed={discoverMode}
             onClick={discoverMode ? exitDiscoverMode : enterDiscoverMode}
           >
             <circle cx="11" cy="11" r="8" />
@@ -380,6 +395,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title="Show/hide pins"
             active={!pinsVisible}
+            pressed={!pinsVisible}
             onClick={togglePinVisibility}
           >
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -388,6 +404,7 @@ export default function Map({ onEditPin }: MapProps) {
           <MapButton
             title={quickListening ? "Listening... tap to stop" : "Quick Entry — voice note to planner"}
             active={quickListening}
+            pressed={quickListening}
             onClick={toggleQuickEntry}
           >
             <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
@@ -398,7 +415,11 @@ export default function Map({ onEditPin }: MapProps) {
         </div>
 
         {discoverMode && isDrawing && (
-          <div className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]">
+          <div
+            role="status"
+            aria-live="polite"
+            className="pointer-events-none absolute left-1/2 top-4 z-30 -translate-x-1/2 rounded-full border border-orange/60 bg-bg-card/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-orange shadow-gw animate-[pulse_1.4s_ease-in-out_infinite]"
+          >
             Drag To Select Area
           </div>
         )}
@@ -460,6 +481,8 @@ export default function Map({ onEditPin }: MapProps) {
 
         {/* Floating satellite label (bottom-left, Google Maps style) */}
         <button
+          type="button"
+          aria-pressed={satellite}
           onClick={toggleSatellite}
           className={`absolute bottom-8 left-3 z-20 flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-bold cursor-pointer shadow-gw transition-all duration-200 hover:brightness-110 max-lg:bottom-[calc(84px+env(safe-area-inset-bottom,0px))] ${satelliteButtonStateClass}`}
         >

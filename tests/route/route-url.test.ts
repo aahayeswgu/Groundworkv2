@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 // RED: route-url.ts does not exist yet — import will fail until Plan 02
-import { buildGoogleMapsUrl } from '@/app/features/route/route-url';
+import { buildGoogleMapsUrl } from '@/app/features/route/lib/route-url';
 import type { RouteStop } from '@/app/features/route/model/route.types';
 
 const makeStop = (overrides: Partial<RouteStop> = {}): RouteStop => ({
