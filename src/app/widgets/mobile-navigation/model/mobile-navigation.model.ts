@@ -35,9 +35,8 @@ export const MOBILE_QUICK_ACTIONS: readonly MobileQuickActionItem[] = [
   {
     id: "discover",
     label: "Discover",
-    detail: "Draw and search businesses",
+    detail: "Open discover panel",
     icon: "discover",
-    mapAction: "toggle-discover",
   },
   {
     id: "route",

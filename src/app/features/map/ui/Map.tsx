@@ -398,18 +398,7 @@ export default function Map({ onEditPin }: MapProps) {
             active={discoverMode}
             pressed={discoverMode}
             onClick={() => {
-              if (discoverMode && isDrawing) {
-                exitDiscoverMode();
-                return;
-              }
-
-              const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
-              if (!isMobileViewport) {
-                dispatchOpenMobileTab("discover");
-              }
-              if (!discoverMode || !isDrawing) {
-                enterDiscoverMode();
-              }
+              dispatchOpenMobileTab("discover");
             }}
           >
             <circle cx="11" cy="11" r="8" />

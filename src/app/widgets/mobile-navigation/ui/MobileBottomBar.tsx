@@ -61,9 +61,6 @@ export default function MobileBottomBar({
   function handleQuickAction(action: MobileQuickActionItem) {
     if (action.id === "discover") {
       dispatchOpenMobileTab("discover");
-      if (!discoverMode) {
-        dispatchMapMobileAction("toggle-discover");
-      }
       setDrawerOpen(false);
       return;
     }

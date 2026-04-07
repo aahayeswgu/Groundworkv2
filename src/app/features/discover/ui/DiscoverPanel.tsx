@@ -155,7 +155,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
     onOpenRouteBuilder?.();
   }, [setDiscoverMode, onOpenRouteBuilder]);
 
-  const redrawSearch = useCallback(() => {
+  const startDiscoverDraw = useCallback(() => {
     cancelDiscoverSearch();
     clearDiscover();
     setRouteActionMessage(null);
@@ -230,6 +230,13 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
           <div className="text-text-secondary text-sm">
             Click and drag on the map to draw a rectangle around the area you want to search.
           </div>
+          <Button
+            type="button"
+            onClick={startDiscoverDraw}
+            className="h-10 min-w-[170px] rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
+          >
+            Draw Area
+          </Button>
           <button
             onClick={toggleMarathonMode}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
@@ -520,7 +527,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={redrawSearch}
+                  onClick={startDiscoverDraw}
                   className="h-9 w-full justify-center gap-2 rounded-xl border border-white/12 bg-white/5 text-[#C4CCDA] hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
                   <RotateCcw className="size-4 text-[#9EC1FF]" />
