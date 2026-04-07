@@ -7,6 +7,7 @@ import Map from "@/app/features/map/ui/Map";
 import { GOOGLE_MAPS_API_VERSION } from "@/app/features/map/model/map.constants";
 import StoreHydration from "@/app/shared/ui/StoreHydration";
 import GpsCheckin from "@/app/features/planner/ui/GpsCheckin";
+import PlannerCompletionConfetti from "@/app/features/planner/ui/PlannerCompletionConfetti";
 import AuthListener from "@/app/features/auth/ui/AuthListener";
 import EmailOverlay from "@/app/features/email/ui/EmailOverlay";
 import PinModal from "@/app/features/pins/ui/PinModal";
@@ -97,6 +98,7 @@ export default function HomePageView() {
     >
       <StoreHydration />
       <GpsCheckin />
+      <PlannerCompletionConfetti />
       <AuthListener />
       <div className="flex h-[var(--mobile-viewport-height)] w-screen">
         <Sidebar
