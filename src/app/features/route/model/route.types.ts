@@ -7,6 +7,7 @@ export type StartMode = 'home' | 'gps' | 'custom';
  * label: Display name (pin.title or discover result displayName).
  * address: Preferred for Google Maps URL; falls back to `${lat},${lng}`.
  * lat/lng: Always present — used for polyline and numbered marker placement.
+ * photoUrl: Optional place image used in route popup cards.
  */
 export interface RouteStop {
   id: string;
@@ -14,6 +15,7 @@ export interface RouteStop {
   address: string;
   lat: number;
   lng: number;
+  photoUrl?: string | null;
 }
 
 /**

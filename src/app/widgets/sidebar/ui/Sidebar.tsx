@@ -21,7 +21,10 @@ import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/ui/DiscoverPanel";
 import PlannerPanel from "@/app/features/planner/ui/PlannerPanel";
 import RouteConfirmPanel from "@/app/features/route/ui/RouteConfirmPanel";
-import { useDiscoverMode } from "@/app/features/discover/model/discover.hooks";
+import {
+  useDiscoverMode,
+  useIsDrawing,
+} from "@/app/features/discover/model/discover.hooks";
 import {
   usePlannerActions,
   useTrackingEnabled,
@@ -33,6 +36,7 @@ import {
   type SidebarTab,
 } from "@/app/widgets/sidebar/model/sidebar.model";
 import {
+  dispatchMapMobileAction,
   OPEN_MOBILE_TAB_EVENT,
   type OpenMobileTabEventDetail,
 } from "@/app/shared/model/mobile-events";
@@ -66,6 +70,7 @@ export default function Sidebar({
   onReplayTutorial,
 }: SidebarProps) {
   const discoverMode = useDiscoverMode();
+  const isDrawing = useIsDrawing();
   const trackingEnabled = useTrackingEnabled();
   const { setTrackingEnabled } = usePlannerActions();
   const user = useStore((s) => s.user);
@@ -86,9 +91,14 @@ export default function Sidebar({
     : "size-9 rounded-full border border-orange/50 bg-bg-input text-orange hover:bg-orange-dim";
 
   const handleDesktopTabChange = useCallback((tab: SidebarTab) => {
+    // Do not auto-start discover draw when switching tabs; only stop an active draw.
+    if (tab !== "discover" && discoverMode && isDrawing) {
+      dispatchMapMobileAction("toggle-discover");
+    }
+
     setDesktopActiveTab(tab);
     onSettingsClose();
-  }, [onSettingsClose]);
+  }, [discoverMode, isDrawing, onSettingsClose]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -96,13 +106,18 @@ export default function Sidebar({
     const handleOpenSidebarTab = (event: Event) => {
       const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
       if (!detail || detail.tab === "map") return;
+
+      if (detail.tab !== "discover" && discoverMode && isDrawing) {
+        dispatchMapMobileAction("toggle-discover");
+      }
+
       onSettingsClose();
       setDesktopActiveTab(detail.tab);
     };
 
     window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenSidebarTab);
     return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenSidebarTab);
-  }, [isMobile, onSettingsClose]);
+  }, [discoverMode, isDrawing, isMobile, onSettingsClose]);
 
   const handleOpenRouteBuilder = useCallback(() => {
     onSettingsClose();
@@ -229,7 +244,7 @@ export default function Sidebar({
           />
         ) : activeTab === "route" ? (
           <RouteConfirmPanel inline onClose={handleCloseRouteBuilder} />
-        ) : discoverMode ? (
+        ) : activeTab === "discover" ? (
           <DiscoverPanel onOpenRouteBuilder={handleOpenRouteBuilder} />
         ) : activeTab === "planner" ? (
           <PlannerPanel />

@@ -45,7 +45,11 @@ export default function HomePageView() {
 
   const openMobileSidebarTab = useCallback((tab: SidebarTab) => {
     setMobileSidebarTab(tab);
-    const nextPrimaryTab: MobilePrimaryTab = tab === "planner" ? "planner" : "pins";
+    const nextPrimaryTab: MobilePrimaryTab = tab === "planner"
+      ? "planner"
+      : tab === "discover"
+        ? "discover"
+        : "pins";
     setMobileActiveTab(nextPrimaryTab);
     setMobileSidebarOpen(true);
   }, []);

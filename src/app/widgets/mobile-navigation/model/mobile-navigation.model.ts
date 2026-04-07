@@ -1,16 +1,17 @@
 import type { MapMobileAction } from "@/app/shared/model/mobile-events";
 
-export type MobilePrimaryTab = "map" | "pins" | "planner";
+export type MobilePrimaryTab = "map" | "pins" | "discover" | "planner";
 
 export interface MobilePrimaryTabItem {
   id: MobilePrimaryTab;
   label: string;
-  icon: "map" | "pins" | "planner";
+  icon: "map" | "pins" | "discover" | "planner";
 }
 
 export const MOBILE_PRIMARY_TABS: readonly MobilePrimaryTabItem[] = [
   { id: "map", label: "Map", icon: "map" },
   { id: "pins", label: "Pins", icon: "pins" },
+  { id: "discover", label: "Discover", icon: "discover" },
   { id: "planner", label: "Planner", icon: "planner" },
 ];
 

@@ -4,13 +4,14 @@ export const OPEN_MOBILE_TAB_EVENT = "gw-open-mobile-tab" as const;
 export type MapMobileAction =
   | "toggle-drop-pin"
   | "toggle-discover"
+  | "restart-discover"
   | "toggle-voice-entry";
 
 export interface MapMobileActionEventDetail {
   action: MapMobileAction;
 }
 
-export type MobileSidebarTab = "map" | "pins" | "planner" | "route";
+export type MobileSidebarTab = "map" | "pins" | "discover" | "planner" | "route";
 
 export interface OpenMobileTabEventDetail {
   tab: MobileSidebarTab;

@@ -169,6 +169,7 @@ export default function DiscoverLayer() {
                 address: openResult.address ?? "",
                 lat: openResult.lat,
                 lng: openResult.lng,
+                photoUrl: openResult.photoUri ?? null,
               };
               return addStop(stop);
             }}
@@ -214,6 +215,7 @@ export default function DiscoverLayer() {
                     address: openResult.address ?? "",
                     lat: openResult.lat,
                     lng: openResult.lng,
+                    photoUrl: openResult.photoUri ?? null,
                   };
                   return addStop(stop);
                 }}

@@ -41,6 +41,7 @@ import {
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.hooks";
 import type { RouteStop } from "@/app/features/route/model/route.types";
+import { ArrowRight, Calendar, ExternalLink, Loader2, Trash2 } from "lucide-react";
 
 interface RouteConfirmPanelProps {
   open?: boolean;
@@ -497,31 +498,27 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
       {/* Action buttons */}
       <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
-        <button
-          type="button"
-          ref={previewButtonRef}
-          onClick={handleBuildRoute}
-          disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
-          className="w-full rounded-xl bg-orange px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
-        >
-          {isBuilding ? "Previewing..." : "Preview Route"}
-        </button>
-        <button
-          type="button"
-          onClick={handleOpenMaps}
-          disabled={routeStops.length === 0}
-          className="w-full rounded-xl border border-[#4285F4]/40 bg-[#4285F4]/15 px-4 py-2.5 text-sm font-semibold text-[#7EAFFF] transition-colors hover:bg-[#4285F4]/25 disabled:opacity-50"
-        >
-          Open Maps
-        </button>
-        <button
-          type="button"
-          onClick={handleSendToPlanner}
-          disabled={routeStops.length === 0}
-          className="w-full py-2.5 rounded-lg border border-border text-sm font-semibold text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Send to Planner
-        </button>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={handleOpenMaps}
+            disabled={routeStops.length === 0}
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
+          >
+            <ExternalLink className="size-4 text-[#7EAFFF]" />
+            Open Maps
+          </button>
+          <button
+            type="button"
+            onClick={handleSendToPlanner}
+            disabled={routeStops.length === 0}
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
+          >
+            <Calendar className="size-4 text-[#9EC1FF]" />
+            Send to Planner
+          </button>
+        </div>
+
         <button
           type="button"
           onClick={() => {
@@ -530,9 +527,21 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
               onClose?.();
             }
           }}
-          className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-text-muted transition-colors hover:border-red-400 hover:text-red-400"
+          className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-red-400/30 bg-red-500/5 px-3 text-[13px] font-semibold text-red-300 transition-colors hover:border-red-400/50 hover:bg-red-500/10 hover:text-red-200"
         >
-          Clear
+          <Trash2 className="size-4" />
+          Clear Route
+        </button>
+
+        <button
+          type="button"
+          ref={previewButtonRef}
+          onClick={handleBuildRoute}
+          disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
+          className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-orange bg-orange px-4 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
+        >
+          {isBuilding ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+          {isBuilding ? "Previewing..." : "Preview Route"}
         </button>
       </div>
     </div>

@@ -14,7 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/shared/ui/card";
-import { Loader2Icon } from "lucide-react";
+import { ArrowRight, Loader2Icon, Plus, RotateCcw } from "lucide-react";
+import { dispatchMapMobileAction } from "@/app/shared/model/mobile-events";
 import {
   addSelectedDiscoverResultsToRoute,
   getRouteSelectionMessage,
@@ -90,6 +91,13 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
     setDiscoverMode(false);
     onOpenRouteBuilder?.();
   }, [setDiscoverMode, onOpenRouteBuilder]);
+
+  const redrawSearch = useCallback(() => {
+    cancelDiscoverSearch();
+    clearDiscover();
+    setRouteActionMessage(null);
+    dispatchMapMobileAction("restart-discover");
+  }, [clearDiscover]);
 
   const addSelectedStopsToRoute = useCallback((openBuilderAfterAdd: boolean) => {
     if (selectedDiscoverIds.size === 0) return;
@@ -314,27 +322,28 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   variant="outline"
                   disabled={selectedDiscoverIds.size === 0}
                   onClick={() => addSelectedStopsToRoute(false)}
-                  className="w-full border-orange text-orange hover:bg-orange-dim hover:text-orange"
+                  className="h-9 w-full justify-center gap-2 rounded-xl border-white/12 bg-white/5 text-white hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
+                  <Plus className="size-4 text-orange" />
                   Add Only
                 </Button>
                 <Button
-                  disabled={selectedDiscoverIds.size === 0}
-                  onClick={() => addSelectedStopsToRoute(true)}
-                  className="w-full bg-orange text-white hover:bg-orange/90"
+                  variant="secondary"
+                  onClick={redrawSearch}
+                  className="h-9 w-full justify-center gap-2 rounded-xl border border-white/12 bg-white/5 text-[#C4CCDA] hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
-                  Add + Open Route Builder
+                  <RotateCcw className="size-4 text-[#9EC1FF]" />
+                  Redraw
                 </Button>
               </div>
-              {routeStops.length > 0 && (
-                <Button
-                  variant="secondary"
-                  onClick={openRouteBuilder}
-                  className="w-full"
-                >
-                  Open Route Builder ({routeStops.length})
-                </Button>
-              )}
+              <Button
+                disabled={selectedDiscoverIds.size === 0}
+                onClick={() => addSelectedStopsToRoute(true)}
+                className="h-10 w-full justify-center gap-2 rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
+              >
+                <ArrowRight className="size-4" />
+                Add + Route
+              </Button>
             </div>
           </div>
         </>

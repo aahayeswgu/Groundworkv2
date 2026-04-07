@@ -195,17 +195,23 @@ export default function Map({ onEditPin }: MapProps) {
     setDiscoverMode(true);
     setIsDrawing(true);
     stopDiscoverSession(true);
-    discoverSessionRef.current = startDiscoverDrawSession({
+    let session: DiscoverDrawSession | null = null;
+    session = startDiscoverDrawSession({
       map,
       onComplete: (result) => {
-        discoverSessionRef.current = null;
+        if (result.type === "bounds") {
+          discoverSessionRef.current = session;
+        } else {
+          discoverSessionRef.current = null;
+        }
 
         if (result.type === "bounds") {
           setIsDrawing(false);
+          setDiscoverMode(false);
           searchBusinessesInArea(result.bounds);
           const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
           if (isMobileViewport && !marathonMode) {
-            dispatchOpenMobileTab("pins");
+            dispatchOpenMobileTab("discover");
           }
           return;
         }
@@ -218,6 +224,7 @@ export default function Map({ onEditPin }: MapProps) {
         }
       },
     });
+    discoverSessionRef.current = session;
   }, [marathonMode, setDiscoverMode, setIsDrawing, stopDiscoverSession]);
 
   useEffect(() => {
@@ -262,6 +269,11 @@ export default function Map({ onEditPin }: MapProps) {
         } else {
           enterDiscoverMode();
         }
+        return;
+      }
+
+      if (detail.action === "restart-discover") {
+        enterDiscoverMode();
         return;
       }
 
@@ -385,7 +397,20 @@ export default function Map({ onEditPin }: MapProps) {
             title="Discover businesses"
             active={discoverMode}
             pressed={discoverMode}
-            onClick={discoverMode ? exitDiscoverMode : enterDiscoverMode}
+            onClick={() => {
+              if (discoverMode && isDrawing) {
+                exitDiscoverMode();
+                return;
+              }
+
+              const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+              if (!isMobileViewport) {
+                dispatchOpenMobileTab("discover");
+              }
+              if (!discoverMode || !isDrawing) {
+                enterDiscoverMode();
+              }
+            }}
           >
             <circle cx="11" cy="11" r="8" />
             <path d="M21 21l-4.35-4.35" />

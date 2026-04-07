@@ -31,7 +31,8 @@ export function RouteStopInfoWindowCard({ stop, order, onClose, className }: Rou
       )}
       mapLinkHref={mapLinkHref}
       mapLinkLabel="Open in Google Maps"
-      imageUrl={null}
+      imageUrl={stop.photoUrl ?? null}
+      imageAlt={stop.label}
       onClose={onClose}
     />
   );

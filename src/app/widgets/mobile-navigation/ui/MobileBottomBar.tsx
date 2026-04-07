@@ -49,13 +49,21 @@ export default function MobileBottomBar({
   }, [drawerOpen]);
 
   function handlePrimaryTab(tab: MobilePrimaryTab) {
+    // Do not auto-start discover draw from tab navigation; only stop active draw when leaving discover.
+    if (tab !== "discover" && discoverMode && isDrawing) {
+      dispatchMapMobileAction("toggle-discover");
+    }
+
     setDrawerOpen(false);
     onSelectTab(tab);
   }
 
   function handleQuickAction(action: MobileQuickActionItem) {
-    if (action.id === "discover" && discoverMode && !isDrawing) {
-      dispatchOpenMobileTab("pins");
+    if (action.id === "discover") {
+      dispatchOpenMobileTab("discover");
+      if (!discoverMode) {
+        dispatchMapMobileAction("toggle-discover");
+      }
       setDrawerOpen(false);
       return;
     }
@@ -134,7 +142,7 @@ export default function MobileBottomBar({
         aria-label="Primary mobile navigation"
         className="mobile-bottom-bar fixed bottom-0 inset-x-0 z-[70] flex lg:hidden bg-bg-card/95 border-t border-border pb-[calc(6px+env(safe-area-inset-bottom,0px))] pt-1.5 shadow-[0_-2px_12px_rgba(0,0,0,0.15)]"
       >
-        <div className="grid w-full grid-cols-4 items-stretch gap-0 px-2">
+        <div className="grid w-full grid-cols-5 items-stretch gap-0 px-2">
           {MOBILE_PRIMARY_TABS.map((tab) => (
             <MobileTabButton
               key={tab.id}
@@ -213,6 +221,17 @@ function PrimaryTabIcon({ icon }: { icon: MobilePrimaryTabItem["icon"] }) {
         <line x1="3" y1="6" x2="3.01" y2="6" />
         <line x1="3" y1="12" x2="3.01" y2="12" />
         <line x1="3" y1="18" x2="3.01" y2="18" />
+      </svg>
+    );
+  }
+
+  if (icon === "discover") {
+    return (
+      <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M21 21l-4.35-4.35" />
+        <line x1="11" y1="8" x2="11" y2="14" />
+        <line x1="8" y1="11" x2="14" y2="11" />
       </svg>
     );
   }
