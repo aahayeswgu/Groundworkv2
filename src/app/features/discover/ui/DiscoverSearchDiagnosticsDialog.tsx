@@ -22,6 +22,7 @@ const REJECT_REASON_LABELS: Record<string, string> = {
   out_of_bounds: "Outside drawn bounds",
   duplicate_place: "Duplicate place ID",
   closed_business_status: "Closed business status",
+  low_rating_count: "Too few reviews",
   excluded_type_without_trade_signal: "Excluded non-trade type",
   address_only_without_trade_signal: "Address-only result",
   excluded_chain: "Excluded chain match",
@@ -146,4 +147,3 @@ function SummaryCell({ label, value }: { label: string; value: string | number }
     </div>
   );
 }
-

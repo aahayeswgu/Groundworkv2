@@ -21,6 +21,7 @@ export type DiscoverFilterRejectReason =
   | "out_of_bounds"
   | "duplicate_place"
   | "closed_business_status"
+  | "low_rating_count"
   | "excluded_type_without_trade_signal"
   | "address_only_without_trade_signal"
   | "excluded_chain"

@@ -6,7 +6,7 @@ import type { DrawBounds } from "@/app/features/discover/api/discover-search";
 
 export const EXCLUDED_CHAINS = /home depot|lowe'?s|ace hardware|menards|harbor freight|sherwin.williams|walmart|target|costco|cvs|walgreens|publix|mcdonald|starbucks|dunkin|subway|burger king|taco bell|pizza|chase bank|wells fargo|bank of america|state farm|allstate/i;
 
-export const EXCLUDED_NAME_PATTERNS = /\b(home|house|residential|apartment|condo|duplex|townhome|single.?family|estate|realty|realtor|property management|handyman|maid|cleaning service|lawn care|pest control|pool service|garage door|window cleaning|gutter cleaning|pressure wash|junk removal|moving|storage)\b/i;
+export const EXCLUDED_NAME_PATTERNS = /\b(home|house|residential|apartment|condo|duplex|townhome|single.?family|estate|realty|realtor|property management|handyman|maid|cleaning service|lawn care|pest control|pool service|garage door|window cleaning|gutter cleaning|pressure wash|junk removal|moving|storage|mobile home|trailer|rv park)\b/i;
 
 const CLOSED_BUSINESS_STATUSES = new Set([
   "CLOSED_TEMPORARILY",
@@ -28,6 +28,11 @@ const RESIDENTIAL_TYPES = new Set([
   "apartment_building",
   "apartment_rental_agency",
   "condominium_complex",
+  "real_estate_agency",
+  "residential_area",
+  "mobile_home_park",
+  "rv_park",
+  "campground",
 ]);
 
 const TRADE_SIGNAL_TYPES = new Set([
@@ -58,7 +63,16 @@ const EXCLUDED_TYPES = new Set([
   "subway_station",
   "bus_station",
   "neighborhood",
+  "cemetery",
+  "funeral_home",
+  "laundry",
+  "beauty_salon",
+  "hair_care",
+  "spa",
 ]);
+
+// Very low-review places are frequently home/service-area noise.
+const MIN_RATING_COUNT = 2;
 
 export function classifyGooglePlace(
   types: string[],
@@ -265,7 +279,7 @@ export function filterAndMapPlace({
   const primaryType = place.primaryType ?? null;
   const businessStatus = normalizeBusinessStatus(place.businessStatus);
 
-  if (businessStatus && CLOSED_BUSINESS_STATUSES.has(businessStatus)) {
+  if (businessStatus && (CLOSED_BUSINESS_STATUSES.has(businessStatus) || businessStatus !== "OPERATIONAL")) {
     onRejected?.("closed_business_status");
     return null;
   }
@@ -276,6 +290,12 @@ export function filterAndMapPlace({
     matchedCategory,
     place.displayName,
   );
+
+  const ratingCountRaw = place.userRatingCount ?? 0;
+  if (ratingCountRaw < MIN_RATING_COUNT) {
+    onRejected?.("low_rating_count");
+    return null;
+  }
 
   if (types.some((type) => EXCLUDED_TYPES.has(type)) && !tradeSignal) {
     onRejected?.("excluded_type_without_trade_signal");

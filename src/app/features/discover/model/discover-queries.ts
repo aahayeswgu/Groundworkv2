@@ -1,8 +1,8 @@
 // Discover query categories for Places (New) API searches.
 // Construction/trades focused — swap these for other industries.
 export const DISCOVER_QUERIES: string[] = [
-  "general contractor",
-  "roofing contractor",
+  "general contracting",
+  "commercial roofing contractor",
   "plumbing contractor",
   "electrical contractor",
   "HVAC contractor",
@@ -22,4 +22,21 @@ export const DISCOVER_QUERIES: string[] = [
   "construction company",
   "onshore drilling contractor",
   "offshore drilling company",
+  "metal fabricator",
+  "welding",
+  "manufacturers",
+  "structural contractor",
+  "paving contractor",
+  "demolition contractor",
+  "environmental contractor",
+  "property restoration",
+  "carpenter",
+  "stucco contractor",
+  "crane operator",
+  "service repair",
+  "bridge structural ironworkers",
+  "millwrights",
+  "sheet metal workers",
+  "machinists",
+  "computer numerical control operators",
 ];
