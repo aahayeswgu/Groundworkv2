@@ -20,7 +20,7 @@ import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { useStore } from "@/app/store";
 import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
-import { buildGoogleMapsUrl } from "@/app/features/route/lib/route-url";
+import { buildGoogleMapsUrl, buildGoogleMapsUrlWithoutOrigin } from "@/app/features/route/lib/route-url";
 import { forwardGeocode, getCurrentGpsPosition } from "@/app/shared/api/geocoding";
 import PlacesAutocomplete from "@/app/features/route/ui/PlacesAutocomplete";
 import {
@@ -383,13 +383,16 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     let url: string;
 
     if (!origin) {
-      // Fallback: just use stops without an origin
-      url = buildGoogleMapsUrl(routeStops[0], routeStops.slice(1));
+      // Fallback: omit origin so Google Maps can attempt current-location resolution.
+      if (startMode === "gps") {
+        toast.error("Couldn't access GPS. Google Maps will try to use your current location.");
+      }
+      url = buildGoogleMapsUrlWithoutOrigin(routeStops);
       setShareableUrl(url);
     } else {
       const originStop: RouteStop = {
         id: "origin",
-        label: startMode === "home" ? "Home" : startMode === "gps" ? "My Location" : "Start",
+        label: startMode === "home" ? "Home" : startMode === "gps" ? "Current Location" : "Start",
         address: origin.address ?? customStartAddress ?? "",
         lat: origin.lat ?? 0,
         lng: origin.lng ?? 0,
@@ -457,7 +460,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
                   : "bg-bg-secondary text-text-secondary border border-border hover:border-orange hover:text-orange"
               }`}
             >
-              {mode === "home" ? "Home" : mode === "gps" ? "GPS" : "Custom"}
+              {mode === "home" ? "Home" : mode === "gps" ? "Current Location" : "Custom"}
             </button>
           ))}
         </div>
@@ -471,7 +474,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           />
         )}
         {startMode === "gps" && (
-          <div className="text-xs text-text-muted">GPS location will be used when route is built.</div>
+          <div className="text-xs text-text-muted">Current location will be used when route is built.</div>
         )}
         {missingStartRequirement && (
           <div className="mt-2 text-xs text-red-500">{startValidationMessage}</div>

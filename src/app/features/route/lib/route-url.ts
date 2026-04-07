@@ -1,5 +1,20 @@
 import type { RouteStop } from '@/app/features/route/model/route.types';
 
+function stopAddress(stop: RouteStop): string {
+  return stop.address?.trim() ? stop.address.trim() : `${stop.lat},${stop.lng}`;
+}
+
+function appendWaypoints(base: string, intermediates: RouteStop[]): string {
+  if (intermediates.length === 0) return base;
+
+  // Encode each address individually; join with pipe per Google Maps API docs.
+  const waypoints = intermediates
+    .map((stop) => encodeURIComponent(stopAddress(stop)))
+    .join('|');
+
+  return `${base}&waypoints=${waypoints}`;
+}
+
 /**
  * Builds the official Google Maps directions URL.
  * Format: https://www.google.com/maps/dir/?api=1&origin=...&destination=...&waypoints=A|B|C&travelmode=driving
@@ -17,9 +32,6 @@ import type { RouteStop } from '@/app/features/route/model/route.types';
  * @param stops   Ordered stops including final destination (last element = destination)
  */
 export function buildGoogleMapsUrl(origin: RouteStop, stops: RouteStop[]): string {
-  const stopAddress = (s: RouteStop): string =>
-    s.address?.trim() ? s.address.trim() : `${s.lat},${s.lng}`;
-
   if (stops.length === 0) return '';
 
   const destination = stops[stops.length - 1];
@@ -36,12 +48,28 @@ export function buildGoogleMapsUrl(origin: RouteStop, stops: RouteStop[]): strin
   // (URLSearchParams would encode '|' to '%7C'; Google Maps expects literal or encoded pipe)
   const base = `https://www.google.com/maps/dir/?${params.toString()}`;
 
-  if (intermediates.length === 0) return base;
+  return appendWaypoints(base, intermediates);
+}
 
-  // Encode each address individually; join with pipe per Google Maps API docs
-  const waypoints = intermediates
-    .map((s) => encodeURIComponent(stopAddress(s)))
-    .join('|');
+/**
+ * Builds Google Maps directions URL without an explicit origin.
+ * Google Maps can then attempt to use current device location.
+ *
+ * @param stops  Ordered stops including final destination (last element = destination)
+ */
+export function buildGoogleMapsUrlWithoutOrigin(stops: RouteStop[]): string {
+  if (stops.length === 0) return '';
 
-  return `${base}&waypoints=${waypoints}`;
+  const destination = stops[stops.length - 1];
+  const intermediates = stops.slice(0, -1);
+
+  const params = new URLSearchParams({
+    api: '1',
+    destination: stopAddress(destination),
+    travelmode: 'driving',
+  });
+
+  const base = `https://www.google.com/maps/dir/?${params.toString()}`;
+
+  return appendWaypoints(base, intermediates);
 }

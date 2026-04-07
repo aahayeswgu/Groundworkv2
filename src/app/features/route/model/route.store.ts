@@ -30,7 +30,7 @@ export const createRouteSlice: StateCreator<RouteSlice> = (set, get) => ({
   routeStops: [],
   routeResult: null,
   routeActive: false,
-  startMode: 'home',
+  startMode: 'gps',
   customStartAddress: '',
   shareableUrl: null,
 
