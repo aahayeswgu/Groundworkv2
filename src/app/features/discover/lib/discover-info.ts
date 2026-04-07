@@ -7,7 +7,12 @@ import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filter
  * Dedup check (by name/coords) is done in DiscoverLayer before calling addPin.
  */
 export function buildQuickSavePin(result: DiscoverResult): Pin {
-  const placeType = classifyGooglePlace(result.types, result.displayName);
+  const placeType = classifyGooglePlace(
+    result.types,
+    result.displayName,
+    result.primaryType,
+    result.matchedCategory,
+  );
   return {
     id: `pin_${Date.now()}_${result.placeId.slice(-6)}`,
     title: result.displayName,

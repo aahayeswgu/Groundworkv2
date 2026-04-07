@@ -56,7 +56,12 @@ export function DiscoverInfoWindowCard({
   const [aiLoading, setAiLoading] = useState<"brief" | "detailed" | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
 
-  const placeType = classifyGooglePlace(result.types, result.displayName);
+  const placeType = classifyGooglePlace(
+    result.types,
+    result.displayName,
+    result.primaryType,
+    result.matchedCategory,
+  );
   const routeLabel = routeState === "full"
     ? "Route Full"
     : routeState === "added"

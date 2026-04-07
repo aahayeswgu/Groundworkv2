@@ -17,6 +17,7 @@ import {
 } from "@/app/shared/ui/card";
 import {
   ArrowRight,
+  ChartNoAxesCombined,
   Check,
   ChevronDown,
   Loader2Icon,
@@ -49,6 +50,7 @@ import {
 } from "@/app/features/discover/model/discover-panel.model";
 import {
   useDiscoverActions,
+  useDiscoverSearchMetrics,
   useDiscoverResults,
   useHoveredDiscoverId,
   useMarathonMode,
@@ -62,6 +64,7 @@ import {
   useRouteStops,
 } from "@/app/features/route/model/route.hooks";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
+import { DiscoverSearchDiagnosticsDialog } from "@/app/features/discover/ui/DiscoverSearchDiagnosticsDialog";
 
 interface DiscoverPanelProps {
   onOpenRouteBuilder?: () => void;
@@ -69,6 +72,7 @@ interface DiscoverPanelProps {
 
 export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps) {
   const discoverResults = useDiscoverResults();
+  const discoverSearchMetrics = useDiscoverSearchMetrics();
   const selectedDiscoverIds = useSelectedDiscoverIds();
   const hoveredDiscoverId = useHoveredDiscoverId();
   const searchProgress = useSearchProgress();
@@ -93,6 +97,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
   const [sortKey, setSortKey] = useState<DiscoverSortKey>("recommended");
   const [selectedOnly, setSelectedOnly] = useState(false);
   const [savedOnly, setSavedOnly] = useState(false);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
   // Determine which step to show
   const step = discoverResults.length > 0 ? 3 : searchProgress ? 2 : 1;
@@ -319,21 +324,39 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                 ) : null}
               </div>
               <div className="flex items-center gap-2">
-                <button
+                {discoverSearchMetrics ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => setDiagnosticsOpen(true)}
+                    className="h-7 border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
+                  >
+                    <ChartNoAxesCombined className="size-3.5 text-[#9EC1FF]" />
+                    Diagnostics
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
                   onClick={toggleSelectVisible}
-                  className="text-xs font-semibold text-orange transition-colors hover:text-orange/85 hover:underline"
+                  className="h-7 border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
                 >
                   {allVisibleSelected ? "Deselect Visible" : "Select Visible"}
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
                   onClick={() => {
                     clearDiscover();
                     setDiscoverMode(false);
                   }}
-                  className="text-xs text-text-muted transition-colors hover:text-red-400"
+                  className="h-7 border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
                 >
                   Close
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -546,6 +569,11 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
           </div>
         </>
       )}
+      <DiscoverSearchDiagnosticsDialog
+        metrics={discoverSearchMetrics}
+        open={diagnosticsOpen}
+        onOpenChange={setDiagnosticsOpen}
+      />
     </div>
   );
 }
