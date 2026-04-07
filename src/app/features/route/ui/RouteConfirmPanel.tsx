@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -17,7 +17,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
-import { buildAppleMapsDirectionsUrl, getMobileMapsPlatform } from "@/app/shared/lib/maps-links";
+import {
+  buildAppleMapsDirectionsUrl,
+  getMapsRuntimePlatform,
+  resolveMapsProviderForPlatform,
+} from "@/app/shared/lib/maps-links";
 import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { useStore } from "@/app/store";
 import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
@@ -32,6 +36,7 @@ import {
   useStartMode,
 } from "@/app/features/route/model/route.hooks";
 import {
+  useMapsProvider,
   usePlannerActions,
   usePlannerDays,
   useTrackingEnabled,
@@ -152,6 +157,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     clearRoute,
   } = useRouteActions();
   const plannerDays = usePlannerDays();
+  const mapsProvider = useMapsProvider();
   const { addPlannerStop, setActivePlannerDate, addActivityEntry } = usePlannerActions();
   const trackingEnabled = useTrackingEnabled();
 
@@ -160,7 +166,8 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const startAddressInputRef = useRef<HTMLInputElement | null>(null);
   const previewButtonRef = useRef<HTMLButtonElement | null>(null);
   const didAutoFocusRef = useRef(false);
-  const mapsPlatform = isMobile ? getMobileMapsPlatform() : "other";
+  const mapsRuntimePlatform = useMemo(() => getMapsRuntimePlatform(), []);
+  const effectiveMapsProvider = resolveMapsProviderForPlatform(mapsProvider, mapsRuntimePlatform);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -391,7 +398,15 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         ? `${origin.lat},${origin.lng}`
         : undefined;
 
-    if (mapsPlatform === "ios" && routeStops.length === 1) {
+    if (mapsProvider === "apple" && effectiveMapsProvider === "google") {
+      toast.error("Apple Maps is only available on iOS. Opening Google Maps.");
+    }
+
+    if (effectiveMapsProvider === "apple" && routeStops.length > 1) {
+      toast.error("Apple Maps doesn't support multi-stop from Groundwork links. Opening Google Maps.");
+    }
+
+    if (effectiveMapsProvider === "apple" && routeStops.length === 1) {
       if (!origin && startMode === "gps") {
         toast.error("Couldn't access GPS. Apple Maps will try to use your current location.");
       }
@@ -426,7 +441,15 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
     mapsWindow.opener = null;
     mapsWindow.location.replace(url);
-  }, [routeStops, mapsPlatform, startMode, customStartAddress, setShareableUrl, resolveOrigin]);
+  }, [
+    routeStops,
+    mapsProvider,
+    effectiveMapsProvider,
+    startMode,
+    customStartAddress,
+    setShareableUrl,
+    resolveOrigin,
+  ]);
 
   const distanceMi = routeResult
     ? (routeResult.totalDistanceMeters / 1609.34).toFixed(1)

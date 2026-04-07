@@ -1,8 +1,9 @@
 import { ExternalLink, MapPin } from "lucide-react";
 import type { RouteStop } from "@/app/features/route/model/route.types";
-import { buildMobilePlaceMapsUrl } from "@/app/shared/lib/maps-links";
+import { buildPreferredPlaceMapsUrl } from "@/app/shared/lib/maps-links";
 import { cn } from "@/app/shared/lib/utils";
 import { InfoWindowCardShell } from "@/app/shared/ui/info-window-card-shell";
+import { useStore } from "@/app/store";
 
 interface RouteStopInfoWindowCardProps {
   stop: RouteStop;
@@ -12,10 +13,11 @@ interface RouteStopInfoWindowCardProps {
 }
 
 export function RouteStopInfoWindowCard({ stop, order, onClose, className }: RouteStopInfoWindowCardProps) {
+  const mapsProvider = useStore((state) => state.mapsProvider);
   const mapQuery = stop.address || `${stop.lat},${stop.lng}`;
 
   function handleOpenInMaps() {
-    const url = buildMobilePlaceMapsUrl({ query: mapQuery });
+    const url = buildPreferredPlaceMapsUrl({ query: mapQuery, provider: mapsProvider });
     if (!url) return;
     window.open(url, "_blank", "noopener,noreferrer");
   }

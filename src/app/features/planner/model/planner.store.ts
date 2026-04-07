@@ -10,6 +10,7 @@ export const createPlannerSlice: StateCreator<PlannerSlice> = (set) => ({
   plannerDays: {},
   activePlannerDate: new Date().toISOString().slice(0, 10),
   trackingEnabled: true,
+  mapsProvider: "google",
   activeNotesPage: {},
   calendarOpen: false,
   monthViewOpen: false,
@@ -194,6 +195,7 @@ export const createPlannerSlice: StateCreator<PlannerSlice> = (set) => ({
     }),
 
   setTrackingEnabled: (enabled) => set({ trackingEnabled: enabled }),
+  setMapsProvider: (provider) => set({ mapsProvider: provider }),
 
   setCalendarOpen: (open) => set({ calendarOpen: open }),
   setMonthViewOpen: (open) => set({ monthViewOpen: open }),

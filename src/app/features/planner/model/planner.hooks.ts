@@ -4,6 +4,7 @@ import { useShallow } from "zustand/shallow";
 export const usePlannerDays = () => useStore((state) => state.plannerDays);
 export const useActivePlannerDate = () => useStore((state) => state.activePlannerDate);
 export const useTrackingEnabled = () => useStore((state) => state.trackingEnabled);
+export const useMapsProvider = () => useStore((state) => state.mapsProvider);
 export const useActiveNotesPage = () => useStore((state) => state.activeNotesPage);
 export const useCalendarOpen = () => useStore((state) => state.calendarOpen);
 export const useMonthViewOpen = () => useStore((state) => state.monthViewOpen);
@@ -25,6 +26,7 @@ export const usePlannerActions = () =>
       clearPlannerDay: state.clearPlannerDay,
       clearAllPlanner: state.clearAllPlanner,
       setTrackingEnabled: state.setTrackingEnabled,
+      setMapsProvider: state.setMapsProvider,
       setCalendarOpen: state.setCalendarOpen,
       setMonthViewOpen: state.setMonthViewOpen,
     })),

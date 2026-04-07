@@ -1,10 +1,12 @@
-export type MobileMapsPlatform = "ios" | "android" | "other";
+import type { MapsProvider } from "@/app/shared/model/maps-provider";
+
+export type MapsRuntimePlatform = "ios" | "android" | "desktop";
 
 function normalizeInput(value: string): string {
   return value.trim();
 }
 
-export function detectMobileMapsPlatform(userAgent: string): MobileMapsPlatform {
+export function detectMapsRuntimePlatform(userAgent: string): MapsRuntimePlatform {
   const normalizedAgent = userAgent.toLowerCase();
 
   if (normalizedAgent.includes("android")) {
@@ -21,15 +23,25 @@ export function detectMobileMapsPlatform(userAgent: string): MobileMapsPlatform 
     return "ios";
   }
 
-  return "other";
+  return "desktop";
 }
 
-export function getMobileMapsPlatform(): MobileMapsPlatform {
+export function getMapsRuntimePlatform(): MapsRuntimePlatform {
   if (typeof navigator === "undefined") {
-    return "other";
+    return "desktop";
   }
 
-  return detectMobileMapsPlatform(navigator.userAgent ?? "");
+  return detectMapsRuntimePlatform(navigator.userAgent ?? "");
+}
+
+export function resolveMapsProviderForPlatform(
+  provider: MapsProvider,
+  platform: MapsRuntimePlatform,
+): MapsProvider {
+  if (provider === "apple" && platform !== "ios") {
+    return "google";
+  }
+  return provider;
 }
 
 export function buildGoogleMapsSearchUrl(query: string): string {
@@ -78,14 +90,16 @@ export function buildAppleMapsDirectionsUrl(options: {
   return `https://maps.apple.com/?${params.toString()}`;
 }
 
-export function buildMobilePlaceMapsUrl(options: {
+export function buildPreferredPlaceMapsUrl(options: {
   query: string;
   placeId?: string;
-  platform?: MobileMapsPlatform;
+  provider: MapsProvider;
+  platform?: MapsRuntimePlatform;
 }): string {
-  const platform = options.platform ?? getMobileMapsPlatform();
+  const platform = options.platform ?? getMapsRuntimePlatform();
+  const resolvedProvider = resolveMapsProviderForPlatform(options.provider, platform);
 
-  if (platform === "ios") {
+  if (resolvedProvider === "apple") {
     return buildAppleMapsSearchUrl(options.query);
   }
 

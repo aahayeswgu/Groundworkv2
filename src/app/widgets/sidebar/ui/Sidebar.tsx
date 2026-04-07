@@ -21,6 +21,7 @@ import {
 } from "@/app/features/discover/model/discover.hooks";
 import {
   usePlannerActions,
+  useMapsProvider,
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.hooks";
 import { useTheme } from "@/app/features/theme/model/theme-context";
@@ -66,7 +67,8 @@ export default function Sidebar({
   const discoverMode = useDiscoverMode();
   const isDrawing = useIsDrawing();
   const trackingEnabled = useTrackingEnabled();
-  const { setTrackingEnabled } = usePlannerActions();
+  const mapsProvider = useMapsProvider();
+  const { setTrackingEnabled, setMapsProvider } = usePlannerActions();
   const user = useStore((s) => s.user);
   const profile = useStore((s) => s.profile);
   const updateProfile = useStore((s) => s.updateProfile);
@@ -227,6 +229,8 @@ export default function Sidebar({
             onSettingsClose={onSettingsClose}
             trackingEnabled={trackingEnabled}
             onToggleTracking={() => setTrackingEnabled(!trackingEnabled)}
+            mapsProvider={mapsProvider}
+            onMapsProviderChange={setMapsProvider}
             theme={theme}
             onThemeChange={setTheme}
             onReplayTutorial={onReplayTutorial}

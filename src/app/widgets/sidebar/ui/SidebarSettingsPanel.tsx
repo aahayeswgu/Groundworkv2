@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useStore } from "@/app/store";
 import {
+  SIDEBAR_MAP_PROVIDER_OPTIONS,
   SIDEBAR_THEME_OPTIONS,
   type SidebarTheme,
 } from "@/app/widgets/sidebar/model/sidebar.model";
+import type { MapsProvider } from "@/app/shared/model/maps-provider";
+import { getMapsRuntimePlatform } from "@/app/shared/lib/maps-links";
 
 interface SidebarSettingsPanelProps {
   settingsToast: string | null;
   onSettingsClose: () => void;
   trackingEnabled: boolean;
   onToggleTracking: () => void;
+  mapsProvider: MapsProvider;
+  onMapsProviderChange: (provider: MapsProvider) => void;
   theme: SidebarTheme;
   onThemeChange: (theme: SidebarTheme) => void;
   onReplayTutorial: () => void;
@@ -23,6 +28,8 @@ export default function SidebarSettingsPanel({
   onSettingsClose,
   trackingEnabled,
   onToggleTracking,
+  mapsProvider,
+  onMapsProviderChange,
   theme,
   onThemeChange,
   onReplayTutorial,
@@ -31,6 +38,10 @@ export default function SidebarSettingsPanel({
   const pins = useStore((s) => s.pins);
   const deletePin = useStore((s) => s.deletePin);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const mapsPlatform = useMemo(() => getMapsRuntimePlatform(), []);
+  const appleMapsSelectable = mapsPlatform === "ios";
+  const effectiveMapsProvider: MapsProvider =
+    mapsProvider === "apple" && !appleMapsSelectable ? "google" : mapsProvider;
 
   const trackingToggleTrackClass = trackingEnabled
     ? "border-orange bg-orange"
@@ -87,6 +98,38 @@ export default function SidebarSettingsPanel({
               className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition-transform duration-200 ${trackingToggleThumbClass}`}
             />
           </button>
+        </div>
+      </div>
+
+      {/* Maps App */}
+      <div className="px-5 py-4 border-b border-border">
+        <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted mb-1">Maps App</div>
+        <div className="text-[11px] text-text-secondary mb-3">
+          Used by all Open Maps buttons. Default is Google Maps.
+          {!appleMapsSelectable ? " Apple Maps is only available on iOS." : ""}
+        </div>
+        <div className="flex gap-2">
+          {SIDEBAR_MAP_PROVIDER_OPTIONS.map((option) => {
+            const isAppleOption = option.value === "apple";
+            const disabled = isAppleOption && !appleMapsSelectable;
+            return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onMapsProviderChange(option.value)}
+              disabled={disabled}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                disabled
+                  ? "bg-bg-input text-text-muted opacity-50 cursor-not-allowed"
+                  : effectiveMapsProvider === option.value
+                    ? "bg-orange text-white"
+                    : "bg-bg-input text-text-secondary hover:text-text-primary hover:bg-bg-card"
+              }`}
+            >
+              {option.label}
+            </button>
+            );
+          })}
         </div>
       </div>
 

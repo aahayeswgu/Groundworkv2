@@ -34,6 +34,7 @@ export const useStore = create<AppStore>()(
         plannerDays: state.plannerDays,
         activePlannerDate: state.activePlannerDate,
         trackingEnabled: state.trackingEnabled,
+        mapsProvider: state.mapsProvider,
       }),
       skipHydration: true,
       version: STORE_VERSION,

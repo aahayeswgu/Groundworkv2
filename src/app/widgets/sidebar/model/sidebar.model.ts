@@ -1,3 +1,5 @@
+import type { MapsProvider } from "@/app/shared/model/maps-provider";
+
 export type SidebarTab = "pins" | "discover" | "planner" | "route";
 
 export interface SidebarTabItem {
@@ -22,6 +24,16 @@ export interface SidebarThemeOption {
 export const SIDEBAR_THEME_OPTIONS: readonly SidebarThemeOption[] = [
   { value: "dark", label: "Dark" },
   { value: "gray", label: "Graphite" },
+];
+
+export interface SidebarMapProviderOption {
+  value: MapsProvider;
+  label: string;
+}
+
+export const SIDEBAR_MAP_PROVIDER_OPTIONS: readonly SidebarMapProviderOption[] = [
+  { value: "google", label: "Google Maps" },
+  { value: "apple", label: "Apple Maps" },
 ];
 
 export interface SidebarProfileFormValues {

@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
-import { buildMobilePlaceMapsUrl, getMobileMapsPlatform } from "@/app/shared/lib/maps-links";
+import { buildPreferredPlaceMapsUrl } from "@/app/shared/lib/maps-links";
 import { cn } from "@/app/shared/lib/utils";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu";
 import { InfoWindowCardShell } from "@/app/shared/ui/info-window-card-shell";
+import { useStore } from "@/app/store";
 
 interface DiscoverInfoWindowCardProps {
   result: DiscoverResult;
@@ -49,6 +50,7 @@ export function DiscoverInfoWindowCard({
   className,
 }: DiscoverInfoWindowCardProps) {
   const isMobile = useIsMobile();
+  const mapsProvider = useStore((state) => state.mapsProvider);
   const [saved, setSaved] = useState(alreadySaved);
   const [routeState, setRouteState] = useState<"idle" | "added" | "full">(isInRoute ? "added" : "idle");
   const [briefText, setBriefText] = useState("");
@@ -147,12 +149,11 @@ export function DiscoverInfoWindowCard({
   const aiText = detailedText
     ? `${normalizeAiText(briefText)}\n\n---\n\n${normalizeAiText(detailedText)}`
     : normalizeAiText(briefText);
-  const mapsPlatform = isMobile ? getMobileMapsPlatform() : "other";
   const mapsQuery = `${result.displayName} ${result.address}`.trim();
-  const placeUrl = buildMobilePlaceMapsUrl({
+  const placeUrl = buildPreferredPlaceMapsUrl({
     query: mapsQuery,
     placeId: result.placeId,
-    platform: mapsPlatform,
+    provider: mapsProvider,
   });
   const aiPromptText = `What should I know about ${result.displayName} before reaching out?`;
 

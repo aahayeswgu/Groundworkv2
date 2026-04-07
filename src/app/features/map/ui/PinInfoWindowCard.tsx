@@ -20,7 +20,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import type { Pin } from "@/app/features/pins/model/pin.types";
-import { buildMobilePlaceMapsUrl, getMobileMapsPlatform } from "@/app/shared/lib/maps-links";
+import { buildPreferredPlaceMapsUrl } from "@/app/shared/lib/maps-links";
 import { cn } from "@/app/shared/lib/utils";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
@@ -36,6 +36,7 @@ import type { RouteAddResult } from "../model/marker-layer.types";
 import {
   PIN_INFO_STATUS_LABELS,
 } from "../model/pin-info-window.model";
+import { useStore } from "@/app/store";
 
 type RouteState = "idle" | RouteAddResult;
 
@@ -63,6 +64,7 @@ export function PinInfoWindowCard({
   className,
 }: PinInfoWindowCardProps) {
   const isMobile = useIsMobile();
+  const mapsProvider = useStore((state) => state.mapsProvider);
   const [routeState, setRouteState] = useState<RouteState>(isInRoute ? "already" : "idle");
   const [planned, setPlanned] = useState(isPlanned);
   const [briefText, setBriefText] = useState("");
@@ -150,13 +152,12 @@ export function PinInfoWindowCard({
   const aiText = detailedText
     ? `${normalizeAiText(briefText)}\n\n---\n\n${normalizeAiText(detailedText)}`
     : normalizeAiText(briefText);
-  const mapsPlatform = isMobile ? getMobileMapsPlatform() : "other";
   const mapsQuery = `${pin.title} ${pin.address}`.trim();
   const placeUrl = pin.placeId
-    ? buildMobilePlaceMapsUrl({
+    ? buildPreferredPlaceMapsUrl({
       query: mapsQuery,
       placeId: pin.placeId,
-      platform: mapsPlatform,
+      provider: mapsProvider,
     })
     : null;
   const aiPromptText = `What should I know about ${pin.title} before reaching out?`;

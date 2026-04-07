@@ -1,3 +1,5 @@
+import type { MapsProvider } from "@/app/shared/model/maps-provider";
+
 export type PlannerStopStatus = "planned" | "visited" | "skipped";
 
 export interface PlannerStop {
@@ -28,6 +30,7 @@ export interface PlannerSlice {
   plannerDays: Record<string, DayPlan>;    // keyed by "YYYY-MM-DD"
   activePlannerDate: string;               // ISO date string "YYYY-MM-DD"
   trackingEnabled: boolean;               // privacy toggle
+  mapsProvider: MapsProvider;
 
   // Session-only UI state (not persisted)
   activeNotesPage: Record<string, number>; // current page per date
@@ -50,6 +53,7 @@ export interface PlannerSlice {
   clearPlannerDay: (date?: string) => void;
   clearAllPlanner: () => void;
   setTrackingEnabled: (enabled: boolean) => void;
+  setMapsProvider: (provider: MapsProvider) => void;
   setCalendarOpen: (open: boolean) => void;
   setMonthViewOpen: (open: boolean) => void;
   purgeStaleDays: () => void;
