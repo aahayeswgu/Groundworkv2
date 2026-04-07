@@ -123,6 +123,7 @@ export async function searchBusinessesInArea(bounds: DrawBounds): Promise<void> 
             "rating",
             "userRatingCount",
             "photos",
+            "businessStatus",
           ],
           locationBias: new google.maps.LatLngBounds(
             { lat: bounds.swLat, lng: bounds.swLng },

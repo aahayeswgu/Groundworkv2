@@ -3,7 +3,7 @@ import type { DrawBounds } from "@/app/features/discover/api/discover-search";
 
 export const EXCLUDED_CHAINS = /home depot|lowe'?s|ace hardware|menards|harbor freight|sherwin.williams|walmart|target|costco|cvs|walgreens|publix|mcdonald|starbucks|dunkin|subway|burger king|taco bell|pizza|chase bank|wells fargo|bank of america|state farm|allstate/i;
 
-export const EXCLUDED_NAME_PATTERNS = /\b(home|house|residential|apartment|condo|duplex|townhome|single.?family|estate|realty|realtor|property management|handyman|maid|cleaning service|lawn care|pest control|pool service|garage door|window cleaning|gutter cleaning|pressure wash|junk removal|moving|storage)\b/i;
+export const EXCLUDED_NAME_PATTERNS = /\b(home|house|residential|apartment|condo|duplex|townhome|single.?family|estate|realty|realtor|property management|handyman|maid|cleaning service|lawn care|pest control|pool service|garage door|window cleaning|gutter cleaning|pressure wash|junk removal|moving|storage|mobile home|trailer|rv park)\b/i;
 
 export function classifyGooglePlace(types: string[], displayName: string): string {
   const name = displayName.toLowerCase();
@@ -57,7 +57,20 @@ const EXCLUDED_TYPES = new Set([
   "apartment_rental_agency",
   "condominium_complex",
   "real_estate_agency",
+  "residential_area",
+  "mobile_home_park",
+  "rv_park",
+  "campground",
+  "cemetery",
+  "funeral_home",
+  "laundry",
+  "beauty_salon",
+  "hair_care",
+  "spa",
 ]);
+
+// Minimum review count — filters out unlisted/home-based businesses with no public presence.
+const MIN_RATING_COUNT = 2;
 
 type PlaceLike = {
   id?: string;
@@ -68,6 +81,7 @@ type PlaceLike = {
   rating?: number;
   userRatingCount?: number;
   photos?: Array<{ getURI?: (opts: { maxWidth: number }) => string }>;
+  businessStatus?: string;
 };
 
 /**
@@ -80,6 +94,9 @@ export function filterAndMapPlace(
   seen: Set<string>,
 ): DiscoverResult | null {
   if (!place.id || !place.displayName || !place.location) return null;
+
+  // Skip closed or permanently closed businesses.
+  if (place.businessStatus && place.businessStatus !== "OPERATIONAL") return null;
 
   const lat = place.location.lat();
   const lng = place.location.lng();
@@ -106,6 +123,10 @@ export function filterAndMapPlace(
   const displayName = place.displayName;
   if (EXCLUDED_CHAINS.test(displayName)) return null;
   if (EXCLUDED_NAME_PATTERNS.test(displayName)) return null;
+
+  // Filter out places with too few reviews — residential/home-based listings rarely have any.
+  const ratingCount = place.userRatingCount ?? 0;
+  if (ratingCount < MIN_RATING_COUNT) return null;
 
   const photoUri = place.photos?.[0]?.getURI?.({ maxWidth: 400 }) ?? null;
 
