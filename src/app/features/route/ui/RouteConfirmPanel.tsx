@@ -32,10 +32,12 @@ import {
 } from "@/app/features/route/model/route.hooks";
 import {
   usePlannerActions,
+  usePlannerDays,
   useTrackingEnabled,
 } from "@/app/features/planner/model/planner.hooks";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 import { ArrowRight, Calendar, ExternalLink, Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface RouteConfirmPanelProps {
   open?: boolean;
@@ -148,6 +150,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     setShareableUrl,
     clearRoute,
   } = useRouteActions();
+  const plannerDays = usePlannerDays();
   const { addPlannerStop, setActivePlannerDate, addActivityEntry } = usePlannerActions();
   const trackingEnabled = useTrackingEnabled();
 
@@ -199,8 +202,20 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   function handleSendToPlanner() {
     if (routeStops.length === 0) return;
     const today = new Date().toISOString().slice(0, 10);
+    const todayStops = plannerDays[today]?.stops ?? [];
+    const existingPinIds = new Set(
+      todayStops
+        .map((stop) => stop.pinId)
+        .filter((pinId): pinId is string => Boolean(pinId)),
+    );
+    let addedCount = 0;
+
     setActivePlannerDate(today);
     routeStops.forEach((rs) => {
+      if (existingPinIds.has(rs.id)) return;
+      existingPinIds.add(rs.id);
+      addedCount += 1;
+
       addPlannerStop({
         id: crypto.randomUUID(),
         pinId: rs.id,
@@ -213,10 +228,18 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         visitedAt: null,
       });
     });
-    if (trackingEnabled) {
+
+    if (trackingEnabled && addedCount > 0) {
       const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-      addActivityEntry({ time, text: `Added ${routeStops.length} stops from route` });
+      addActivityEntry({ time, text: `Added ${addedCount} stops from route` });
     }
+
+    if (addedCount > 0) {
+      toast.success(`Sent ${addedCount} stop${addedCount === 1 ? "" : "s"} to planner`);
+      return;
+    }
+
+    toast("All route stops are already in planner");
   }
 
   const resolveOrigin = useCallback(async (): Promise<{ address?: string; lat?: number; lng?: number } | null> => {
@@ -349,25 +372,34 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
   const handleOpenMaps = useCallback(async () => {
     if (routeStops.length === 0) return;
-    // Resolve actual origin coordinates for the URL
-    const origin = await resolveOrigin();
-    if (!origin) {
-      // Fallback: just use stops without an origin
-      const url = buildGoogleMapsUrl(routeStops[0], routeStops.slice(1));
-      setShareableUrl(url);
-      window.open(url, "_blank", "noopener,noreferrer");
+    const mapsWindow = window.open("about:blank", "_blank");
+    if (!mapsWindow) {
+      toast.error("Popup blocked. Please allow pop-ups and try again.");
       return;
     }
-    const originStop: RouteStop = {
-      id: "origin",
-      label: startMode === "home" ? "Home" : startMode === "gps" ? "My Location" : "Start",
-      address: origin.address ?? customStartAddress ?? "",
-      lat: origin.lat ?? 0,
-      lng: origin.lng ?? 0,
-    };
-    const url = buildGoogleMapsUrl(originStop, routeStops);
-    setShareableUrl(url);
-    window.open(url, "_blank", "noopener,noreferrer");
+
+    // Resolve actual origin coordinates for the URL
+    const origin = await resolveOrigin();
+    let url: string;
+
+    if (!origin) {
+      // Fallback: just use stops without an origin
+      url = buildGoogleMapsUrl(routeStops[0], routeStops.slice(1));
+      setShareableUrl(url);
+    } else {
+      const originStop: RouteStop = {
+        id: "origin",
+        label: startMode === "home" ? "Home" : startMode === "gps" ? "My Location" : "Start",
+        address: origin.address ?? customStartAddress ?? "",
+        lat: origin.lat ?? 0,
+        lng: origin.lng ?? 0,
+      };
+      url = buildGoogleMapsUrl(originStop, routeStops);
+      setShareableUrl(url);
+    }
+
+    mapsWindow.opener = null;
+    mapsWindow.location.replace(url);
   }, [routeStops, startMode, customStartAddress, setShareableUrl, resolveOrigin]);
 
   const distanceMi = routeResult
@@ -495,8 +527,6 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <button
             type="button"
-            onPointerDown={(event) => event.stopPropagation()}
-            onTouchStart={(event) => event.stopPropagation()}
             onClick={handleOpenMaps}
             disabled={routeStops.length === 0}
             className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
@@ -506,8 +536,6 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           </button>
           <button
             type="button"
-            onPointerDown={(event) => event.stopPropagation()}
-            onTouchStart={(event) => event.stopPropagation()}
             onClick={handleSendToPlanner}
             disabled={routeStops.length === 0}
             className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
@@ -519,8 +547,6 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
         <button
           type="button"
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
           onClick={() => {
             clearRoute();
             if (!inline) {
@@ -536,8 +562,6 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         <button
           type="button"
           ref={previewButtonRef}
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
           onClick={handleBuildRoute}
           disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-orange bg-orange px-4 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
@@ -561,6 +585,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           if (!nextOpen) onClose?.();
         }}
         fullHeight
+        disableContentDrag
       >
         <div className="sr-only">
           <h2>Route Planner</h2>

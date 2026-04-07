@@ -14,6 +14,7 @@ interface MobileBottomSheetProps {
   fullHeight?: boolean;
   detent?: "default" | "content" | "full";
   inset?: boolean;
+  disableContentDrag?: boolean;
 }
 
 export function MobileBottomSheet({
@@ -26,6 +27,7 @@ export function MobileBottomSheet({
   fullHeight = false,
   detent = "default",
   inset = false,
+  disableContentDrag = false,
 }: MobileBottomSheetProps) {
   const containerStyle: CSSProperties = {
     bottom: "var(--mobile-bottom-bar-offset)",
@@ -63,6 +65,7 @@ export function MobileBottomSheet({
         </Sheet.Header>
         <Sheet.Content
           disableScroll
+          disableDrag={disableContentDrag}
           className={cn("min-h-0", className)}
           scrollClassName="min-h-0"
         >
