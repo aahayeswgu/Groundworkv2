@@ -1,34 +1,38 @@
+import { MapPin } from "lucide-react";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 import { cn } from "@/app/shared/lib/utils";
-import { Card, CardContent } from "@/app/shared/ui/card";
+import { InfoWindowCardShell } from "@/app/shared/ui/info-window-card-shell";
 
 interface RouteStopInfoWindowCardProps {
   stop: RouteStop;
   order: number;
+  onClose?: () => void;
   className?: string;
 }
 
-export function RouteStopInfoWindowCard({ stop, order, className }: RouteStopInfoWindowCardProps) {
+export function RouteStopInfoWindowCard({ stop, order, onClose, className }: RouteStopInfoWindowCardProps) {
   const query = encodeURIComponent(stop.address || `${stop.lat},${stop.lng}`);
+  const mapLinkHref = `https://www.google.com/maps/search/?api=1&query=${query}`;
 
   return (
-    <Card className={cn("w-full min-w-[220px] bg-bg-card font-sans ring-1 ring-border", className)}>
-      <CardContent className="space-y-1 py-3">
-        <div className="text-sm font-bold text-[#1A1A1A]">
-          Stop {order}: {stop.label}
+    <InfoWindowCardShell
+      className={cn("max-w-[420px]", className)}
+      title={stop.label}
+      subtitle={(
+        <span className="inline-flex rounded-md border border-orange/35 bg-orange/15 px-2 py-1 text-[10px] font-black tracking-[0.1em] text-orange uppercase">
+          Route Stop {order}
+        </span>
+      )}
+      address={(
+        <div className="flex items-start gap-2 leading-[1.5]">
+          <MapPin className="mt-1 size-3.5 shrink-0 text-text-muted" />
+          <span className="text-[13px] text-text-muted/90">{stop.address}</span>
         </div>
-        <div className="text-xs text-[#666]">
-          {stop.address}
-        </div>
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${query}`}
-          target="_blank"
-          rel="noopener"
-          className="inline-block text-xs font-semibold text-[#4285F4] no-underline"
-        >
-          View on Google Maps
-        </a>
-      </CardContent>
-    </Card>
+      )}
+      mapLinkHref={mapLinkHref}
+      mapLinkLabel="Open in Google Maps"
+      imageUrl={null}
+      onClose={onClose}
+    />
   );
 }

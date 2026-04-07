@@ -1,6 +1,6 @@
 "use client";
 
-import { AdvancedMarker, InfoWindow, Polyline, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, Polyline, useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useMemo, useState } from "react";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import {
@@ -22,6 +22,7 @@ import {
   useRouteResult,
   useRouteStops,
 } from "@/app/features/route/model/route.hooks";
+import { MapPopup } from "@/app/shared/ui/map-popup";
 
 function isRouteRenderable(routeStopCount: number, polylinePointCount: number): boolean {
   return routeStopCount > 0 && polylinePointCount >= 2;
@@ -105,12 +106,9 @@ export default function RouteLayer() {
       ))}
 
       {openStop && openStopOrder > 0 && !isMobile ? (
-        <InfoWindow
-          position={{ lat: openStop.lat, lng: openStop.lng }}
-          onClose={() => setOpenStopId(null)}
-        >
-          <RouteStopInfoWindowCard stop={openStop} order={openStopOrder} />
-        </InfoWindow>
+        <MapPopup position={{ lat: openStop.lat, lng: openStop.lng }}>
+          <RouteStopInfoWindowCard stop={openStop} order={openStopOrder} onClose={() => setOpenStopId(null)} />
+        </MapPopup>
       ) : null}
 
       {openStop && openStopOrder > 0 && isMobile ? (
