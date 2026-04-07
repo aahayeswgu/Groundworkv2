@@ -17,6 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
+import { buildAppleMapsDirectionsUrl, getMobileMapsPlatform } from "@/app/shared/lib/maps-links";
 import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { useStore } from "@/app/store";
 import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
@@ -159,6 +160,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const startAddressInputRef = useRef<HTMLInputElement | null>(null);
   const previewButtonRef = useRef<HTMLButtonElement | null>(null);
   const didAutoFocusRef = useRef(false);
+  const mapsPlatform = isMobile ? getMobileMapsPlatform() : "other";
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -381,6 +383,27 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     // Resolve actual origin coordinates for the URL
     const origin = await resolveOrigin();
     let url: string;
+    const destination = routeStops[routeStops.length - 1];
+    const destinationAddress = destination.address?.trim() ? destination.address.trim() : `${destination.lat},${destination.lng}`;
+    const originAddress = origin?.address?.trim()
+      ? origin.address.trim()
+      : origin && Number.isFinite(origin.lat) && Number.isFinite(origin.lng)
+        ? `${origin.lat},${origin.lng}`
+        : undefined;
+
+    if (mapsPlatform === "ios" && routeStops.length === 1) {
+      if (!origin && startMode === "gps") {
+        toast.error("Couldn't access GPS. Apple Maps will try to use your current location.");
+      }
+      url = buildAppleMapsDirectionsUrl({
+        destination: destinationAddress,
+        origin: originAddress,
+      });
+      setShareableUrl(url);
+      mapsWindow.opener = null;
+      mapsWindow.location.replace(url);
+      return;
+    }
 
     if (!origin) {
       // Fallback: omit origin so Google Maps can attempt current-location resolution.
@@ -403,7 +426,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
     mapsWindow.opener = null;
     mapsWindow.location.replace(url);
-  }, [routeStops, startMode, customStartAddress, setShareableUrl, resolveOrigin]);
+  }, [routeStops, mapsPlatform, startMode, customStartAddress, setShareableUrl, resolveOrigin]);
 
   const distanceMi = routeResult
     ? (routeResult.totalDistanceMeters / 1609.34).toFixed(1)

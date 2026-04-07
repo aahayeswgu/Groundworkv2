@@ -16,6 +16,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
+import { buildMobilePlaceMapsUrl, getMobileMapsPlatform } from "@/app/shared/lib/maps-links";
 import { cn } from "@/app/shared/lib/utils";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
@@ -146,7 +147,13 @@ export function DiscoverInfoWindowCard({
   const aiText = detailedText
     ? `${normalizeAiText(briefText)}\n\n---\n\n${normalizeAiText(detailedText)}`
     : normalizeAiText(briefText);
-  const placeUrl = `https://www.google.com/maps/place/?q=place_id:${result.placeId}`;
+  const mapsPlatform = isMobile ? getMobileMapsPlatform() : "other";
+  const mapsQuery = `${result.displayName} ${result.address}`.trim();
+  const placeUrl = buildMobilePlaceMapsUrl({
+    query: mapsQuery,
+    placeId: result.placeId,
+    platform: mapsPlatform,
+  });
   const aiPromptText = `What should I know about ${result.displayName} before reaching out?`;
 
   return (

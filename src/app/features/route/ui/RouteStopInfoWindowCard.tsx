@@ -1,5 +1,6 @@
-import { MapPin } from "lucide-react";
+import { ExternalLink, MapPin } from "lucide-react";
 import type { RouteStop } from "@/app/features/route/model/route.types";
+import { buildMobilePlaceMapsUrl } from "@/app/shared/lib/maps-links";
 import { cn } from "@/app/shared/lib/utils";
 import { InfoWindowCardShell } from "@/app/shared/ui/info-window-card-shell";
 
@@ -11,8 +12,13 @@ interface RouteStopInfoWindowCardProps {
 }
 
 export function RouteStopInfoWindowCard({ stop, order, onClose, className }: RouteStopInfoWindowCardProps) {
-  const query = encodeURIComponent(stop.address || `${stop.lat},${stop.lng}`);
-  const mapLinkHref = `https://www.google.com/maps/search/?api=1&query=${query}`;
+  const mapQuery = stop.address || `${stop.lat},${stop.lng}`;
+
+  function handleOpenInMaps() {
+    const url = buildMobilePlaceMapsUrl({ query: mapQuery });
+    if (!url) return;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
 
   return (
     <InfoWindowCardShell
@@ -29,8 +35,17 @@ export function RouteStopInfoWindowCard({ stop, order, onClose, className }: Rou
           <span className="text-[13px] text-text-muted/90">{stop.address}</span>
         </div>
       )}
-      mapLinkHref={mapLinkHref}
-      mapLinkLabel="Open in Google Maps"
+      mapLinkHref={undefined}
+      actions={(
+        <button
+          type="button"
+          onClick={handleOpenInMaps}
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-3 text-[10px] font-bold text-text-primary no-underline transition-all hover:border-white/20 hover:bg-white/10 active:scale-95"
+        >
+          <ExternalLink className="size-3" />
+          Open in Maps
+        </button>
+      )}
       imageUrl={stop.photoUrl ?? null}
       imageAlt={stop.label}
       onClose={onClose}

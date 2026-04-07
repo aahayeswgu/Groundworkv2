@@ -20,6 +20,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import type { Pin } from "@/app/features/pins/model/pin.types";
+import { buildMobilePlaceMapsUrl, getMobileMapsPlatform } from "@/app/shared/lib/maps-links";
 import { cn } from "@/app/shared/lib/utils";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
@@ -149,7 +150,15 @@ export function PinInfoWindowCard({
   const aiText = detailedText
     ? `${normalizeAiText(briefText)}\n\n---\n\n${normalizeAiText(detailedText)}`
     : normalizeAiText(briefText);
-  const placeUrl = pin.placeId ? `https://www.google.com/maps/place/?q=place_id:${pin.placeId}` : null;
+  const mapsPlatform = isMobile ? getMobileMapsPlatform() : "other";
+  const mapsQuery = `${pin.title} ${pin.address}`.trim();
+  const placeUrl = pin.placeId
+    ? buildMobilePlaceMapsUrl({
+      query: mapsQuery,
+      placeId: pin.placeId,
+      platform: mapsPlatform,
+    })
+    : null;
   const aiPromptText = `What should I know about ${pin.title} before reaching out?`;
 
   return (
