@@ -1,6 +1,7 @@
 "use client";
 
 import { getOrCreateDay } from "@/app/features/planner/model/planner.store";
+import { toast } from "sonner";
 import {
   useActiveNotesPage,
   useActivePlannerDate,
@@ -17,6 +18,15 @@ import PlannerActivityLog from "@/app/features/planner/ui/PlannerActivityLog";
 import PlannerCalendar from "@/app/features/planner/ui/PlannerCalendar";
 import type { PlannerStopStatus } from "@/app/features/planner/model/planner.types";
 import type { RouteStop } from "@/app/features/route/model/route.types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/app/shared/ui/dropdown-menu";
+import { CheckCheck, MoreHorizontal, RotateCcw, Trash2 } from "lucide-react";
 
 export default function PlannerPanel() {
   const plannerDays = usePlannerDays();
@@ -30,6 +40,10 @@ export default function PlannerPanel() {
     addNotesPage,
     deleteNotesPage,
     setActiveNotesPage,
+    markAllPlannerStopsVisited,
+    resetPlannerStopsToPlanned,
+    clearPlannerDay,
+    clearAllPlanner,
     setTrackingEnabled,
     setCalendarOpen,
     setMonthViewOpen,
@@ -42,7 +56,21 @@ export default function PlannerPanel() {
 
   const day = getOrCreateDay(plannerDays, activePlannerDate);
   const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;
-
+  const hasStops = day.stops.length > 0;
+  const hasUnvisitedStops = day.stops.some((stop) => stop.status !== "visited");
+  const hasNonPlannedStops = day.stops.some((stop) => stop.status !== "planned" || stop.visitedAt !== null);
+  const hasPersistedDay = plannerDays[activePlannerDate] !== undefined;
+  const hasDayData =
+    hasPersistedDay ||
+    day.stops.length > 0 ||
+    day.activityLog.length > 0 ||
+    day.notes.some((note) => note.trim().length > 0);
+  const hasAnyPlannerData = Object.keys(plannerDays).length > 0 || Object.values(plannerDays).some(
+    (plannerDay) =>
+      plannerDay.stops.length > 0 ||
+      plannerDay.activityLog.length > 0 ||
+      plannerDay.notes.some((note) => note.trim().length > 0),
+  );
 
   // Date navigation helpers (D-15)
   const todayStr = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD" in local time
@@ -97,6 +125,46 @@ export default function PlannerPanel() {
       const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
       addActivityEntry({ time, text: `Route started with ${day.stops.length} stops` });
     }
+  }
+
+  function handleClearDay() {
+    if (!hasDayData) return;
+    const confirmed = window.confirm(
+      `Clear planner data for ${displayDate}? This removes stops, notes, and activity for this day.`,
+    );
+    if (!confirmed) return;
+    clearPlannerDay(activePlannerDate);
+    toast.success(`Cleared planner for ${displayDate}`);
+  }
+
+  function handleMarkAllVisited() {
+    if (!hasUnvisitedStops) return;
+    markAllPlannerStopsVisited(activePlannerDate);
+    if (trackingEnabled) {
+      const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      addActivityEntry({ time, text: `Marked ${day.stops.length} stop${day.stops.length === 1 ? "" : "s"} as visited` });
+    }
+    toast.success("Marked all stops as visited");
+  }
+
+  function handleResetAllStopsPlanned() {
+    if (!hasNonPlannedStops) return;
+    resetPlannerStopsToPlanned(activePlannerDate);
+    if (trackingEnabled) {
+      const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      addActivityEntry({ time, text: `Reset ${day.stops.length} stop${day.stops.length === 1 ? "" : "s"} to planned` });
+    }
+    toast.success("Reset all stops to planned");
+  }
+
+  function handleClearAllPlanner() {
+    if (!hasAnyPlannerData) return;
+    const confirmed = window.confirm(
+      "Clear all planner data across all days? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+    clearAllPlanner();
+    toast.success("Cleared all planner data");
   }
 
   return (
@@ -156,6 +224,43 @@ export default function PlannerPanel() {
               <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           </button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="p-1 rounded text-text-muted transition-colors hover:text-orange"
+                title="Planner options"
+                aria-label="Planner options"
+              >
+                <MoreHorizontal className="size-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-52">
+              <DropdownMenuLabel>Planner Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleMarkAllVisited} disabled={!hasStops || !hasUnvisitedStops}>
+                <CheckCheck className="text-emerald-300" />
+                Mark All as Visited
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleResetAllStopsPlanned} disabled={!hasStops || !hasNonPlannedStops}>
+                <RotateCcw className="text-[#9EC1FF]" />
+                Reset All to Planned
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleClearDay} disabled={!hasDayData}>
+                <Trash2 className="text-text-muted" />
+                Clear This Day
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={handleClearAllPlanner}
+                disabled={!hasAnyPlannerData}
+                variant="destructive"
+              >
+                <Trash2 />
+                Clear All Planner Data
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Inline calendar picker (shown when calendarOpen) */}

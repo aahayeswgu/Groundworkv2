@@ -20,9 +20,12 @@ export const usePlannerActions = () =>
       setNotesPage: state.setNotesPage,
       setActiveNotesPage: state.setActiveNotesPage,
       addActivityEntry: state.addActivityEntry,
+      markAllPlannerStopsVisited: state.markAllPlannerStopsVisited,
+      resetPlannerStopsToPlanned: state.resetPlannerStopsToPlanned,
+      clearPlannerDay: state.clearPlannerDay,
+      clearAllPlanner: state.clearAllPlanner,
       setTrackingEnabled: state.setTrackingEnabled,
       setCalendarOpen: state.setCalendarOpen,
       setMonthViewOpen: state.setMonthViewOpen,
     })),
   );
-

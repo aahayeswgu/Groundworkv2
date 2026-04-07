@@ -114,6 +114,85 @@ export const createPlannerSlice: StateCreator<PlannerSlice> = (set) => ({
       return { plannerDays: { ...s.plannerDays, [date]: { ...day, activityLog: log } } };
     }),
 
+  markAllPlannerStopsVisited: (date) =>
+    set((s) => {
+      const targetDate = date ?? s.activePlannerDate;
+      const day = getOrCreateDay(s.plannerDays, targetDate);
+      if (day.stops.length === 0) return s;
+
+      const nowIso = new Date().toISOString();
+      const nextStops = day.stops.map((stop) =>
+        stop.status === "visited"
+          ? stop
+          : { ...stop, status: "visited" as const, visitedAt: nowIso },
+      );
+
+      const hasChanges = nextStops.some((stop, index) => stop !== day.stops[index]);
+      if (!hasChanges) return s;
+
+      return {
+        plannerDays: {
+          ...s.plannerDays,
+          [targetDate]: {
+            ...day,
+            stops: nextStops,
+          },
+        },
+      };
+    }),
+
+  resetPlannerStopsToPlanned: (date) =>
+    set((s) => {
+      const targetDate = date ?? s.activePlannerDate;
+      const day = getOrCreateDay(s.plannerDays, targetDate);
+      if (day.stops.length === 0) return s;
+
+      const nextStops = day.stops.map((stop) =>
+        stop.status === "planned" && stop.visitedAt === null
+          ? stop
+          : { ...stop, status: "planned" as const, visitedAt: null },
+      );
+
+      const hasChanges = nextStops.some((stop, index) => stop !== day.stops[index]);
+      if (!hasChanges) return s;
+
+      return {
+        plannerDays: {
+          ...s.plannerDays,
+          [targetDate]: {
+            ...day,
+            stops: nextStops,
+          },
+        },
+      };
+    }),
+
+  clearPlannerDay: (date) =>
+    set((s) => {
+      const targetDate = date ?? s.activePlannerDate;
+      if (!s.plannerDays[targetDate] && s.activeNotesPage[targetDate] === undefined) {
+        return s;
+      }
+
+      const plannerDays = { ...s.plannerDays };
+      const activeNotesPage = { ...s.activeNotesPage };
+      delete plannerDays[targetDate];
+      delete activeNotesPage[targetDate];
+
+      return { plannerDays, activeNotesPage };
+    }),
+
+  clearAllPlanner: () =>
+    set((s) => {
+      if (Object.keys(s.plannerDays).length === 0 && Object.keys(s.activeNotesPage).length === 0) {
+        return s;
+      }
+      return {
+        plannerDays: {},
+        activeNotesPage: {},
+      };
+    }),
+
   setTrackingEnabled: (enabled) => set({ trackingEnabled: enabled }),
 
   setCalendarOpen: (open) => set({ calendarOpen: open }),

@@ -45,6 +45,10 @@ export interface PlannerSlice {
   setNotesPage: (pageIndex: number, text: string) => void;
   setActiveNotesPage: (date: string, page: number) => void;
   addActivityEntry: (entry: ActivityEntry) => void;
+  markAllPlannerStopsVisited: (date?: string) => void;
+  resetPlannerStopsToPlanned: (date?: string) => void;
+  clearPlannerDay: (date?: string) => void;
+  clearAllPlanner: () => void;
   setTrackingEnabled: (enabled: boolean) => void;
   setCalendarOpen: (open: boolean) => void;
   setMonthViewOpen: (open: boolean) => void;
