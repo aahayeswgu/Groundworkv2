@@ -43,6 +43,7 @@ export function addSelectedDiscoverResultsToRoute({
       address: result.address ?? "",
       lat: result.lat,
       lng: result.lng,
+      photoUrl: result.photoUri ?? null,
     };
 
     const added = addStop(stop);
@@ -80,4 +81,3 @@ export function getRouteSelectionMessage({
 
   return messageParts.join(" ");
 }
-

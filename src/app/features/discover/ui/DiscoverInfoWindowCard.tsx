@@ -1,9 +1,31 @@
 import { useState } from "react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  ExternalLink,
+  Loader2,
+  MapPin,
+  Plus,
+  Sparkles,
+  Star,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import { cn } from "@/app/shared/lib/utils";
-import { Card, CardContent } from "@/app/shared/ui/card";
+import { Button } from "@/app/shared/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/app/shared/ui/dropdown-menu";
+import { InfoWindowCardShell } from "@/app/shared/ui/info-window-card-shell";
 
 interface DiscoverInfoWindowCardProps {
   result: DiscoverResult;
@@ -11,6 +33,7 @@ interface DiscoverInfoWindowCardProps {
   isInRoute: boolean;
   onSave: () => void;
   onAddToRoute: () => boolean;
+  onClose?: () => void;
   className?: string;
 }
 
@@ -20,6 +43,7 @@ export function DiscoverInfoWindowCard({
   isInRoute,
   onSave,
   onAddToRoute,
+  onClose,
   className,
 }: DiscoverInfoWindowCardProps) {
   const [saved, setSaved] = useState(alreadySaved);
@@ -31,9 +55,11 @@ export function DiscoverInfoWindowCard({
   const [aiError, setAiError] = useState<string | null>(null);
 
   const placeType = classifyGooglePlace(result.types, result.displayName);
-  const stars = result.rating
-    ? "\u2605".repeat(Math.round(result.rating)) + "\u2606".repeat(5 - Math.round(result.rating))
-    : "";
+  const routeLabel = routeState === "full"
+    ? "Route Full"
+    : routeState === "added"
+      ? "Added to Route"
+      : "Add to Route";
 
   async function handleAiClick() {
     if (aiLoading) return;
@@ -44,6 +70,11 @@ export function DiscoverInfoWindowCard({
     }
 
     if (briefText) {
+      if (!showAi) {
+        setShowAi(true);
+        return;
+      }
+
       setAiError(null);
       setAiLoading("detailed");
       try {
@@ -102,98 +133,210 @@ export function DiscoverInfoWindowCard({
       : detailedText
         ? (showAi ? "Hide AI Brief" : "Show AI Brief")
         : briefText
-          ? "Learn More"
+          ? (showAi ? "Learn More" : "Show AI Brief")
           : "Ask AI";
 
   const aiText = detailedText
     ? `${normalizeAiText(briefText)}\n\n---\n\n${normalizeAiText(detailedText)}`
     : normalizeAiText(briefText);
+  const placeUrl = `https://www.google.com/maps/place/?q=place_id:${result.placeId}`;
+  const aiPromptText = `What should I know about ${result.displayName} before reaching out?`;
 
   return (
-    <Card className={cn("w-full min-w-0 gap-0 bg-bg-card font-sans ring-1 ring-border", className)}>
-      {result.photoUri ? (
-        <div
-          className="h-[140px] bg-cover bg-center"
-          style={{ backgroundImage: `url('${result.photoUri}')` }}
-          aria-label={result.displayName}
-        />
-      ) : null}
-
-      <CardContent className={result.photoUri ? "pb-3.5 pt-3" : "pb-3.5 pt-3.5"}>
-        <div className="pr-4 text-[15px] font-bold leading-[1.3] text-text-primary">{result.displayName}</div>
-        <div className="mt-[3px] text-xs font-semibold text-orange">{placeType}</div>
-
-        {result.rating ? (
-          <div className="mt-1 text-xs text-text-secondary">
-            <span className="tracking-[1px] text-[#F59E0B]">{stars}</span> {result.rating}
+    <InfoWindowCardShell
+      className={cn("max-w-[500px]", className)}
+      contentClassName="relative overflow-hidden sm:rounded-r-[var(--info-card-radius)]"
+      title={result.displayName}
+      subtitle={(
+        <span className="inline-flex rounded-md border border-[#4285F4]/30 bg-[#4285F4]/10 px-2 py-1 text-[10px] font-black tracking-[0.1em] text-[#7FB0FF] uppercase">
+          {placeType}
+        </span>
+      )}
+      rating={result.rating ? (
+        <div className="flex items-center gap-2 font-semibold">
+          <div className="flex items-center text-amber-400">
+            <Star className="size-4 fill-current" />
+            <span className="ml-1.5 text-[14px] text-white">{result.rating}</span>
           </div>
-        ) : null}
-
-        {result.address ? (
-          <div className="mt-[3px] text-[11px] leading-[1.3] text-text-muted">{result.address}</div>
-        ) : null}
-
-        <div className="mt-2.5 flex flex-wrap items-center gap-2">
-          <a
-            href={`https://www.google.com/maps/place/?q=place_id:${result.placeId}`}
-            target="_blank"
-            rel="noopener"
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-bg-input px-3 py-1.5 text-xs font-semibold text-text-secondary no-underline transition-colors hover:border-orange hover:text-orange"
+          {result.ratingCount ? (
+            <span className="text-[12px] text-text-muted/80">({result.ratingCount} reviews)</span>
+          ) : null}
+        </div>
+      ) : undefined}
+      address={(
+        <div className="flex items-start gap-2 leading-[1.5]">
+          <MapPin className="mt-1 size-3.5 shrink-0 text-text-muted" />
+          <span className="text-[13px] text-text-muted/90">{result.address}</span>
+        </div>
+      )}
+      mapLinkHref={undefined}
+      actions={(
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-full justify-between rounded-xl border-white/10 bg-white/5 px-3 font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95"
+            >
+              <span className="inline-flex items-center gap-2">
+                Actions
+              </span>
+              <ChevronDown className="size-3.5 text-text-muted" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="min-w-[220px] rounded-xl border border-white/10 bg-[#202632] p-1.5 text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] [--accent:rgba(255,255,255,0.12)] [--accent-foreground:#ffffff]"
           >
-            Google Maps
-          </a>
-
+            <DropdownMenuItem
+              onSelect={() => {
+                window.open(placeUrl, "_blank", "noopener,noreferrer");
+              }}
+              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-[#7FB0FF] focus:[&_svg]:text-[#7FB0FF]"
+            >
+              <ExternalLink className="size-3.5" />
+              Open in Maps
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem
+              disabled={saved}
+              onSelect={handleSave}
+              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+            >
+              {saved ? <Check className="size-3.5 text-emerald-400" /> : <Plus className="size-3.5 text-orange" />}
+              {saved ? "Pinned" : "Save as Pin"}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={routeState !== "idle"}
+              onSelect={handleAddToRoute}
+              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+            >
+              {routeState === "idle" ? <Plus className="size-3.5 text-orange" /> : <Check className="size-3.5 text-emerald-400" />}
+              {routeLabel}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+      footer={(
+        <div className="space-y-2.5">
           <button
             type="button"
-            onClick={handleSave}
-            disabled={saved}
-            className={`inline-flex items-center gap-1 rounded-md px-3.5 py-1.5 text-xs font-bold transition-all ${
-              saved
-                ? "cursor-default bg-transparent text-gw-green"
-                : "cursor-pointer bg-orange text-white hover:bg-orange-hover"
-            }`}
+            onClick={handleAiClick}
+            disabled={aiLoading !== null}
+            className={cn(
+              "inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-[#4285F4]/30 bg-[#4285F4]/5 px-3 text-[12px] font-bold text-[#4285F4] transition-all hover:border-[#4285F4]/45 hover:bg-[#4285F4]/10 hover:text-[#4285F4]",
+              briefText && "border-transparent bg-[#4285F4] text-white hover:bg-[#4285F4]/90 hover:text-white hover:shadow-[0_0_20px_rgba(66,133,244,0.3)]",
+              aiLoading !== null && "cursor-default opacity-70",
+            )}
           >
-            {saved ? "\u2713 Pinned" : "Save as Pin"}
+            {aiLoading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className={cn("size-4", briefText ? undefined : "text-[#4285F4]")} />
+            )}
+            {aiButtonLabel}
           </button>
+
+          <AnimatePresence>
+            {showAi ? (
+              <motion.div
+                initial={{ opacity: 0, x: 22, scale: 0.985 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 14, scale: 0.99 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0 z-20 bg-[#1E2430]/96 p-3.5 backdrop-blur-md"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setShowAi(false)}
+                    className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 text-[11px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <ArrowLeft className="size-3.5" />
+                    Go Back
+                  </button>
+                  <div className="inline-flex items-center gap-2 text-[12px] font-bold tracking-[0.04em] uppercase text-[#7FB0FF]">
+                    <Sparkles className="size-3.5" />
+                    AI Context
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAi(false)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-label="Close AI context drawer"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+
+                <div
+                  className="h-[calc(100%-42px)] overflow-y-auto rounded-xl border border-white/10 bg-white/5 p-3 scrollbar-thin scrollbar-thumb-white/10"
+                  onWheelCapture={(event) => event.stopPropagation()}
+                  onTouchMoveCapture={(event) => event.stopPropagation()}
+                >
+                  <div className="space-y-3">
+                    <div className="flex justify-end">
+                      <div className="max-w-[88%] rounded-2xl rounded-br-sm border border-[#4285F4]/35 bg-[#4285F4]/15 px-3 py-2.5 text-[12px] leading-relaxed text-[#BFD6FF]">
+                        {aiPromptText}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-start">
+                      <div
+                        className={cn(
+                          "max-w-[92%] rounded-2xl rounded-bl-sm border px-3 py-2.5",
+                          aiError
+                            ? "border-red-400/35 bg-red-500/10"
+                            : "border-white/12 bg-[#2A3344]/85",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.06em] uppercase",
+                            aiError
+                              ? "bg-red-500/20 text-red-300"
+                              : "bg-white/8 text-[#9EC1FF]",
+                          )}
+                        >
+                          <Sparkles className="size-3" />
+                          AI
+                        </div>
+                        <div
+                          className={cn(
+                            "whitespace-pre-wrap text-[12px] leading-relaxed",
+                            aiError ? "text-red-300" : "text-white/90",
+                          )}
+                        >
+                          {aiError ?? aiText}
+                        </div>
+                      </div>
+                    </div>
+
+                    {briefText && !detailedText ? (
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleAiClick}
+                          disabled={aiLoading !== null}
+                          className="inline-flex min-h-8 items-center gap-1.5 rounded-2xl rounded-br-sm border border-[#4285F4]/35 bg-[#4285F4]/12 px-3 py-1.5 text-[11px] font-bold text-[#9EC1FF] transition-colors hover:bg-[#4285F4]/18 hover:text-[#BFD6FF] disabled:cursor-default disabled:opacity-70"
+                        >
+                          {aiLoading === "detailed" ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowUpRight className="size-3.5" />}
+                          Learn More
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
-
-        <button
-          type="button"
-          onClick={handleAddToRoute}
-          disabled={routeState !== "idle"}
-          className={`mt-2 flex w-full items-center justify-center gap-1 rounded-md border px-2 py-[7px] text-xs font-bold text-orange transition-all ${
-            routeState === "idle"
-              ? "cursor-pointer border-orange"
-              : "cursor-default border-orange opacity-70"
-          }`}
-        >
-          {routeState === "full" ? "Max 25 Stops" : routeState === "added" ? "\u2713 Added to Route" : "+ Add to Route"}
-        </button>
-
-        <button
-          type="button"
-          onClick={handleAiClick}
-          disabled={aiLoading !== null}
-          className={`mt-1.5 flex w-full items-center justify-center gap-1.5 rounded-md border-[1.5px] px-2 py-2 text-[13px] font-bold transition-all ${
-            briefText
-              ? "border-[#4285F4] bg-[#4285F4] text-white"
-              : "border-[#4285F4] bg-transparent text-[#4285F4]"
-          } ${aiLoading ? "cursor-default opacity-70" : "cursor-pointer"}`}
-        >
-          {aiButtonLabel}
-        </button>
-
-        {showAi ? (
-          <div
-            className={`mt-2 max-h-[300px] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-bg-input px-3 py-3 text-[13px] leading-[1.6] ${
-              aiError ? "text-gw-red" : "text-text-primary"
-            }`}
-          >
-            {aiError ?? aiText}
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
+      )}
+      imageUrl={result.photoUri}
+      imageAlt={result.displayName}
+      onClose={onClose}
+    />
   );
 }
 

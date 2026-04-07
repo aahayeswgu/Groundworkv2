@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useStore } from "@/app/store";
 import { buildQuickSavePin } from "@/app/features/discover/lib/discover-info";
 import { DiscoverResultItem } from "@/app/features/discover/ui/DiscoverResultItem";
@@ -14,11 +15,38 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/shared/ui/card";
-import { Loader2Icon } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  Loader2Icon,
+  Plus,
+  RotateCcw,
+} from "lucide-react";
+import {
+  dispatchMapMobileAction,
+  dispatchOpenMobileTab,
+  dispatchPanToLocation,
+} from "@/app/shared/model/mobile-events";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/shared/ui/dropdown-menu";
 import {
   addSelectedDiscoverResultsToRoute,
   getRouteSelectionMessage,
 } from "@/app/features/discover/lib/discover-route-selection";
+import {
+  createSavedDiscoverIdSet,
+  getVisibleDiscoverResults,
+  isDiscoverResultAlreadyPinned,
+} from "@/app/features/discover/lib/discover-panel";
+import {
+  DISCOVER_SORT_OPTIONS,
+  type DiscoverSortKey,
+} from "@/app/features/discover/model/discover-panel.model";
 import {
   useDiscoverActions,
   useDiscoverResults,
@@ -33,6 +61,7 @@ import {
   useRouteActions,
   useRouteStops,
 } from "@/app/features/route/model/route.hooks";
+import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 
 interface DiscoverPanelProps {
   onOpenRouteBuilder?: () => void;
@@ -45,7 +74,6 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
   const searchProgress = useSearchProgress();
   const {
     toggleDiscoverSelected,
-    selectAllDiscover,
     setHoveredDiscoverId,
     clearDiscover,
     setDiscoverMode,
@@ -62,12 +90,13 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
   const marathonZones = useMarathonZones();
   const marathonSearchCount = useMarathonSearchCount();
   const [routeActionMessage, setRouteActionMessage] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<DiscoverSortKey>("recommended");
+  const [selectedOnly, setSelectedOnly] = useState(false);
+  const [savedOnly, setSavedOnly] = useState(false);
 
   // Determine which step to show
   const step = discoverResults.length > 0 ? 3 : searchProgress ? 2 : 1;
 
-  const selectableCount = Math.min(discoverResults.length, 20);
-  const allSelected = selectedDiscoverIds.size === selectableCount && selectableCount > 0;
   const progressMatch = searchProgress?.match(/\[(\d+)\/(\d+)\]/);
   const completedSearchSteps = progressMatch ? Number(progressMatch[1]) : 0;
   const totalSearchSteps = progressMatch ? Number(progressMatch[2]) : 0;
@@ -86,10 +115,94 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
     return map;
   }, [marathonZones]);
 
+  const savedDiscoverIds = useMemo(
+    () => createSavedDiscoverIdSet(discoverResults, pins),
+    [discoverResults, pins],
+  );
+
+  const visibleResults = useMemo(
+    () =>
+      getVisibleDiscoverResults({
+        discoverResults,
+        selectedDiscoverIds,
+        savedDiscoverIds,
+        selectedOnly,
+        savedOnly,
+        sortKey,
+      }),
+    [discoverResults, selectedDiscoverIds, savedDiscoverIds, selectedOnly, savedOnly, sortKey],
+  );
+
+  const selectableVisibleResults = useMemo(
+    () => visibleResults.slice(0, 20),
+    [visibleResults],
+  );
+
+  const allVisibleSelected = useMemo(
+    () =>
+      selectableVisibleResults.length > 0 &&
+      selectableVisibleResults.every((result) => selectedDiscoverIds.has(result.placeId)),
+    [selectableVisibleResults, selectedDiscoverIds],
+  );
+
+  const activeSortLabel = useMemo(
+    () => DISCOVER_SORT_OPTIONS.find((option) => option.key === sortKey)?.label ?? "Recommended",
+    [sortKey],
+  );
+
   const openRouteBuilder = useCallback(() => {
     setDiscoverMode(false);
     onOpenRouteBuilder?.();
   }, [setDiscoverMode, onOpenRouteBuilder]);
+
+  const redrawSearch = useCallback(() => {
+    cancelDiscoverSearch();
+    clearDiscover();
+    setRouteActionMessage(null);
+
+    const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+    if (isMobileViewport) {
+      dispatchOpenMobileTab("map");
+      window.setTimeout(() => {
+        dispatchMapMobileAction("restart-discover");
+      }, 0);
+      return;
+    }
+
+    dispatchMapMobileAction("restart-discover");
+  }, [clearDiscover]);
+
+  const toggleSelectVisible = useCallback(() => {
+    if (!selectableVisibleResults.length) return;
+    const shouldSelectAll = !allVisibleSelected;
+    for (const result of selectableVisibleResults) {
+      const isSelected = selectedDiscoverIds.has(result.placeId);
+      if (shouldSelectAll && !isSelected) {
+        toggleDiscoverSelected(result.placeId);
+      } else if (!shouldSelectAll && isSelected) {
+        toggleDiscoverSelected(result.placeId);
+      }
+    }
+  }, [allVisibleSelected, selectableVisibleResults, selectedDiscoverIds, toggleDiscoverSelected]);
+
+  const clearViewFilters = useCallback(() => {
+    setSelectedOnly(false);
+    setSavedOnly(false);
+    setSortKey("recommended");
+  }, []);
+
+  const jumpToResultOnMap = useCallback((result: DiscoverResult) => {
+    setHoveredDiscoverId(result.placeId);
+    const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+    if (isMobileViewport) {
+      dispatchOpenMobileTab("map");
+      window.setTimeout(() => {
+        dispatchPanToLocation(result.lat, result.lng, 16, result.displayName);
+      }, 0);
+      return;
+    }
+    dispatchPanToLocation(result.lat, result.lng, 16, result.displayName);
+  }, [setHoveredDiscoverId]);
 
   const addSelectedStopsToRoute = useCallback((openBuilderAfterAdd: boolean) => {
     if (selectedDiscoverIds.size === 0) return;
@@ -185,51 +298,106 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
       {/* Step 3: Results list */}
       {step === 3 && (
         <>
-          {/* Results header — marathon session or normal */}
-          {marathonMode && marathonSearchCount > 0 ? (
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg-card shrink-0">
+          <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-sm font-bold text-orange">Marathon</div>
-                <div className="text-xs text-text-secondary">
-                  {marathonSearchCount} area{marathonSearchCount !== 1 ? "s" : ""} searched · {discoverResults.length} businesses found
+                <div className="text-sm font-bold text-text-primary">
+                  {visibleResults.length} visible
+                  <span className="ml-1 text-text-muted/80">/ {discoverResults.length} businesses</span>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={selectAllDiscover} className="text-xs text-orange font-semibold hover:underline">
-                  {allSelected ? "Deselect All" : "Select All"}
-                </button>
-                <button
-                  onClick={() => { clearDiscover(); }}
-                  className="text-xs text-red-400 font-semibold hover:underline"
-                >
-                  Clear All
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-bg-card shrink-0">
-              <div className="text-sm font-bold text-text-primary">
-                {discoverResults.length} businesses found
+                {marathonMode && marathonSearchCount > 0 ? (
+                  <div className="mt-0.5 text-xs text-text-secondary">
+                    Marathon: {marathonSearchCount} area{marathonSearchCount !== 1 ? "s" : ""} searched
+                  </div>
+                ) : null}
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={selectAllDiscover}
-                  className="text-xs text-orange font-semibold hover:underline"
+                  onClick={toggleSelectVisible}
+                  className="text-xs font-semibold text-orange transition-colors hover:text-orange/85 hover:underline"
                 >
-                  {allSelected ? "Deselect All" : "Select All"}
+                  {allVisibleSelected ? "Deselect Visible" : "Select Visible"}
                 </button>
                 <button
                   onClick={() => {
                     clearDiscover();
                     setDiscoverMode(false);
                   }}
-                  className="text-xs text-text-muted hover:text-red-400"
+                  className="text-xs text-text-muted transition-colors hover:text-red-400"
                 >
                   Close
                 </button>
               </div>
             </div>
-          )}
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setSelectedOnly((prev) => !prev)}
+                className={
+                  selectedOnly
+                    ? "border border-orange/45 bg-orange/15 text-orange hover:bg-orange/20"
+                    : "border border-white/12 bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white"
+                }
+              >
+                {selectedOnly ? <Check className="size-3.5 text-orange" /> : null}
+                Selected
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setSavedOnly((prev) => !prev)}
+                className={
+                  savedOnly
+                    ? "border border-emerald-400/40 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/20"
+                    : "border border-white/12 bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white"
+                }
+              >
+                {savedOnly ? <Check className="size-3.5 text-emerald-300" /> : null}
+                Saved
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="border border-white/12 bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white"
+                  >
+                    {activeSortLabel}
+                    <ChevronDown className="size-3.5 text-text-muted" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="min-w-[220px] rounded-xl border border-white/10 bg-[#202632] p-1.5 text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] [--accent:rgba(255,255,255,0.12)] [--accent-foreground:#ffffff]"
+                >
+                  {DISCOVER_SORT_OPTIONS.map((option) => (
+                    <DropdownMenuItem
+                      key={option.key}
+                      onSelect={() => setSortKey(option.key)}
+                      className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white"
+                    >
+                      {sortKey === option.key ? <Check className="size-3.5 text-[#7FB0FF]" /> : <span className="size-3.5" />}
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {(selectedOnly || savedOnly || sortKey !== "recommended") ? (
+                <button
+                  type="button"
+                  onClick={clearViewFilters}
+                  className="text-[11px] font-semibold text-text-muted transition-colors hover:text-white"
+                >
+                  Clear Filters
+                </button>
+              ) : null}
+            </div>
+          </div>
 
           {/* Per-zone summary bar — shown in marathon mode */}
           {marathonMode && marathonZones.length > 0 && (
@@ -258,43 +426,74 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
           )}
 
           {/* Scrollable results list */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            {discoverResults.map((result) => {
-              const alreadySaved = pins.some(
-                (p) =>
-                  p.title.toLowerCase() === result.displayName.toLowerCase() ||
-                  (Math.abs(p.lat - result.lat) < 0.001 && Math.abs(p.lng - result.lng) < 0.001),
-              );
-              return (
-                <DiscoverResultItem
-                  key={result.placeId}
-                  result={result}
-                  isSelected={selectedDiscoverIds.has(result.placeId)}
-                  isHovered={hoveredDiscoverId === result.placeId}
-                  onToggleSelect={toggleDiscoverSelected}
-                  onHoverEnter={setHoveredDiscoverId}
-                  onHoverLeave={() => setHoveredDiscoverId(null)}
-                  onQuickSave={(r) => {
-                    const dup = pins.some(
-                      (p) =>
-                        p.title.toLowerCase() === r.displayName.toLowerCase() ||
-                        (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),
+          <div className="min-h-0 flex-1 overflow-y-auto px-2.5 py-2.5">
+            {visibleResults.length === 0 ? (
+              <div className="flex h-full min-h-[180px] items-center justify-center">
+                <div className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-5 text-center">
+                  <div className="text-sm font-semibold text-text-primary">No results match these filters</div>
+                  <div className="mt-1 text-xs text-text-muted">
+                    Try clearing filters or adjust your sort and selection view.
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    onClick={clearViewFilters}
+                    className="mt-3 border border-white/12 bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <AnimatePresence initial={false}>
+                  {visibleResults.map((result, index) => {
+                    const alreadySaved = savedDiscoverIds.has(result.placeId);
+                    return (
+                      <motion.div
+                        key={result.placeId}
+                        layout
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.16, delay: index < 6 ? index * 0.02 : 0 }}
+                      >
+                        <DiscoverResultItem
+                          result={result}
+                          isSelected={selectedDiscoverIds.has(result.placeId)}
+                          isHovered={hoveredDiscoverId === result.placeId}
+                          onToggleSelect={toggleDiscoverSelected}
+                          onHoverEnter={setHoveredDiscoverId}
+                          onHoverLeave={() => setHoveredDiscoverId(null)}
+                          onQuickSave={(nextResult) => {
+                            if (!isDiscoverResultAlreadyPinned(nextResult, pins)) {
+                              addPin(buildQuickSavePin(nextResult));
+                            }
+                          }}
+                          onLocateOnMap={jumpToResultOnMap}
+                          onUnsave={(nextResult) => {
+                            const match = pins.find(
+                              (pin) =>
+                                pin.title.toLowerCase() === nextResult.displayName.toLowerCase() ||
+                                (
+                                  Math.abs(pin.lat - nextResult.lat) < 0.001 &&
+                                  Math.abs(pin.lng - nextResult.lng) < 0.001
+                                ),
+                            );
+                            if (match) {
+                              deletePin(match.id);
+                            }
+                          }}
+                          alreadySaved={alreadySaved}
+                          zoneLabel={placeZoneLabel[result.placeId]}
+                        />
+                      </motion.div>
                     );
-                    if (!dup) addPin(buildQuickSavePin(r));
-                  }}
-                  onUnsave={(r) => {
-                    const match = pins.find(
-                      (p) =>
-                        p.title.toLowerCase() === r.displayName.toLowerCase() ||
-                        (Math.abs(p.lat - r.lat) < 0.001 && Math.abs(p.lng - r.lng) < 0.001),
-                    );
-                    if (match) deletePin(match.id);
-                  }}
-                  alreadySaved={alreadySaved}
-                  zoneLabel={placeZoneLabel[result.placeId]}
-                />
-              );
-            })}
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
 
           {/* Bottom action bar — always visible so route CTA is discoverable */}
@@ -314,27 +513,28 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   variant="outline"
                   disabled={selectedDiscoverIds.size === 0}
                   onClick={() => addSelectedStopsToRoute(false)}
-                  className="w-full border-orange text-orange hover:bg-orange-dim hover:text-orange"
+                  className="h-9 w-full justify-center gap-2 rounded-xl border-white/12 bg-white/5 text-white hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
+                  <Plus className="size-4 text-orange" />
                   Add Only
                 </Button>
                 <Button
-                  disabled={selectedDiscoverIds.size === 0}
-                  onClick={() => addSelectedStopsToRoute(true)}
-                  className="w-full bg-orange text-white hover:bg-orange/90"
+                  variant="secondary"
+                  onClick={redrawSearch}
+                  className="h-9 w-full justify-center gap-2 rounded-xl border border-white/12 bg-white/5 text-[#C4CCDA] hover:border-white/20 hover:bg-white/10 hover:text-white"
                 >
-                  Add + Open Route Builder
+                  <RotateCcw className="size-4 text-[#9EC1FF]" />
+                  Redraw
                 </Button>
               </div>
-              {routeStops.length > 0 && (
-                <Button
-                  variant="secondary"
-                  onClick={openRouteBuilder}
-                  className="w-full"
-                >
-                  Open Route Builder ({routeStops.length})
-                </Button>
-              )}
+              <Button
+                disabled={selectedDiscoverIds.size === 0}
+                onClick={() => addSelectedStopsToRoute(true)}
+                className="h-10 w-full justify-center gap-2 rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
+              >
+                <ArrowRight className="size-4" />
+                Add + Route
+              </Button>
             </div>
           </div>
         </>

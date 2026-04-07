@@ -1,6 +1,6 @@
 "use client";
 
-import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
@@ -29,6 +29,7 @@ import {
 } from "../lib/marker-layer";
 import { MARKER_BOUNCE_DURATION_MS, MIN_PIN_FOCUS_ZOOM } from "../model/map.constants";
 import type { MarkerLayerProps } from "../model/marker-layer.types";
+import { MapPopup } from "@/app/shared/ui/map-popup";
 import { PinInfoWindowCard } from "./PinInfoWindowCard";
 import { PinMarkerVisual } from "./PinMarkerVisual";
 
@@ -202,10 +203,7 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       })}
 
       {openPin && !isMobile ? (
-        <InfoWindow
-          position={{ lat: openPin.lat, lng: openPin.lng }}
-          onClose={closeInfoWindow}
-        >
+        <MapPopup position={{ lat: openPin.lat, lng: openPin.lng }}>
           <PinInfoWindowCard
             pin={openPin}
             isInRoute={routeStopIds.has(openPin.id)}
@@ -214,8 +212,9 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
             onDeletePin={handleDeletePin}
             onAddRouteStop={handleAddRouteStop}
             onPlanPin={handlePlanPin}
+            onClose={closeInfoWindow}
           />
-        </InfoWindow>
+        </MapPopup>
       ) : null}
 
       {openPin && isMobile ? (

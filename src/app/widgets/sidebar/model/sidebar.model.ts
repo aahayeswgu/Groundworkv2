@@ -1,4 +1,4 @@
-export type SidebarTab = "pins" | "planner" | "route";
+export type SidebarTab = "pins" | "discover" | "planner" | "route";
 
 export interface SidebarTabItem {
   id: SidebarTab;
@@ -7,6 +7,7 @@ export interface SidebarTabItem {
 
 export const SIDEBAR_TABS: readonly SidebarTabItem[] = [
   { id: "pins", label: "Pins" },
+  { id: "discover", label: "Discover" },
   { id: "planner", label: "Planner" },
   { id: "route", label: "Route" },
 ];

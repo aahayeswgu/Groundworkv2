@@ -1,6 +1,6 @@
 "use client";
 
-import { AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import {
@@ -28,6 +28,7 @@ import { buildQuickSavePin } from "../lib/discover-info";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import type { RouteStop } from "@/app/features/route/model/route.types";
+import { MapPopup } from "@/app/shared/ui/map-popup";
 import { DiscoverInfoWindowCard } from "./DiscoverInfoWindowCard";
 
 function getMarkerState(
@@ -150,14 +151,12 @@ export default function DiscoverLayer() {
       })}
 
       {openResult && !isMobile ? (
-        <InfoWindow
-          position={{ lat: openResult.lat, lng: openResult.lng }}
-          onClose={() => setOpenPlaceId(null)}
-        >
+        <MapPopup position={{ lat: openResult.lat, lng: openResult.lng }}>
           <DiscoverInfoWindowCard
             result={openResult}
             alreadySaved={isResultAlreadyPinned(openResult, pins)}
             isInRoute={routeStops.some((stop) => stop.id === `discover_${openResult.placeId}`)}
+            onClose={() => setOpenPlaceId(null)}
             onSave={() => {
               if (!isResultAlreadyPinned(openResult, pins)) {
                 addPin(buildQuickSavePin(openResult));
@@ -170,11 +169,12 @@ export default function DiscoverLayer() {
                 address: openResult.address ?? "",
                 lat: openResult.lat,
                 lng: openResult.lng,
+                photoUrl: openResult.photoUri ?? null,
               };
               return addStop(stop);
             }}
           />
-        </InfoWindow>
+        </MapPopup>
       ) : null}
 
       {openResult && isMobile ? (
@@ -215,6 +215,7 @@ export default function DiscoverLayer() {
                     address: openResult.address ?? "",
                     lat: openResult.lat,
                     lng: openResult.lng,
+                    photoUrl: openResult.photoUri ?? null,
                   };
                   return addStop(stop);
                 }}

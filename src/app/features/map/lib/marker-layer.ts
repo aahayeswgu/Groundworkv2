@@ -47,6 +47,7 @@ export function buildRouteStopFromPin(pin: Pin): RouteStop {
     address: pin.address ?? "",
     lat: pin.lat,
     lng: pin.lng,
+    photoUrl: pin.photoUrl ?? null,
   };
 }
 

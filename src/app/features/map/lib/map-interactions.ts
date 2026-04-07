@@ -87,6 +87,7 @@ export function startDiscoverDrawSession({
   onComplete,
 }: StartDiscoverDrawSessionParams): DiscoverDrawSession {
   let didComplete = false;
+  let didStop = false;
   let areaRect: google.maps.Rectangle | null = null;
   const cleanupFns: Array<() => void> = [];
   const mapDiv = map.getDiv();
@@ -102,6 +103,8 @@ export function startDiscoverDrawSession({
   };
 
   const stop = () => {
+    if (didStop) return;
+    didStop = true;
     map.setOptions({
       draggableCursor: "",
       draggable: typeof previousDraggable === "boolean" ? previousDraggable : true,
