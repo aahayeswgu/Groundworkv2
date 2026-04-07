@@ -495,6 +495,8 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <button
             type="button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
             onClick={handleOpenMaps}
             disabled={routeStops.length === 0}
             className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
@@ -504,6 +506,8 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           </button>
           <button
             type="button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
             onClick={handleSendToPlanner}
             disabled={routeStops.length === 0}
             className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
@@ -515,6 +519,8 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
         <button
           type="button"
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
           onClick={() => {
             clearRoute();
             if (!inline) {
@@ -530,6 +536,8 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         <button
           type="button"
           ref={previewButtonRef}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
           onClick={handleBuildRoute}
           disabled={isBuilding || routeStops.length === 0 || missingStartRequirement}
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-orange bg-orange px-4 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
