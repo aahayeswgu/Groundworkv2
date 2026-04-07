@@ -1,6 +1,7 @@
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import type { DiscoverSortKey } from "@/app/features/discover/model/discover-panel.model";
 import type { Pin } from "@/app/features/pins/model/pin.types";
+import { compareDiscoverResultsByRecommendation } from "@/app/features/discover/lib/discover-filters";
 
 const CLOSE_COORDINATE_THRESHOLD = 0.001;
 
@@ -70,7 +71,7 @@ export function getVisibleDiscoverResults({
   });
 
   if (sortKey === "recommended") {
-    return filtered;
+    return [...filtered].sort(compareDiscoverResultsByRecommendation);
   }
 
   const sorted = [...filtered];

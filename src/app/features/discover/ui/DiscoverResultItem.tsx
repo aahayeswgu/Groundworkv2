@@ -32,7 +32,12 @@ export function DiscoverResultItem({
   alreadySaved,
   zoneLabel,
 }: DiscoverResultItemProps) {
-  const type = classifyGooglePlace(result.types, result.displayName);
+  const type = classifyGooglePlace(
+    result.types,
+    result.displayName,
+    result.primaryType,
+    result.matchedCategory,
+  );
   const hasRating = typeof result.rating === "number" && result.rating > 0;
 
   return (

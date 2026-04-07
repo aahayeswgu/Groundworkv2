@@ -7,6 +7,7 @@ export const useIsDrawing = () => useStore((state) => state.isDrawing);
 export const useDiscoverMode = () => useStore((state) => state.discoverMode);
 export const useHoveredDiscoverId = () => useStore((state) => state.hoveredDiscoverId);
 export const useSearchProgress = () => useStore((state) => state.searchProgress);
+export const useDiscoverSearchMetrics = () => useStore((state) => state.discoverSearchMetrics);
 export const useMarathonMode = () => useStore((state) => state.marathonMode);
 export const useMarathonZones = () => useStore((state) => state.marathonZones);
 export const useMarathonSearchCount = () => useStore((state) => state.marathonSearchCount);
@@ -21,6 +22,7 @@ export const useDiscoverActions = () =>
       setDiscoverMode: state.setDiscoverMode,
       setHoveredDiscoverId: state.setHoveredDiscoverId,
       setSearchProgress: state.setSearchProgress,
+      setDiscoverSearchMetrics: state.setDiscoverSearchMetrics,
       clearDiscover: state.clearDiscover,
       toggleMarathonMode: state.toggleMarathonMode,
       addMarathonZone: state.addMarathonZone,
@@ -28,4 +30,3 @@ export const useDiscoverActions = () =>
       incrementMarathonCount: state.incrementMarathonCount,
     })),
   );
-

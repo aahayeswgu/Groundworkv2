@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import type { MarathonZone } from "@/app/features/discover/model/discover.types";
+import type { DiscoverSearchMetrics } from "@/app/features/discover/model/discover.types";
 
 export interface DiscoverSlice {
   discoverResults: DiscoverResult[];
@@ -10,6 +11,7 @@ export interface DiscoverSlice {
   discoverMode: boolean;
   hoveredDiscoverId: string | null;
   searchProgress: string | null;
+  discoverSearchMetrics: DiscoverSearchMetrics | null;
   marathonMode: boolean;
   marathonZones: MarathonZone[];
   marathonSearchCount: number;
@@ -21,6 +23,7 @@ export interface DiscoverSlice {
   setDiscoverMode: (mode: boolean) => void;
   setHoveredDiscoverId: (id: string | null) => void;
   setSearchProgress: (progress: string | null) => void;
+  setDiscoverSearchMetrics: (metrics: DiscoverSearchMetrics | null) => void;
   clearDiscover: () => void;
   toggleMarathonMode: () => void;
   addMarathonZone: (zone: MarathonZone) => void;
@@ -37,6 +40,7 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
   discoverMode: false,
   hoveredDiscoverId: null,
   searchProgress: null,
+  discoverSearchMetrics: null,
   marathonMode: false,
   marathonZones: [],
   marathonSearchCount: 0,
@@ -59,6 +63,7 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
   setDiscoverMode: (mode) => set({ discoverMode: mode }),
   setHoveredDiscoverId: (id) => set({ hoveredDiscoverId: id }),
   setSearchProgress: (progress) => set({ searchProgress: progress }),
+  setDiscoverSearchMetrics: (metrics) => set({ discoverSearchMetrics: metrics }),
   clearDiscover: () =>
     set({
       discoverResults: [],
@@ -67,6 +72,7 @@ export const createDiscoverSlice: StateCreator<DiscoverSlice> = (set) => ({
       isDrawing: false,
       discoverMode: false,
       searchProgress: null,
+      discoverSearchMetrics: null,
       marathonMode: false,
       marathonZones: [],
       marathonSearchCount: 0,
