@@ -3,13 +3,7 @@
 import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/shared/ui/sheet";
+import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { useStore } from "@/app/store";
 import {
   useDiscoverResults,
@@ -178,51 +172,47 @@ export default function DiscoverLayer() {
       ) : null}
 
       {openResult && isMobile ? (
-        <Sheet
+        <MobileBottomSheet
           open
-          onOpenChange={(open) => {
-            if (!open) {
+          detent="content"
+          inset
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
               setOpenPlaceId(null);
             }
           }}
         >
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-            className="bottom-[var(--mobile-bottom-bar-offset)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
-          >
-            <SheetHeader className="border-b border-border px-4 py-3">
-              <SheetTitle className="font-heading text-sm">Discover Result</SheetTitle>
-              <SheetDescription className="text-xs text-text-muted">
-                Save as pin, route it, or review AI notes.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="overflow-y-auto px-3 py-3">
-              <DiscoverInfoWindowCard
-                result={openResult}
-                className="min-w-0"
-                alreadySaved={isResultAlreadyPinned(openResult, pins)}
-                isInRoute={routeStops.some((stop) => stop.id === `discover_${openResult.placeId}`)}
-                onSave={() => {
-                  if (!isResultAlreadyPinned(openResult, pins)) {
-                    addPin(buildQuickSavePin(openResult));
-                  }
-                }}
-                onAddToRoute={() => {
-                  const stop: RouteStop = {
-                    id: `discover_${openResult.placeId}`,
-                    label: openResult.displayName,
-                    address: openResult.address ?? "",
-                    lat: openResult.lat,
-                    lng: openResult.lng,
-                    photoUrl: openResult.photoUri ?? null,
-                  };
-                  return addStop(stop);
-                }}
-              />
+          <div className="border-b border-border px-4 py-3">
+            <div className="font-heading text-sm text-text-primary">Discover Result</div>
+            <div className="text-xs text-text-muted">
+              Save as pin, route it, or review AI notes.
             </div>
-          </SheetContent>
-        </Sheet>
+          </div>
+          <div className="overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+14px)]">
+            <DiscoverInfoWindowCard
+              result={openResult}
+              className="min-w-0"
+              alreadySaved={isResultAlreadyPinned(openResult, pins)}
+              isInRoute={routeStops.some((stop) => stop.id === `discover_${openResult.placeId}`)}
+              onSave={() => {
+                if (!isResultAlreadyPinned(openResult, pins)) {
+                  addPin(buildQuickSavePin(openResult));
+                }
+              }}
+              onAddToRoute={() => {
+                const stop: RouteStop = {
+                  id: `discover_${openResult.placeId}`,
+                  label: openResult.displayName,
+                  address: openResult.address ?? "",
+                  lat: openResult.lat,
+                  lng: openResult.lng,
+                  photoUrl: openResult.photoUri ?? null,
+                };
+                return addStop(stop);
+              }}
+            />
+          </div>
+        </MobileBottomSheet>
       ) : null}
     </>
   );

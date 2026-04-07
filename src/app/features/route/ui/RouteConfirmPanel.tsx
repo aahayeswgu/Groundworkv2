@@ -17,13 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/shared/ui/sheet";
+import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { useStore } from "@/app/store";
 import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
 import { buildGoogleMapsUrl } from "@/app/features/route/lib/route-url";
@@ -553,26 +547,19 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
   if (isMobile) {
     return (
-      <Sheet
+      <MobileBottomSheet
         open={open}
         onOpenChange={(nextOpen) => {
           if (!nextOpen) onClose?.();
         }}
+        fullHeight
       >
-        <SheetContent
-          side="bottom"
-          showCloseButton={false}
-          className="bottom-[var(--mobile-bottom-bar-offset)] h-[var(--mobile-sheet-max-height)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Route Planner</SheetTitle>
-            <SheetDescription>
-              Build and manage your route stops before opening directions.
-            </SheetDescription>
-          </SheetHeader>
-          {panelContent}
-        </SheetContent>
-      </Sheet>
+        <div className="sr-only">
+          <h2>Route Planner</h2>
+          <p>Build and manage your route stops before opening directions.</p>
+        </div>
+        {panelContent}
+      </MobileBottomSheet>
     );
   }
 

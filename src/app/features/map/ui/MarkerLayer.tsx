@@ -4,13 +4,7 @@ import { AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/shared/ui/sheet";
+import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { useStore } from "@/app/store";
 import {
   usePlannerActions,
@@ -218,39 +212,35 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
       ) : null}
 
       {openPin && isMobile ? (
-        <Sheet
+        <MobileBottomSheet
           open
-          onOpenChange={(open) => {
-            if (!open) {
+          detent="content"
+          inset
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
               closeInfoWindow();
             }
           }}
         >
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-            className="bottom-[var(--mobile-bottom-bar-offset)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
-          >
-            <SheetHeader className="border-b border-border px-4 py-3">
-              <SheetTitle className="font-heading text-sm">Pinned Location</SheetTitle>
-              <SheetDescription className="text-xs text-text-muted">
-                Tap actions to edit, route, plan, or delete this pin.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="overflow-y-auto px-3 py-3">
-              <PinInfoWindowCard
-                pin={openPin}
-                className="min-w-0"
-                isInRoute={routeStopIds.has(openPin.id)}
-                isPlanned={todayPlannerPinIds.has(openPin.id)}
-                onEditPin={handleEditPin}
-                onDeletePin={handleDeletePin}
-                onAddRouteStop={handleAddRouteStop}
-                onPlanPin={handlePlanPin}
-              />
+          <div className="border-b border-border px-4 py-3">
+            <div className="font-heading text-sm text-text-primary">Pinned Location</div>
+            <div className="text-xs text-text-muted">
+              Tap actions to edit, route, plan, or delete this pin.
             </div>
-          </SheetContent>
-        </Sheet>
+          </div>
+          <div className="overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+14px)]">
+            <PinInfoWindowCard
+              pin={openPin}
+              className="min-w-0"
+              isInRoute={routeStopIds.has(openPin.id)}
+              isPlanned={todayPlannerPinIds.has(openPin.id)}
+              onEditPin={handleEditPin}
+              onDeletePin={handleDeletePin}
+              onAddRouteStop={handleAddRouteStop}
+              onPlanPin={handlePlanPin}
+            />
+          </div>
+        </MobileBottomSheet>
       ) : null}
     </>
   );

@@ -17,6 +17,7 @@ import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filter
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import { cn } from "@/app/shared/lib/utils";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ export function DiscoverInfoWindowCard({
   onClose,
   className,
 }: DiscoverInfoWindowCardProps) {
+  const isMobile = useIsMobile();
   const [saved, setSaved] = useState(alreadySaved);
   const [routeState, setRouteState] = useState<"idle" | "added" | "full">(isInRoute ? "added" : "idle");
   const [briefText, setBriefText] = useState("");
@@ -171,51 +173,87 @@ export function DiscoverInfoWindowCard({
       )}
       mapLinkHref={undefined}
       actions={(
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        isMobile ? (
+          <div className="space-y-2" onPointerDownCapture={(event) => event.stopPropagation()}>
             <Button
               variant="outline"
               size="sm"
-              className="h-9 w-full justify-between rounded-xl border-white/10 bg-white/5 px-3 font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95"
-            >
-              <span className="inline-flex items-center gap-2">
-                Actions
-              </span>
-              <ChevronDown className="size-3.5 text-text-muted" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="min-w-[220px] rounded-xl border border-white/10 bg-[#202632] p-1.5 text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] [--accent:rgba(255,255,255,0.12)] [--accent-foreground:#ffffff]"
-          >
-            <DropdownMenuItem
-              onSelect={() => {
+              onClick={() => {
                 window.open(placeUrl, "_blank", "noopener,noreferrer");
               }}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-[#7FB0FF] focus:[&_svg]:text-[#7FB0FF]"
+              className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white"
             >
-              <ExternalLink className="size-3.5" />
+              <ExternalLink className="size-3.5 text-[#7FB0FF]" />
               Open in Maps
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               disabled={saved}
-              onSelect={handleSave}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              onClick={handleSave}
+              className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white disabled:opacity-50"
             >
               {saved ? <Check className="size-3.5 text-emerald-400" /> : <Plus className="size-3.5 text-orange" />}
               {saved ? "Pinned" : "Save as Pin"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               disabled={routeState !== "idle"}
-              onSelect={handleAddToRoute}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              onClick={handleAddToRoute}
+              className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white disabled:opacity-50"
             >
               {routeState === "idle" ? <Plus className="size-3.5 text-orange" /> : <Check className="size-3.5 text-emerald-400" />}
               {routeLabel}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </Button>
+          </div>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-full justify-between rounded-xl border-white/10 bg-white/5 px-3 font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95"
+              >
+                <span className="inline-flex items-center gap-2">
+                  Actions
+                </span>
+                <ChevronDown className="size-3.5 text-text-muted" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="min-w-[220px] rounded-xl border border-white/10 bg-[#202632] p-1.5 text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] [--accent:rgba(255,255,255,0.12)] [--accent-foreground:#ffffff]"
+            >
+              <DropdownMenuItem
+                onSelect={() => {
+                  window.open(placeUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-[#7FB0FF] focus:[&_svg]:text-[#7FB0FF]"
+              >
+                <ExternalLink className="size-3.5" />
+                Open in Maps
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem
+                disabled={saved}
+                onSelect={handleSave}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              >
+                {saved ? <Check className="size-3.5 text-emerald-400" /> : <Plus className="size-3.5 text-orange" />}
+                {saved ? "Pinned" : "Save as Pin"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={routeState !== "idle"}
+                onSelect={handleAddToRoute}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              >
+                {routeState === "idle" ? <Plus className="size-3.5 text-orange" /> : <Check className="size-3.5 text-emerald-400" />}
+                {routeLabel}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
       )}
       footer={(
         <div className="space-y-2.5">

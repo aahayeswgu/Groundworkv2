@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   MOBILE_PRIMARY_TABS,
   MOBILE_QUICK_ACTIONS,
@@ -8,6 +8,7 @@ import {
   type MobileQuickActionItem,
   type MobilePrimaryTabItem,
 } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
+import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import {
   dispatchMapMobileAction,
   dispatchOpenMobileTab,
@@ -31,7 +32,6 @@ export default function MobileBottomBar({
   onOpenEmail,
 }: MobileBottomBarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const quickActionsId = useId();
   const discoverMode = useDiscoverMode();
   const isDrawing = useIsDrawing();
 
@@ -95,24 +95,13 @@ export default function MobileBottomBar({
   return (
     <>
       {drawerOpen && (
-        <button
-          type="button"
-          aria-label="Close quick actions"
-          onClick={() => setDrawerOpen(false)}
-          className="fixed inset-0 z-[55] bg-black/45 lg:hidden"
-        />
-      )}
-
-      {drawerOpen && (
-        <div
-          id={quickActionsId}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Quick actions"
-          className="fixed inset-x-3 z-[65] rounded-3xl border border-border bg-bg-card/95 shadow-gw-lg backdrop-blur-md lg:hidden bottom-[var(--mobile-bottom-bar-offset)]"
+        <MobileBottomSheet
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          containerClassName="bg-bg-card/95 backdrop-blur-md"
+          headerClassName="bg-bg-card/95"
         >
-          <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-border" />
-          <div className="px-4 pb-4 pt-3">
+          <div className="px-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] pt-3">
             <div className="mb-3 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
               Quick Actions
             </div>
@@ -135,7 +124,7 @@ export default function MobileBottomBar({
               ))}
             </div>
           </div>
-        </div>
+        </MobileBottomSheet>
       )}
 
       <nav
@@ -156,17 +145,19 @@ export default function MobileBottomBar({
             onClick={() => setDrawerOpen((prev) => !prev)}
             aria-label={drawerOpen ? "Close quick actions" : "Open quick actions"}
             aria-expanded={drawerOpen}
-            aria-controls={quickActionsId}
+            aria-pressed={drawerOpen}
             aria-haspopup="dialog"
             className={`flex h-full w-full min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] transition-colors ${
               drawerOpen ? "text-orange" : "text-text-muted"
             }`}
           >
-            <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="5" r="1" />
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="12" cy="19" r="1" />
-            </svg>
+            <span className={`rounded-xl px-2 py-1 transition-colors ${drawerOpen ? "bg-orange-dim" : ""}`}>
+              <svg className="h-[22px] w-[22px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="5" r="1" />
+                <circle cx="12" cy="12" r="1" />
+                <circle cx="12" cy="19" r="1" />
+              </svg>
+            </span>
             More
           </button>
         </div>

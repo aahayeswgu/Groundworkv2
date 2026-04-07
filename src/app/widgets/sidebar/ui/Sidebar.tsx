@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
 import {
@@ -9,13 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/shared/ui/sheet";
+import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
 import DiscoverPanel from "@/app/features/discover/ui/DiscoverPanel";
@@ -81,97 +75,7 @@ export default function Sidebar({
   const [desktopActiveTab, setDesktopActiveTab] = useState<SidebarTab>("pins");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
-  const [sheetDragOffset, setSheetDragOffset] = useState(0);
-  const [sheetDragActive, setSheetDragActive] = useState(false);
-  const [sheetDragClosing, setSheetDragClosing] = useState(false);
   const isMobile = useIsMobile();
-  const swipeStartYRef = useRef<number | null>(null);
-  const swipeCurrentYRef = useRef<number | null>(null);
-  const swipeCloseTimerRef = useRef<number | null>(null);
-
-  const clearSwipeTracking = useCallback(() => {
-    swipeStartYRef.current = null;
-    swipeCurrentYRef.current = null;
-  }, []);
-
-  const resetSheetDragState = useCallback(() => {
-    setSheetDragOffset(0);
-    setSheetDragActive(false);
-    setSheetDragClosing(false);
-    clearSwipeTracking();
-  }, [clearSwipeTracking]);
-
-  useEffect(() => () => {
-    if (swipeCloseTimerRef.current !== null) {
-      window.clearTimeout(swipeCloseTimerRef.current);
-    }
-  }, []);
-
-  const handleDrawerSwipeStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    if (sheetDragClosing) return;
-    if (swipeCloseTimerRef.current !== null) {
-      window.clearTimeout(swipeCloseTimerRef.current);
-      swipeCloseTimerRef.current = null;
-    }
-    const firstTouch = event.touches[0];
-    if (!firstTouch) return;
-    swipeStartYRef.current = firstTouch.clientY;
-    swipeCurrentYRef.current = firstTouch.clientY;
-    setSheetDragOffset(0);
-    setSheetDragClosing(false);
-    setSheetDragActive(true);
-  }, [sheetDragClosing]);
-
-  const handleDrawerSwipeMove = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
-    if (swipeStartYRef.current === null || sheetDragClosing) return;
-    const firstTouch = event.touches[0];
-    if (!firstTouch) return;
-    swipeCurrentYRef.current = firstTouch.clientY;
-    const swipeDeltaY = Math.max(0, firstTouch.clientY - swipeStartYRef.current);
-    setSheetDragOffset(swipeDeltaY);
-    event.preventDefault();
-  }, [sheetDragClosing]);
-
-  const handleDrawerSwipeEnd = useCallback(() => {
-    if (swipeStartYRef.current === null || swipeCurrentYRef.current === null) {
-      setSheetDragActive(false);
-      clearSwipeTracking();
-      return;
-    }
-
-    const swipeDeltaY = Math.max(0, swipeCurrentYRef.current - swipeStartYRef.current);
-    const CLOSE_SWIPE_THRESHOLD = 92;
-    setSheetDragActive(false);
-
-    if (swipeDeltaY > CLOSE_SWIPE_THRESHOLD) {
-      setSheetDragClosing(true);
-      const exitOffset = Math.max(swipeDeltaY, Math.round(window.innerHeight * 0.55));
-      setSheetDragOffset(exitOffset);
-
-      if (swipeCloseTimerRef.current !== null) {
-        window.clearTimeout(swipeCloseTimerRef.current);
-      }
-      swipeCloseTimerRef.current = window.setTimeout(() => {
-        swipeCloseTimerRef.current = null;
-        onMobileClose?.();
-      }, 170);
-    } else {
-      setSheetDragOffset(0);
-      setSheetDragClosing(false);
-    }
-
-    clearSwipeTracking();
-  }, [clearSwipeTracking, onMobileClose]);
-
-  const handleMobileSheetOpenChange = useCallback((nextOpen: boolean) => {
-    if (nextOpen) return;
-    if (swipeCloseTimerRef.current !== null) {
-      window.clearTimeout(swipeCloseTimerRef.current);
-      swipeCloseTimerRef.current = null;
-    }
-    resetSheetDragState();
-    onMobileClose?.();
-  }, [onMobileClose, resetSheetDragState]);
 
   const activeTab = isMobile ? (mobileTab ?? desktopActiveTab) : desktopActiveTab;
   const isCollapsed = collapsed && !mobileOpen;
@@ -247,17 +151,6 @@ export default function Sidebar({
 
   const sidebarPanel = (
     <>
-      <div
-        className="lg:hidden flex touch-none items-center justify-center border-b border-border bg-bg-card py-2"
-        onTouchStart={handleDrawerSwipeStart}
-        onTouchMove={handleDrawerSwipeMove}
-        onTouchEnd={handleDrawerSwipeEnd}
-        onTouchCancel={handleDrawerSwipeEnd}
-        aria-label="Swipe down to close drawer"
-      >
-        <span className="h-1.5 w-12 rounded-full bg-border" />
-      </div>
-
       <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-bg-card">
         <div className="flex items-center gap-2.5">
           {onMobileClose && (
@@ -367,34 +260,21 @@ export default function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet
+      <MobileBottomSheet
         open={mobileOpen}
-        onOpenChange={handleMobileSheetOpenChange}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) onMobileClose?.();
+        }}
+        fullHeight
       >
-        <SheetContent
-          side="bottom"
-          showCloseButton={false}
-          className="bottom-[var(--mobile-bottom-bar-offset)] h-[var(--mobile-sheet-max-height)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
-          style={
-            sheetDragActive || sheetDragOffset > 0 || sheetDragClosing
-              ? {
-                  transform: `translateY(${Math.max(0, sheetDragOffset)}px)`,
-                  transition: sheetDragActive
-                    ? "none"
-                    : "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
-                }
-              : undefined
-          }
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Access pins, planner, discover, and account tools.</SheetDescription>
-          </SheetHeader>
-          <div className="relative flex h-full flex-col overflow-hidden rounded-t-2xl border border-border border-b-0 bg-bg-secondary">
-            {sidebarPanel}
-          </div>
-        </SheetContent>
-      </Sheet>
+        <div className="sr-only">
+          <h2>Sidebar</h2>
+          <p>Access pins, planner, discover, and account tools.</p>
+        </div>
+        <div className="relative flex h-full flex-col overflow-hidden bg-bg-secondary">
+          {sidebarPanel}
+        </div>
+      </MobileBottomSheet>
     );
   }
 

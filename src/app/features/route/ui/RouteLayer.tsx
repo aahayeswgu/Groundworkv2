@@ -3,13 +3,7 @@
 import { AdvancedMarker, Polyline, useMap } from "@vis.gl/react-google-maps";
 import { useEffect, useMemo, useState } from "react";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/shared/ui/sheet";
+import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import { RouteStopInfoWindowCard } from "@/app/features/route/ui/RouteStopInfoWindowCard";
 import {
   ROUTE_BORDER_STYLE,
@@ -112,30 +106,26 @@ export default function RouteLayer() {
       ) : null}
 
       {openStop && openStopOrder > 0 && isMobile ? (
-        <Sheet
+        <MobileBottomSheet
           open
-          onOpenChange={(open) => {
-            if (!open) {
+          detent="content"
+          inset
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
               setOpenStopId(null);
             }
           }}
         >
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-            className="bottom-[var(--mobile-bottom-bar-offset)] max-h-[var(--mobile-sheet-max-height)] rounded-t-2xl border-t border-border bg-bg-secondary p-0 pb-[env(safe-area-inset-bottom,0px)]"
-          >
-            <SheetHeader className="border-b border-border px-4 py-3">
-              <SheetTitle className="font-heading text-sm">Route Stop</SheetTitle>
-              <SheetDescription className="text-xs text-text-muted">
-                Stop {openStopOrder} details and quick map access.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="overflow-y-auto px-3 py-3">
-              <RouteStopInfoWindowCard stop={openStop} order={openStopOrder} className="min-w-0" />
+          <div className="border-b border-border px-4 py-3">
+            <div className="font-heading text-sm text-text-primary">Route Stop</div>
+            <div className="text-xs text-text-muted">
+              Stop {openStopOrder} details and quick map access.
             </div>
-          </SheetContent>
-        </Sheet>
+          </div>
+          <div className="overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+14px)]">
+            <RouteStopInfoWindowCard stop={openStop} order={openStopOrder} className="min-w-0" />
+          </div>
+        </MobileBottomSheet>
       ) : null}
     </>
   );

@@ -21,6 +21,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { fetchAiBrief } from "@/app/shared/api/ask-ai";
 import type { Pin } from "@/app/features/pins/model/pin.types";
 import { cn } from "@/app/shared/lib/utils";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
 import {
   DropdownMenu,
@@ -60,6 +61,7 @@ export function PinInfoWindowCard({
   onClose,
   className,
 }: PinInfoWindowCardProps) {
+  const isMobile = useIsMobile();
   const [routeState, setRouteState] = useState<RouteState>(isInRoute ? "already" : "idle");
   const [planned, setPlanned] = useState(isPlanned);
   const [briefText, setBriefText] = useState("");
@@ -203,69 +205,125 @@ export function PinInfoWindowCard({
       ) : undefined}
       mapLinkHref={undefined}
       actions={(
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        isMobile ? (
+          <div className="space-y-2" onPointerDownCapture={(event) => event.stopPropagation()}>
+            {placeUrl ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  window.open(placeUrl, "_blank", "noopener,noreferrer");
+                }}
+                className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white"
+              >
+                <ExternalLink className="size-3.5 text-[#7FB0FF]" />
+                Open in Maps
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               size="sm"
-              className="h-9 w-full justify-between rounded-xl border-white/10 bg-white/5 px-3 font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95"
-            >
-              <span className="inline-flex items-center gap-2">
-                Actions
-              </span>
-              <ChevronDown className="size-3.5 text-text-muted" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="min-w-[220px] rounded-xl border border-white/10 bg-[#202632] p-1.5 text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] [--accent:rgba(255,255,255,0.12)] [--accent-foreground:#ffffff]"
-          >
-            {placeUrl ? (
-              <DropdownMenuItem
-                onSelect={() => {
-                  window.open(placeUrl, "_blank", "noopener,noreferrer");
-                }}
-                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-[#7FB0FF] focus:[&_svg]:text-[#7FB0FF]"
-              >
-                <ExternalLink className="size-3.5" />
-                Open in Maps
-              </DropdownMenuItem>
-            ) : null}
-            {placeUrl ? <DropdownMenuSeparator className="bg-white/10" /> : null}
-            <DropdownMenuItem
               disabled={routeState !== "idle"}
-              onSelect={handleAddRoute}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              onClick={handleAddRoute}
+              className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white disabled:opacity-50"
             >
               {routeState === "idle" ? <Plus className="size-3.5 text-orange" /> : <Check className="size-3.5 text-emerald-400" />}
               {routeLabel}
-            </DropdownMenuItem>
-            <DropdownMenuItem
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               disabled={planned}
-              onSelect={handlePlan}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              onClick={handlePlan}
+              className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white disabled:opacity-50"
             >
               {planned ? <Check className="size-3.5 text-emerald-400" /> : <Calendar className="size-3.5 text-blue-400" />}
               {planned ? "Planned" : "Plan Pin"}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem
-              onSelect={() => onEditPin(pin.id)}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-white/80 focus:[&_svg]:text-white"
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEditPin(pin.id)}
+              className="h-9 w-full justify-start gap-2 rounded-xl border-white/10 bg-white/5 px-3 text-[12px] font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white"
             >
-              <Edit2 className="size-3.5" />
+              <Edit2 className="size-3.5 text-white/80" />
               Edit Pin
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={() => onDeletePin(pin.id)}
-              className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold data-[variant=destructive]:text-red-400 data-[variant=destructive]:focus:bg-red-500/15 data-[variant=destructive]:focus:text-red-300 data-[variant=destructive]:[&_svg]:text-red-400 data-[variant=destructive]:focus:[&_svg]:text-red-300"
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDeletePin(pin.id)}
+              className="h-9 w-full justify-start gap-2 rounded-xl border-red-500/25 bg-red-500/10 px-3 text-[12px] font-bold text-red-300 hover:border-red-400/35 hover:bg-red-500/20 hover:text-red-200"
             >
-              <Trash2 className="size-3.5" />
+              <Trash2 className="size-3.5 text-red-300" />
               Delete Pin
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </Button>
+          </div>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 w-full justify-between rounded-xl border-white/10 bg-white/5 px-3 font-bold text-white hover:border-white/20 hover:bg-white/10 hover:text-white active:scale-95"
+              >
+                <span className="inline-flex items-center gap-2">
+                  Actions
+                </span>
+                <ChevronDown className="size-3.5 text-text-muted" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="min-w-[220px] rounded-xl border border-white/10 bg-[#202632] p-1.5 text-white shadow-[0_18px_45px_rgba(0,0,0,0.45)] [--accent:rgba(255,255,255,0.12)] [--accent-foreground:#ffffff]"
+            >
+              {placeUrl ? (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    window.open(placeUrl, "_blank", "noopener,noreferrer");
+                  }}
+                  className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-[#7FB0FF] focus:[&_svg]:text-[#7FB0FF]"
+                >
+                  <ExternalLink className="size-3.5" />
+                  Open in Maps
+                </DropdownMenuItem>
+              ) : null}
+              {placeUrl ? <DropdownMenuSeparator className="bg-white/10" /> : null}
+              <DropdownMenuItem
+                disabled={routeState !== "idle"}
+                onSelect={handleAddRoute}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              >
+                {routeState === "idle" ? <Plus className="size-3.5 text-orange" /> : <Check className="size-3.5 text-emerald-400" />}
+                {routeLabel}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={planned}
+                onSelect={handlePlan}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white data-disabled:opacity-50"
+              >
+                {planned ? <Check className="size-3.5 text-emerald-400" /> : <Calendar className="size-3.5 text-blue-400" />}
+                {planned ? "Planned" : "Plan Pin"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem
+                onSelect={() => onEditPin(pin.id)}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold text-white focus:bg-white/10 focus:text-white [&_svg]:text-white/80 focus:[&_svg]:text-white"
+              >
+                <Edit2 className="size-3.5" />
+                Edit Pin
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => onDeletePin(pin.id)}
+                className="gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold data-[variant=destructive]:text-red-400 data-[variant=destructive]:focus:bg-red-500/15 data-[variant=destructive]:focus:text-red-300 data-[variant=destructive]:[&_svg]:text-red-400 data-[variant=destructive]:focus:[&_svg]:text-red-300"
+              >
+                <Trash2 className="size-3.5" />
+                Delete Pin
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
       )}
       footer={pin.placeId ? (
         <div className="space-y-2.5">
