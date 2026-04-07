@@ -51,6 +51,14 @@ interface RouteConfirmPanelProps {
   inline?: boolean;
 }
 
+type ResolvedOrigin = {
+  address?: string;
+  lat?: number;
+  lng?: number;
+};
+
+const GPS_ORIGIN_CACHE_TTL_MS = 60_000;
+
 // ---- SortableStopRow (inline sub-component) ----
 function SortableStopRow({
   stop,
@@ -166,8 +174,11 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const startAddressInputRef = useRef<HTMLInputElement | null>(null);
   const previewButtonRef = useRef<HTMLButtonElement | null>(null);
   const didAutoFocusRef = useRef(false);
+  const gpsOriginCacheRef = useRef<{ origin: ResolvedOrigin; fetchedAt: number } | null>(null);
+  const gpsOriginRequestRef = useRef<Promise<ResolvedOrigin | null> | null>(null);
   const mapsRuntimePlatform = useMemo(() => getMapsRuntimePlatform(), []);
   const effectiveMapsProvider = resolveMapsProviderForPlatform(mapsProvider, mapsRuntimePlatform);
+  const isPanelVisible = inline || open;
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -207,6 +218,55 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     const timeoutId = window.setTimeout(focusTarget, 80);
     return () => window.clearTimeout(timeoutId);
   }, [inline, open, routeStops.length, startMode, missingStartRequirement]);
+
+  const resolveGpsOrigin = useCallback(
+    async ({ showError }: { showError: boolean }): Promise<ResolvedOrigin | null> => {
+      const cached = gpsOriginCacheRef.current;
+      if (cached && Date.now() - cached.fetchedAt <= GPS_ORIGIN_CACHE_TTL_MS) {
+        return cached.origin;
+      }
+
+      if (gpsOriginRequestRef.current) {
+        return await gpsOriginRequestRef.current;
+      }
+
+      const request = (async () => {
+        try {
+          const pos = await getCurrentGpsPosition();
+          const origin = { lat: pos.lat, lng: pos.lng };
+          gpsOriginCacheRef.current = { origin, fetchedAt: Date.now() };
+          return origin;
+        } catch (err) {
+          if (showError) {
+            setBuildError(err instanceof Error ? err.message : "Could not get GPS location.");
+          }
+          return null;
+        } finally {
+          gpsOriginRequestRef.current = null;
+        }
+      })();
+
+      gpsOriginRequestRef.current = request;
+      return await request;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!isPanelVisible) return;
+    if (startMode !== "gps") return;
+    void resolveGpsOrigin({ showError: false });
+  }, [isPanelVisible, startMode, resolveGpsOrigin]);
+
+  const handleStartModeSelect = useCallback(
+    (mode: "home" | "gps" | "custom") => {
+      setStartMode(mode);
+      if (mode === "gps") {
+        void resolveGpsOrigin({ showError: false });
+      }
+    },
+    [setStartMode, resolveGpsOrigin],
+  );
 
   function handleSendToPlanner() {
     if (routeStops.length === 0) return;
@@ -251,7 +311,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     toast("All route stops are already in planner");
   }
 
-  const resolveOrigin = useCallback(async (): Promise<{ address?: string; lat?: number; lng?: number } | null> => {
+  const resolveOrigin = useCallback(async (): Promise<ResolvedOrigin | null> => {
     if (startMode === "home") {
       // Use profile homebase first, fall back to customStartAddress
       const homeAddr = profile?.homebase?.trim() || customStartAddress.trim();
@@ -262,13 +322,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       return { address: homeAddr };
     }
     if (startMode === "gps") {
-      try {
-        const pos = await getCurrentGpsPosition();
-        return { lat: pos.lat, lng: pos.lng };
-      } catch (err) {
-        setBuildError(err instanceof Error ? err.message : "Could not get GPS location.");
-        return null;
-      }
+      return await resolveGpsOrigin({ showError: true });
     }
     // custom
     if (!customStartAddress.trim()) {
@@ -281,7 +335,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       return null;
     }
     return coords;
-  }, [startMode, customStartAddress, profile?.homebase]);
+  }, [startMode, customStartAddress, profile?.homebase, resolveGpsOrigin]);
 
   const clearRoutePreview = useCallback(() => {
     // Any manual reordering invalidates a previously computed optimized path.
@@ -498,7 +552,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
             <button
               type="button"
               key={mode}
-              onClick={() => setStartMode(mode)}
+              onClick={() => handleStartModeSelect(mode)}
               aria-pressed={startMode === mode}
               className={`flex-1 py-1.5 rounded-md text-xs font-bold capitalize transition-colors ${
                 startMode === mode
