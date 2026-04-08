@@ -26,7 +26,7 @@ export default function HomePageView() {
   const [editPinId, setEditPinId] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [mobileActiveView, setMobileActiveView] = useState<MobileSidebarTab>("map");
-  const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab | null>("map");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const pins = useStore((s) => s.pins);
@@ -45,10 +45,11 @@ export default function HomePageView() {
     setMobileActiveTab("map");
   }, []);
 
-  const getPrimaryTabForView = useCallback((view: MobileSidebarTab): MobilePrimaryTab => {
+  const getPrimaryTabForView = useCallback((view: MobileSidebarTab): MobilePrimaryTab | null => {
     if (view === "map") return "map";
     if (view === "discover") return "discover";
-    if (view === "planner" || view === "route") return "planner";
+    if (view === "route") return null;
+    if (view === "planner") return "planner";
     return "pins";
   }, []);
 

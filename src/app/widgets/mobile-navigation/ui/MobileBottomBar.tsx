@@ -19,7 +19,7 @@ import {
 } from "@/app/features/discover/model/discover.hooks";
 
 interface MobileBottomBarProps {
-  activeTab: MobilePrimaryTab;
+  activeTab: MobilePrimaryTab | null;
   onSelectTab: (tab: MobilePrimaryTab) => void;
   onOpenSettings: () => void;
   onOpenEmail: () => void;
