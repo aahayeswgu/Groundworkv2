@@ -91,9 +91,9 @@ function SortableStopRow({
   onRemove: (id: string) => void;
   reorderingDisabled: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: stop.id, disabled: reorderingDisabled });
-  const interactionProps = reorderingDisabled ? {} : { ...attributes, ...listeners };
+  const dragHandleProps = reorderingDisabled ? {} : { ...attributes, ...listeners };
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -104,16 +104,23 @@ function SortableStopRow({
     <div
       ref={setNodeRef}
       style={style}
-      {...interactionProps}
-      className={`flex items-center gap-3 px-4 py-3 border-b border-border touch-none ${
-        reorderingDisabled
-          ? "cursor-not-allowed"
-          : "cursor-grab active:cursor-grabbing"
-      }`}
+      className="flex items-center gap-3 px-4 py-3 border-b border-border"
     >
-      <span className="w-7 h-7 rounded-full bg-orange text-white text-xs font-bold flex items-center justify-center shrink-0">
+      <button
+        type="button"
+        ref={setActivatorNodeRef}
+        {...dragHandleProps}
+        disabled={reorderingDisabled}
+        aria-label={`Drag to reorder ${stop.label}`}
+        className={`w-7 h-7 rounded-full bg-orange text-white text-xs font-bold flex items-center justify-center shrink-0 select-none ${
+          reorderingDisabled
+            ? "cursor-not-allowed opacity-70"
+            : "cursor-grab active:cursor-grabbing touch-none"
+        }`}
+        title={reorderingDisabled ? "Turn off optimization to reorder manually." : "Drag to reorder"}
+      >
         {index + 1}
-      </span>
+      </button>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-text-primary truncate">{stop.label}</div>
         {stop.address && (
@@ -192,9 +199,10 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
   const [isBuilding, setIsBuilding] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [showMoreActions, setShowMoreActions] = useState(false);
   const [buildError, setBuildError] = useState<string | null>(null);
   const startAddressInputRef = useRef<HTMLInputElement | null>(null);
-  const previewButtonRef = useRef<HTMLButtonElement | null>(null);
+  const openMapsButtonRef = useRef<HTMLButtonElement | null>(null);
   const didAutoFocusRef = useRef(false);
   const gpsOriginCacheRef = useRef<{ origin: ResolvedOrigin; fetchedAt: number } | null>(null);
   const gpsOriginRequestRef = useRef<Promise<ResolvedOrigin | null> | null>(null);
@@ -238,12 +246,29 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         startAddressInputRef.current?.select();
         return;
       }
-      previewButtonRef.current?.focus();
+      openMapsButtonRef.current?.focus();
     };
 
     const timeoutId = window.setTimeout(focusTarget, 80);
     return () => window.clearTimeout(timeoutId);
   }, [inline, open, routeStops.length, startMode, missingStartRequirement]);
+
+  useEffect(() => {
+    if (routeStops.length === 0) {
+      setShowMoreActions(false);
+    }
+  }, [routeStops.length]);
+
+  useEffect(() => {
+    if (!showMoreActions) return;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowMoreActions(false);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [showMoreActions]);
 
   const resolveGpsOrigin = useCallback(
     async ({ showError }: { showError: boolean }): Promise<ResolvedOrigin | null> => {
@@ -785,6 +810,60 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     resolveOrigin,
   ]);
 
+  const handleOpenMapsFromCta = useCallback(() => {
+    setShowMoreActions(false);
+    void handleOpenMaps();
+  }, [handleOpenMaps]);
+
+  const handleSendToPlannerFromMenu = useCallback(() => {
+    setShowMoreActions(false);
+    void handleSendToPlanner();
+  }, [handleSendToPlanner]);
+
+  const handlePreviewFromMenu = useCallback(() => {
+    setShowMoreActions(false);
+    void handleBuildRoute();
+  }, [handleBuildRoute]);
+
+  const handleClearRouteFromMenu = useCallback(() => {
+    setShowMoreActions(false);
+    clearRoute();
+    if (!inline) {
+      onClose?.();
+    }
+  }, [clearRoute, inline, onClose]);
+
+  const moreActionsActionList = (
+    <div className="grid grid-cols-1 gap-1.5 rounded-xl border border-white/10 bg-[#202632] p-1.5">
+      <button
+        type="button"
+        onClick={handleSendToPlannerFromMenu}
+        disabled={isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement)}
+        className="inline-flex h-7 w-full items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+      >
+        <Calendar className="size-4 text-[#9EC1FF]" />
+        Send to Planner
+      </button>
+      <button
+        type="button"
+        onClick={handlePreviewFromMenu}
+        disabled={isBusy || routeStops.length === 0 || missingStartRequirement}
+        className="inline-flex h-7 w-full items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+      >
+        <ArrowRight className="size-4 text-[#FFC28F]" />
+        Preview Route
+      </button>
+      <button
+        type="button"
+        onClick={handleClearRouteFromMenu}
+        className="inline-flex h-7 w-full items-center justify-center gap-2 rounded-lg border border-red-400/30 bg-red-500/5 px-2.5 text-[11px] font-semibold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
+      >
+        <Trash2 className="size-4" />
+        Clear Route
+      </button>
+    </div>
+  );
+
   const distanceMi = routeResult
     ? (routeResult.totalDistanceMeters / 1609.34).toFixed(1)
     : null;
@@ -795,7 +874,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   if (!inline && !open) return null;
 
   const panelContent = (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="relative flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-bg-card shrink-0">
         <div>
@@ -912,7 +991,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
             <div className="border-b border-border bg-bg-card/70 px-4 py-2 text-[11px] text-text-muted">
               {optimizeRoute
                 ? "Optimization is on. Turn it off to manually drag and reorder stops."
-                : "Drag stops to reorder, or use the up/down controls on each row."}
+                : "Use the numbered handle to drag stops, or use the up/down controls on each row."}
             </div>
           )}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -943,52 +1022,62 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       )}
 
       {/* Action buttons */}
-      <div className="shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={handleOpenMaps}
-            disabled={isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement)}
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
-          >
-            <ExternalLink className="size-4 text-[#7EAFFF]" />
-            Open Maps
-          </button>
-          <button
-            type="button"
-            onClick={handleSendToPlanner}
-            disabled={isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement)}
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
-          >
-            <Calendar className="size-4 text-[#9EC1FF]" />
-            Send to Planner
-          </button>
-        </div>
-
+      {showMoreActions && !isMobile && (
         <button
           type="button"
-          onClick={() => {
-            clearRoute();
-            if (!inline) {
-              onClose?.();
-            }
-          }}
-          className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-red-400/30 bg-red-500/5 px-3 text-[13px] font-semibold text-red-300 transition-colors hover:border-red-400/50 hover:bg-red-500/10 hover:text-red-200"
-        >
-          <Trash2 className="size-4" />
-          Clear Route
-        </button>
+          aria-label="Close more actions menu"
+          onClick={() => setShowMoreActions(false)}
+          className="absolute inset-0 z-20 bg-transparent"
+        />
+      )}
 
+      <div className="relative z-30 shrink-0 border-t border-border bg-bg-card px-4 py-3 flex flex-col gap-2">
         <button
           type="button"
-          ref={previewButtonRef}
-          onClick={handleBuildRoute}
-          disabled={isBusy || routeStops.length === 0 || missingStartRequirement}
+          ref={openMapsButtonRef}
+          onClick={handleOpenMapsFromCta}
+          disabled={isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement)}
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-orange bg-orange px-4 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
         >
-          {isBusy ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-          {isBuilding ? "Working..." : isOptimizing ? "Optimizing route..." : "Preview Route"}
+          {isBusy ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
+          {isBuilding ? "Working..." : isOptimizing ? "Optimizing route..." : "Open Maps"}
         </button>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowMoreActions((prev) => !prev)}
+            disabled={routeStops.length === 0}
+            aria-expanded={showMoreActions}
+            className="inline-flex h-9 w-full items-center justify-between gap-2 rounded-xl border border-white/12 bg-white/5 px-3 text-[13px] font-semibold text-white transition-colors hover:border-white/20 hover:bg-white/10 disabled:opacity-50"
+          >
+            <span>More Actions</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className={`transition-transform ${showMoreActions ? "rotate-180" : ""}`}
+              aria-hidden="true"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {!isMobile && showMoreActions && (
+            <div className="absolute bottom-[calc(100%+8px)] left-0 right-0 z-40">
+              {moreActionsActionList}
+            </div>
+          )}
+
+          {isMobile && showMoreActions && (
+            <div className="mt-2">
+              {moreActionsActionList}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

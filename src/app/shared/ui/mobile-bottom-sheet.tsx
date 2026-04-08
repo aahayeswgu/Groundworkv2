@@ -73,7 +73,8 @@ export function MobileBottomSheet({
         </Sheet.Content>
       </Sheet.Container>
       <Sheet.Backdrop
-        className="bg-black/10 supports-backdrop-filter:backdrop-blur-xs"
+        className="bg-black/10"
+        style={{ bottom: "var(--mobile-bottom-bar-offset)" }}
         onTap={() => onOpenChange(false)}
       />
     </Sheet>

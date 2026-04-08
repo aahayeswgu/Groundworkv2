@@ -16,6 +16,7 @@ import { useStore } from "@/app/store";
 import MobileBottomBar from "@/app/widgets/mobile-navigation/ui/MobileBottomBar";
 import {
   OPEN_MOBILE_TAB_EVENT,
+  type MobileSidebarTab,
   type OpenMobileTabEventDetail,
 } from "@/app/shared/model/mobile-events";
 import type { MobilePrimaryTab } from "@/app/widgets/mobile-navigation/model/mobile-navigation.model";
@@ -24,8 +25,7 @@ import type { SidebarTab } from "@/app/widgets/sidebar/model/sidebar.model";
 export default function HomePageView() {
   const [editPinId, setEditPinId] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [mobileSidebarTab, setMobileSidebarTab] = useState<SidebarTab>("pins");
+  const [mobileActiveView, setMobileActiveView] = useState<MobileSidebarTab>("map");
   const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab>("map");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
@@ -40,53 +40,61 @@ export default function HomePageView() {
   }, []);
 
   const closeMobileSidebar = useCallback(() => {
-    setMobileSidebarOpen(false);
+    setSettingsOpen(false);
+    setMobileActiveView("map");
     setMobileActiveTab("map");
   }, []);
 
-  const openMobileSidebarTab = useCallback((tab: SidebarTab) => {
-    setMobileSidebarTab(tab);
-    const nextPrimaryTab: MobilePrimaryTab = tab === "planner"
-      ? "planner"
-      : tab === "discover"
-        ? "discover"
-        : "pins";
-    setMobileActiveTab(nextPrimaryTab);
-    setMobileSidebarOpen(true);
+  const getPrimaryTabForView = useCallback((view: MobileSidebarTab): MobilePrimaryTab => {
+    if (view === "map") return "map";
+    if (view === "discover") return "discover";
+    if (view === "planner" || view === "route") return "planner";
+    return "pins";
   }, []);
+
+  const openMobileSidebarTab = useCallback((tab: SidebarTab) => {
+    setSettingsOpen(false);
+    setMobileActiveView(tab);
+    setMobileActiveTab(getPrimaryTabForView(tab));
+  }, [getPrimaryTabForView]);
 
   const handleMobileTabSelect = useCallback(
     (tab: MobilePrimaryTab) => {
+      setSettingsOpen(false);
       if (tab === "map") {
         closeMobileSidebar();
         return;
       }
-      openMobileSidebarTab(tab);
+      setMobileActiveView(tab);
+      setMobileActiveTab(tab);
     },
-    [closeMobileSidebar, openMobileSidebarTab],
+    [closeMobileSidebar],
   );
 
   const handleOpenSettings = useCallback(() => {
-    openMobileSidebarTab("pins");
+    setMobileActiveView("pins");
+    setMobileActiveTab("pins");
     setSettingsOpen(true);
-  }, [openMobileSidebarTab]);
+  }, []);
 
   useEffect(() => {
     const handleOpenMobileTab = (event: Event) => {
       const detail = (event as CustomEvent<OpenMobileTabEventDetail>).detail;
       if (!detail) return;
+      const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
+      if (!isMobileViewport) return;
       if (detail.tab === "map") {
         closeMobileSidebar();
         return;
       }
-      const isMobileViewport = window.matchMedia("(max-width: 1024px)").matches;
-      if (!isMobileViewport) return;
-      openMobileSidebarTab(detail.tab);
+      setSettingsOpen(false);
+      setMobileActiveView(detail.tab);
+      setMobileActiveTab(getPrimaryTabForView(detail.tab));
     };
 
     window.addEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
     return () => window.removeEventListener(OPEN_MOBILE_TAB_EVENT, handleOpenMobileTab);
-  }, [closeMobileSidebar, openMobileSidebarTab]);
+  }, [closeMobileSidebar, getPrimaryTabForView]);
 
   const editPin = editPinId ? (pins.find((p) => p.id === editPinId) ?? null) : null;
 
@@ -103,8 +111,8 @@ export default function HomePageView() {
       <div className="flex h-[var(--mobile-viewport-height)] w-screen">
         <Sidebar
           onEditPin={openEditModal}
-          mobileOpen={mobileSidebarOpen}
-          mobileTab={mobileSidebarTab}
+          mobileOpen={mobileActiveView !== "map"}
+          mobileTab={mobileActiveView === "map" ? "pins" : mobileActiveView}
           onMobileTabChange={openMobileSidebarTab}
           onMobileClose={closeMobileSidebar}
           onOpenEmail={handleOpenEmail}
