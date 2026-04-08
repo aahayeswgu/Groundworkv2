@@ -14,6 +14,10 @@ import {
   dispatchOpenMobileTab,
 } from "@/app/shared/model/mobile-events";
 import {
+  MOBILE_SHEET_SNAP_INDEX,
+  MOBILE_SHEET_SNAP_POINTS,
+} from "@/app/shared/model/mobile-sheet";
+import {
   useDiscoverMode,
   useIsDrawing,
 } from "@/app/features/discover/model/discover.hooks";
@@ -97,6 +101,8 @@ export default function MobileBottomBar({
           onOpenChange={setDrawerOpen}
           containerClassName="bg-bg-card/95 backdrop-blur-md"
           headerClassName="bg-bg-card/95"
+          snapPoints={MOBILE_SHEET_SNAP_POINTS}
+          initialSnap={MOBILE_SHEET_SNAP_INDEX.low}
         >
           <div className="px-4 pb-[calc(16px+env(safe-area-inset-bottom,0px))] pt-3">
             <div className="mb-3 text-center font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
@@ -104,20 +110,7 @@ export default function MobileBottomBar({
             </div>
             <div className="grid grid-cols-2 gap-2">
               {MOBILE_QUICK_ACTIONS.map((action) => (
-                <button
-                  key={action.id}
-                  type="button"
-                  onClick={() => handleQuickAction(action)}
-                  className="flex items-start gap-2 rounded-2xl border border-border bg-bg-secondary/70 px-3 py-3 text-left transition-colors hover:border-orange/45 hover:bg-orange-dim"
-                >
-                  <span className="mt-0.5 shrink-0 text-orange">
-                    <QuickActionIcon icon={action.icon} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="font-heading block text-sm font-semibold text-text-primary">{action.label}</span>
-                    <span className="block text-[11px] leading-4 text-text-secondary">{action.detail}</span>
-                  </span>
-                </button>
+                <QuickActionButton key={action.id} action={action} onClick={() => handleQuickAction(action)} />
               ))}
             </div>
           </div>
@@ -160,6 +153,30 @@ export default function MobileBottomBar({
         </div>
       </nav>
     </>
+  );
+}
+
+function QuickActionButton({
+  action,
+  onClick,
+}: {
+  action: MobileQuickActionItem;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-start gap-2 rounded-2xl border border-border bg-bg-secondary/70 px-3 py-3 text-left transition-colors hover:border-orange/45 hover:bg-orange-dim"
+    >
+      <span className="mt-0.5 shrink-0 text-orange">
+        <QuickActionIcon icon={action.icon} />
+      </span>
+      <span className="min-w-0">
+        <span className="font-heading block text-sm font-semibold text-text-primary">{action.label}</span>
+        <span className="block text-[11px] leading-4 text-text-secondary">{action.detail}</span>
+      </span>
+    </button>
   );
 }
 

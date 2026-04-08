@@ -26,9 +26,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/shared/ui/dropdown-menu";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { CheckCheck, MoreHorizontal, RotateCcw, Trash2 } from "lucide-react";
 
-export default function PlannerPanel() {
+interface PlannerPanelProps {
+  mobileSheetSnapIndex?: number | null;
+  onRequestExpand?: () => void;
+}
+
+export default function PlannerPanel({
+  mobileSheetSnapIndex = null,
+  onRequestExpand,
+}: PlannerPanelProps) {
+  const isMobile = useIsMobile();
   const plannerDays = usePlannerDays();
   const activePlannerDate = useActivePlannerDate();
   const {
@@ -53,6 +63,7 @@ export default function PlannerPanel() {
   const { addStop, clearRoute } = useRouteActions();
   const calendarOpen = useCalendarOpen();
   const monthViewOpen = useMonthViewOpen();
+  const isCompactMobileSheet = isMobile && mobileSheetSnapIndex !== null && mobileSheetSnapIndex <= 1;
 
   const day = getOrCreateDay(plannerDays, activePlannerDate);
   const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;
@@ -165,6 +176,61 @@ export default function PlannerPanel() {
     if (!confirmed) return;
     clearAllPlanner();
     toast.success("Cleared all planner data");
+  }
+
+  function handleCompactPrimaryAction() {
+    if (hasStops) {
+      handleRouteIt();
+      return;
+    }
+    setCalendarOpen(true);
+    onRequestExpand?.();
+  }
+
+  const visitedCount = day.stops.filter((stop) => stop.status === "visited").length;
+  const notesWithContentCount = day.notes.filter((note) => note.trim().length > 0).length;
+
+  if (isCompactMobileSheet) {
+    return (
+      <div className="flex h-full flex-col">
+        <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-text-primary">{displayDate}</div>
+              <div className="text-xs text-text-muted">
+                {day.stops.length} stops · {visitedCount} visited · {notesWithContentCount} notes
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onRequestExpand?.()}
+              className="h-8 rounded-md border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white"
+            >
+              Expand
+            </button>
+          </div>
+
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={handleCompactPrimaryAction}
+              className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-orange bg-orange px-3 text-[12px] font-semibold text-white transition-colors hover:bg-orange/90"
+            >
+              {hasStops ? `Route Day (${day.stops.length})` : "Open Calendar"}
+            </button>
+          </div>
+
+          <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <div className="text-[11px] font-semibold text-text-secondary">Drag up for full planner</div>
+            <div className="mt-1 text-[12px] text-text-muted">
+              {hasStops
+                ? `${day.stops.length} stop${day.stops.length === 1 ? "" : "s"} ready for planning and notes`
+                : "No stops planned for this day yet"}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
