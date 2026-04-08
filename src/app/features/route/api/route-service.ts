@@ -60,6 +60,10 @@ interface RoutesLibraryWithRouteClass {
   };
 }
 
+interface ComputeRouteOptions {
+  optimizeWaypointOrder?: boolean;
+}
+
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     return err.message;
@@ -122,8 +126,10 @@ function normalizePathPoint(
 async function computeRouteWithRouteClass(
   origin: RouteOrigin,
   stops: RouteStop[],
+  options: ComputeRouteOptions = {},
 ): Promise<RouteResult> {
   try {
+    const optimizeWaypointOrder = options.optimizeWaypointOrder ?? true;
     const routesLibrary = await google.maps.importLibrary('routes') as unknown as RoutesLibraryWithRouteClass;
     const computeRoutes = routesLibrary.Route?.computeRoutes;
     if (!computeRoutes) {
@@ -141,7 +147,7 @@ async function computeRouteWithRouteClass(
         location: { lat: stop.lat, lng: stop.lng },
       })),
       travelMode: 'DRIVING',
-      optimizeWaypointOrder: true,
+      optimizeWaypointOrder,
       fields: [
         'distanceMeters',
         'durationMillis',
@@ -199,6 +205,7 @@ async function computeRouteWithRouteClass(
 export async function computeRoute(
   origin: RouteOrigin,
   stops: RouteStop[],
+  options: ComputeRouteOptions = {},
 ): Promise<RouteResult> {
-  return await computeRouteWithRouteClass(origin, stops);
+  return await computeRouteWithRouteClass(origin, stops, options);
 }

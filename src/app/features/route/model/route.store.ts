@@ -11,6 +11,7 @@ export interface RouteSlice {
   startMode: StartMode;
   customStartAddress: string;
   shareableUrl: string | null;
+  optimizeRoute: boolean;
 
   // Stop management
   addStop: (stop: RouteStop) => boolean; // returns false if cap reached
@@ -24,6 +25,7 @@ export interface RouteSlice {
   setStartMode: (mode: StartMode) => void;
   setCustomStartAddress: (address: string) => void;
   setShareableUrl: (url: string | null) => void;
+  setOptimizeRoute: (enabled: boolean) => void;
 }
 
 export const createRouteSlice: StateCreator<RouteSlice> = (set, get) => ({
@@ -33,6 +35,7 @@ export const createRouteSlice: StateCreator<RouteSlice> = (set, get) => ({
   startMode: 'gps',
   customStartAddress: '',
   shareableUrl: null,
+  optimizeRoute: true,
 
   addStop: (stop) => {
     const current = get().routeStops;
@@ -57,6 +60,8 @@ export const createRouteSlice: StateCreator<RouteSlice> = (set, get) => ({
   setCustomStartAddress: (address) => set({ customStartAddress: address }),
 
   setShareableUrl: (url) => set({ shareableUrl: url }),
+
+  setOptimizeRoute: (enabled) => set({ optimizeRoute: enabled }),
 
   clearRoute: () => set({
     routeStops: [],
