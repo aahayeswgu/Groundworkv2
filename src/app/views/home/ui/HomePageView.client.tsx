@@ -27,6 +27,7 @@ export default function HomePageView() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [mobileActiveView, setMobileActiveView] = useState<MobileSidebarTab>("map");
   const [mobileActiveTab, setMobileActiveTab] = useState<MobilePrimaryTab | null>("map");
+  const [lastSidebarTab, setLastSidebarTab] = useState<SidebarTab>("pins");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const pins = useStore((s) => s.pins);
@@ -55,6 +56,7 @@ export default function HomePageView() {
 
   const openMobileSidebarTab = useCallback((tab: SidebarTab) => {
     setSettingsOpen(false);
+    setLastSidebarTab(tab);
     setMobileActiveView(tab);
     setMobileActiveTab(getPrimaryTabForView(tab));
   }, [getPrimaryTabForView]);
@@ -66,6 +68,7 @@ export default function HomePageView() {
         closeMobileSidebar();
         return;
       }
+      setLastSidebarTab(tab);
       setMobileActiveView(tab);
       setMobileActiveTab(tab);
     },
@@ -73,10 +76,15 @@ export default function HomePageView() {
   );
 
   const handleOpenSettings = useCallback(() => {
-    setMobileActiveView("pins");
-    setMobileActiveTab("pins");
+    setMobileActiveView((prev) => (prev === "map" ? lastSidebarTab : prev));
+    setMobileActiveTab(null);
     setSettingsOpen(true);
-  }, []);
+  }, [lastSidebarTab]);
+
+  const handleCloseSettings = useCallback(() => {
+    setSettingsOpen(false);
+    setMobileActiveTab(getPrimaryTabForView(mobileActiveView));
+  }, [getPrimaryTabForView, mobileActiveView]);
 
   useEffect(() => {
     const handleOpenMobileTab = (event: Event) => {
@@ -89,6 +97,7 @@ export default function HomePageView() {
         return;
       }
       setSettingsOpen(false);
+      setLastSidebarTab(detail.tab);
       setMobileActiveView(detail.tab);
       setMobileActiveTab(getPrimaryTabForView(detail.tab));
     };
@@ -118,8 +127,8 @@ export default function HomePageView() {
           onMobileClose={closeMobileSidebar}
           onOpenEmail={handleOpenEmail}
           settingsOpen={settingsOpen}
-          onSettingsOpen={() => setSettingsOpen(true)}
-          onSettingsClose={() => setSettingsOpen(false)}
+          onSettingsOpen={handleOpenSettings}
+          onSettingsClose={handleCloseSettings}
           onReplayTutorial={() => setTutorialOpen(true)}
         />
         <Map onEditPin={openEditModal} />

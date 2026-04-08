@@ -1,8 +1,10 @@
 "use client";
 
-import { Check, MapPin, Navigation, Plus, Star } from "lucide-react";
+import { useRef, useState, type TouchEvent } from "react";
+import { ArrowRight, Check, MapPin, Navigation, Plus, Star } from "lucide-react";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
 import { classifyGooglePlace } from "@/app/features/discover/lib/discover-filters";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { cn } from "@/app/shared/lib/utils";
 
 interface DiscoverResultItemProps {
@@ -14,6 +16,7 @@ interface DiscoverResultItemProps {
   onHoverLeave: () => void;
   onQuickSave: (result: DiscoverResult) => void;
   onUnsave: (result: DiscoverResult) => void;
+  onQuickRoute: (result: DiscoverResult) => void;
   onLocateOnMap: (result: DiscoverResult) => void;
   alreadySaved: boolean;
   zoneLabel?: string;
@@ -28,10 +31,15 @@ export function DiscoverResultItem({
   onHoverLeave,
   onQuickSave,
   onUnsave,
+  onQuickRoute,
   onLocateOnMap,
   alreadySaved,
   zoneLabel,
 }: DiscoverResultItemProps) {
+  const isMobile = useIsMobile();
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const suppressTapRef = useRef(false);
+  const [swipeHint, setSwipeHint] = useState<"none" | "pin" | "route">("none");
   const type = classifyGooglePlace(
     result.types,
     result.displayName,
@@ -39,18 +47,87 @@ export function DiscoverResultItem({
     result.matchedCategory,
   );
   const hasRating = typeof result.rating === "number" && result.rating > 0;
+  const swipeHintLabel = swipeHint === "pin"
+    ? "Release to pin"
+    : swipeHint === "route"
+      ? "Release to route"
+      : "Swipe right to pin • swipe left to route";
+
+  function handleRowClick() {
+    if (suppressTapRef.current) {
+      suppressTapRef.current = false;
+      return;
+    }
+    onToggleSelect(result.placeId);
+  }
+
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
+    if (!isMobile) return;
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    setSwipeHint("none");
+    suppressTapRef.current = false;
+  }
+
+  function handleTouchMove(event: TouchEvent<HTMLDivElement>) {
+    if (!isMobile) return;
+    if (!touchStartRef.current) return;
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    if (Math.abs(deltaY) > 44) {
+      setSwipeHint("none");
+      return;
+    }
+    if (deltaX >= 42) {
+      setSwipeHint("pin");
+      return;
+    }
+    if (deltaX <= -42) {
+      setSwipeHint("route");
+      return;
+    }
+    if (Math.abs(deltaX) < 16) {
+      setSwipeHint("none");
+    }
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (!isMobile) return;
+    if (!touchStartRef.current) return;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const isHorizontalSwipe =
+      Math.abs(deltaX) >= 72 &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.3 &&
+      Math.abs(deltaY) <= 44;
+    touchStartRef.current = null;
+    setSwipeHint("none");
+    if (!isHorizontalSwipe) return;
+    suppressTapRef.current = true;
+    if (deltaX > 0) {
+      if (alreadySaved) {
+        onUnsave(result);
+      } else {
+        onQuickSave(result);
+      }
+      return;
+    }
+    onQuickRoute(result);
+  }
 
   return (
     <div
       className={cn(
-        "group cursor-pointer rounded-xl border p-2 transition-colors duration-150",
+        "group cursor-pointer rounded-xl border p-2 transition-colors duration-150 touch-pan-y",
         isSelected
           ? "border-orange/45 bg-orange/10"
           : isHovered
             ? "border-white/15 bg-white/5"
             : "border-border/70 bg-bg-card hover:border-white/15 hover:bg-white/5",
       )}
-      onClick={() => onToggleSelect(result.placeId)}
+      onClick={handleRowClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -62,6 +139,9 @@ export function DiscoverResultItem({
       aria-pressed={isSelected}
       onMouseEnter={() => onHoverEnter(result.placeId)}
       onMouseLeave={() => onHoverLeave()}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="flex items-start gap-2.5">
         <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-lg border border-white/10 bg-bg-input">
@@ -126,6 +206,19 @@ export function DiscoverResultItem({
             >
               {isSelected ? "Selected" : "Tap to Select"}
             </div>
+            {isMobile ? (
+              <div className={cn(
+                "text-[10px] font-medium",
+                swipeHint === "pin"
+                  ? "text-emerald-300"
+                  : swipeHint === "route"
+                    ? "text-text-secondary"
+                    : "text-text-muted/75",
+              )}
+              >
+                {swipeHintLabel}
+              </div>
+            ) : null}
 
             <div className="flex items-center gap-1.5">
               <button
@@ -138,6 +231,17 @@ export function DiscoverResultItem({
                 aria-label={`Show ${result.displayName} on map`}
               >
                 <Navigation className="size-3.5" />
+              </button>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onQuickRoute(result);
+                }}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-white/12 bg-white/5 text-text-secondary transition-colors hover:bg-white/10 hover:text-white"
+                title="Add to route"
+                aria-label={`Add ${result.displayName} to route`}
+              >
+                <ArrowRight className="size-3.5" />
               </button>
 
               {alreadySaved ? (

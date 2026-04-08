@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, type TouchEvent } from "react";
 import {
   DndContext,
   closestCenter,
@@ -23,6 +23,10 @@ import {
   resolveMapsProviderForPlatform,
 } from "@/app/shared/lib/maps-links";
 import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
+import {
+  MOBILE_SHEET_SNAP_INDEX,
+  MOBILE_SHEET_SNAP_POINTS,
+} from "@/app/shared/model/mobile-sheet";
 import { useStore } from "@/app/store";
 import { computeRoute, RouteComputeError } from "@/app/features/route/api/route-service";
 import { buildGoogleMapsUrl, buildGoogleMapsUrlWithoutOrigin } from "@/app/features/route/lib/route-url";
@@ -51,6 +55,8 @@ interface RouteConfirmPanelProps {
   open?: boolean;
   onClose?: () => void;
   inline?: boolean;
+  mobileSheetSnapIndex?: number | null;
+  onRequestExpand?: () => void;
 }
 
 type ResolvedOrigin = {
@@ -81,6 +87,7 @@ function SortableStopRow({
   onMoveDown,
   onRemove,
   reorderingDisabled,
+  enableSwipeRemove,
 }: {
   stop: RouteStop;
   index: number;
@@ -90,21 +97,47 @@ function SortableStopRow({
   onMoveDown: (id: string) => void;
   onRemove: (id: string) => void;
   reorderingDisabled: boolean;
+  enableSwipeRemove: boolean;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: stop.id, disabled: reorderingDisabled });
   const dragHandleProps = reorderingDisabled ? {} : { ...attributes, ...listeners };
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : reorderingDisabled ? 0.7 : 1,
   };
 
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
+    if (!enableSwipeRemove) return;
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (!enableSwipeRemove) return;
+    if (!touchStartRef.current) return;
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    touchStartRef.current = null;
+    const removeGesture =
+      deltaX <= -68 &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.3 &&
+      Math.abs(deltaY) <= 44;
+    if (removeGesture) {
+      onRemove(stop.id);
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 px-4 py-3 border-b border-border"
+      className="flex items-center gap-3 border-b border-border px-4 py-3 touch-pan-y"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <button
         type="button"
@@ -172,7 +205,13 @@ function SortableStopRow({
 }
 
 // ---- RouteConfirmPanel ----
-export default function RouteConfirmPanel({ open = false, onClose, inline = false }: RouteConfirmPanelProps) {
+export default function RouteConfirmPanel({
+  open = false,
+  onClose,
+  inline = false,
+  mobileSheetSnapIndex = null,
+  onRequestExpand,
+}: RouteConfirmPanelProps) {
   const isMobile = useIsMobile();
   const routeStops = useRouteStops();
   const routeResult = useRouteResult();
@@ -200,6 +239,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const [isBuilding, setIsBuilding] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [showMoreActions, setShowMoreActions] = useState(false);
+  const [localMobileSnapIndex, setLocalMobileSnapIndex] = useState<number>(MOBILE_SHEET_SNAP_INDEX.low);
   const [buildError, setBuildError] = useState<string | null>(null);
   const startAddressInputRef = useRef<HTMLInputElement | null>(null);
   const openMapsButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -211,6 +251,10 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
   const mapsRuntimePlatform = useMemo(() => getMapsRuntimePlatform(), []);
   const effectiveMapsProvider = resolveMapsProviderForPlatform(mapsProvider, mapsRuntimePlatform);
   const isPanelVisible = inline || open;
+  const fallbackMobileSnapIndex = MOBILE_SHEET_SNAP_INDEX.low;
+  const effectiveMobileSnapIndex =
+    mobileSheetSnapIndex !== null ? mobileSheetSnapIndex : (localMobileSnapIndex ?? fallbackMobileSnapIndex);
+  const isCompactMobileSheet = isMobile && effectiveMobileSnapIndex <= 1;
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -227,6 +271,8 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
     : "Enter a starting address.";
   const isBusy = isBuilding || isOptimizing;
   const reorderingDisabled = optimizeRoute || isBusy;
+  const disableOpenMapsAction =
+    isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement);
 
   useEffect(() => {
     if (!inline && !open) {
@@ -838,7 +884,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
       <button
         type="button"
         onClick={handleSendToPlannerFromMenu}
-        disabled={isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement)}
+        disabled={disableOpenMapsAction}
         className="inline-flex h-7 w-full items-center justify-center gap-2 rounded-lg border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
       >
         <Calendar className="size-4 text-[#9EC1FF]" />
@@ -873,7 +919,75 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
 
   if (!inline && !open) return null;
 
-  const panelContent = (
+  const compactPanelContent = (
+    <div className="relative flex h-full min-h-0 flex-col">
+      <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-text-primary">Route Planner</div>
+            {distanceMi && durationMin !== null ? (
+              <div className="text-xs text-text-muted">
+                {routeStops.length} stop{routeStops.length !== 1 ? "s" : ""} &middot; {distanceMi} mi &middot; ~{durationMin} min
+              </div>
+            ) : (
+              <div className="text-xs text-text-muted">{routeStops.length} / 25 stops</div>
+            )}
+          </div>
+          {onRequestExpand ? (
+            <button
+              type="button"
+              onClick={onRequestExpand}
+              className="h-8 rounded-md border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white"
+            >
+              Expand
+            </button>
+          ) : null}
+        </div>
+
+        {missingStartRequirement ? (
+          <div className="mt-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+            {startValidationMessage}
+          </div>
+        ) : null}
+
+        {buildError ? (
+          <div role="alert" className="mt-2 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2">
+            <div className="text-xs font-semibold text-red-400">{buildError}</div>
+          </div>
+        ) : null}
+
+        <div className="mt-3">
+          <button
+            type="button"
+            ref={openMapsButtonRef}
+            onClick={handleOpenMapsFromCta}
+            disabled={disableOpenMapsAction}
+            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-orange bg-orange px-3 text-[12px] font-semibold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
+          >
+            {isBusy ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
+            {isBuilding ? "Working..." : isOptimizing ? "Optimizing..." : "Open Maps"}
+          </button>
+        </div>
+
+        {routeStops[0] ? (
+          <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <div className="text-[11px] font-semibold text-text-secondary">Drag up for full route controls</div>
+            <div className="mt-1 truncate text-[13px] font-bold text-text-primary">{routeStops[0].label}</div>
+            <div className="truncate text-[11px] text-text-muted">{routeStops[0].address || "No address"}</div>
+          </div>
+        ) : (
+          <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+            <div className="text-[11px] font-semibold text-text-secondary">No stops yet</div>
+            <div className="mt-1 text-[11px] text-text-muted">
+              Add stops from Discover or Pins, then expand to reorder and refine.
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const panelContent = isCompactMobileSheet ? compactPanelContent : (
     <div className="relative flex h-full min-h-0 flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-border bg-bg-card shrink-0">
@@ -992,6 +1106,9 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
               {optimizeRoute
                 ? "Optimization is on. Turn it off to manually drag and reorder stops."
                 : "Use the numbered handle to drag stops, or use the up/down controls on each row."}
+              {isMobile ? (
+                <div className="mt-1 text-text-muted/90">Swipe a stop left to remove quickly.</div>
+              ) : null}
             </div>
           )}
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1007,6 +1124,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
                   onMoveDown={(id) => moveStop(id, "down")}
                   onRemove={removeStop}
                   reorderingDisabled={reorderingDisabled}
+                  enableSwipeRemove={isMobile}
                 />
               ))}
             </SortableContext>
@@ -1036,7 +1154,7 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
           type="button"
           ref={openMapsButtonRef}
           onClick={handleOpenMapsFromCta}
-          disabled={isBusy || routeStops.length === 0 || (optimizeRoute && missingStartRequirement)}
+          disabled={disableOpenMapsAction}
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-orange bg-orange px-4 text-sm font-bold text-white transition-colors hover:bg-orange/90 disabled:opacity-50"
         >
           {isBusy ? <Loader2 className="size-4 animate-spin" /> : <ExternalLink className="size-4" />}
@@ -1093,8 +1211,10 @@ export default function RouteConfirmPanel({ open = false, onClose, inline = fals
         onOpenChange={(nextOpen) => {
           if (!nextOpen) onClose?.();
         }}
-        fullHeight
-        disableContentDrag
+        detent="default"
+        snapPoints={MOBILE_SHEET_SNAP_POINTS}
+        initialSnap={MOBILE_SHEET_SNAP_INDEX.low}
+        onSnap={setLocalMobileSnapIndex}
       >
         <div className="sr-only">
           <h2>Route Planner</h2>

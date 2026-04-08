@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { useStore } from "@/app/store";
 import type { PinStatus } from "@/app/features/pins/model/pin.types";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
+import { Button } from "@/app/shared/ui/button";
 import {
   computePinListStats,
   filterPinsByQueryAndStatus,
@@ -15,12 +17,20 @@ import PinSearchInput from "./PinSearchInput";
 
 interface PinListProps {
   onEditPin: (pinId: string) => void;
+  mobileSheetSnapIndex?: number | null;
+  onRequestExpand?: () => void;
 }
 
-export function PinList({ onEditPin }: PinListProps) {
+export function PinList({
+  onEditPin,
+  mobileSheetSnapIndex = null,
+  onRequestExpand,
+}: PinListProps) {
+  const isMobile = useIsMobile();
   const pins = useStore((s) => s.pins);
   const activeStatusFilter = useStore((s) => s.activeStatusFilter);
   const setActiveStatusFilter = useStore((s) => s.setActiveStatusFilter);
+  const isCompactMobileSheet = isMobile && mobileSheetSnapIndex !== null && mobileSheetSnapIndex <= 1;
 
   const [searchText, setSearchText] = useState("");
 
@@ -32,6 +42,62 @@ export function PinList({ onEditPin }: PinListProps) {
 
   function toggleStatus(status: PinStatus) {
     setActiveStatusFilter(toggleStatusFilter(activeStatusFilter, status));
+  }
+
+  if (isCompactMobileSheet) {
+    const hasFilter = searchText.trim().length > 0 || activeStatusFilter.size !== STATUS_CHIPS.length;
+    const previewPin = filtered[0];
+
+    return (
+      <div className="flex h-full flex-col">
+        <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-text-primary">
+                {filtered.length} / {pins.length} pins
+              </div>
+              <div className="text-xs text-text-muted">
+                Active {stats.activeCount} · Overdue {stats.overdueCount}
+              </div>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => onRequestExpand?.()}
+              className="h-8 border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
+            >
+              Expand
+            </Button>
+          </div>
+
+          {hasFilter ? (
+            <div className="mt-2 rounded-md border border-orange/30 bg-orange-dim px-3 py-2 text-xs font-semibold text-orange">
+              Filters active
+            </div>
+          ) : null}
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2">
+              <div className="text-lg font-extrabold leading-none text-orange">{stats.totalPins}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">Total Pins</div>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-2">
+              <div className="text-lg font-extrabold leading-none text-orange">{stats.thisWeekCount}</div>
+              <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">This Week</div>
+            </div>
+          </div>
+
+          {previewPin ? (
+            <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+              <div className="text-[11px] font-semibold text-text-secondary">Drag up for full list</div>
+              <div className="mt-1 truncate text-[13px] font-bold text-text-primary">{previewPin.title || "Unnamed Pin"}</div>
+              <div className="truncate text-[11px] text-text-muted">{previewPin.address}</div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
   }
 
   return (
