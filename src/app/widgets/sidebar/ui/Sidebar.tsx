@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { SheetRef } from "react-modal-sheet";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
 import {
@@ -26,6 +27,10 @@ import {
 } from "@/app/features/planner/model/planner.hooks";
 import { useTheme } from "@/app/features/theme/model/theme-context";
 import { supabase } from "@/app/shared/api/supabase";
+import {
+  MOBILE_SHEET_SNAP_INDEX,
+  MOBILE_SHEET_SNAP_POINTS,
+} from "@/app/shared/model/mobile-sheet";
 import {
   type SidebarProfileFormValues,
   type SidebarTab,
@@ -77,10 +82,15 @@ export default function Sidebar({
   const [desktopActiveTab, setDesktopActiveTab] = useState<SidebarTab>("pins");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
   const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [mobileSheetSnapIndex, setMobileSheetSnapIndex] = useState<number>(MOBILE_SHEET_SNAP_INDEX.low);
+  const mobileSheetRef = useRef<SheetRef | null>(null);
   const isMobile = useIsMobile();
 
   const activeTab = isMobile ? (mobileTab ?? desktopActiveTab) : desktopActiveTab;
   const isCollapsed = collapsed && !mobileOpen;
+  const useAdaptiveMobileSheet = isMobile;
+  const adaptiveInitialSnap = MOBILE_SHEET_SNAP_INDEX.low;
+  const activeMobileSnapIndex = mobileSheetSnapIndex ?? adaptiveInitialSnap;
   const accountInitials = (profile?.name?.[0] || user?.email?.[0] || "?").toUpperCase();
   const accountTriggerClassName = user
     ? "size-9 rounded-full bg-orange text-[11px] font-extrabold uppercase text-white hover:bg-orange-hover"
@@ -140,6 +150,11 @@ export default function Sidebar({
 
     onSettingsOpen();
   }, [onSettingsClose, onSettingsOpen, settingsOpen]);
+
+  useEffect(() => {
+    if (!isMobile || !mobileOpen || !settingsOpen) return;
+    mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.low);
+  }, [isMobile, mobileOpen, settingsOpen]);
 
   const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut();
@@ -235,15 +250,33 @@ export default function Sidebar({
             onThemeChange={setTheme}
             onReplayTutorial={onReplayTutorial}
             onSignOut={user ? handleSignOut : undefined}
+            mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
+            onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
           />
         ) : activeTab === "route" ? (
-          <RouteConfirmPanel inline onClose={handleCloseRouteBuilder} />
+          <RouteConfirmPanel
+            inline
+            onClose={handleCloseRouteBuilder}
+            mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
+            onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
+          />
         ) : activeTab === "discover" ? (
-          <DiscoverPanel onOpenRouteBuilder={handleOpenRouteBuilder} />
+          <DiscoverPanel
+            onOpenRouteBuilder={handleOpenRouteBuilder}
+            mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
+            onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
+          />
         ) : activeTab === "planner" ? (
-          <PlannerPanel />
+          <PlannerPanel
+            mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
+            onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
+          />
         ) : (
-          <PinList onEditPin={onEditPin ?? (() => {})} />
+          <PinList
+            onEditPin={onEditPin ?? (() => {})}
+            mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
+            onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
+          />
         )}
       </div>
 
@@ -269,7 +302,12 @@ export default function Sidebar({
         onOpenChange={(nextOpen) => {
           if (!nextOpen) onMobileClose?.();
         }}
-        fullHeight
+        fullHeight={!useAdaptiveMobileSheet}
+        detent={useAdaptiveMobileSheet ? "default" : "full"}
+        snapPoints={useAdaptiveMobileSheet ? MOBILE_SHEET_SNAP_POINTS : undefined}
+        initialSnap={useAdaptiveMobileSheet ? adaptiveInitialSnap : undefined}
+        onSnap={useAdaptiveMobileSheet ? setMobileSheetSnapIndex : undefined}
+        sheetRef={mobileSheetRef}
       >
         <div className="sr-only">
           <h2>Sidebar</h2>

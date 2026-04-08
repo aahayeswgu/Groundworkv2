@@ -63,14 +63,24 @@ import {
   useRouteActions,
   useRouteStops,
 } from "@/app/features/route/model/route.hooks";
+import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import type { DiscoverResult } from "@/app/features/discover/model/discover.types";
+import type { RouteStop } from "@/app/features/route/model/route.types";
 import { DiscoverSearchDiagnosticsDialog } from "@/app/features/discover/ui/DiscoverSearchDiagnosticsDialog";
 
 interface DiscoverPanelProps {
   onOpenRouteBuilder?: () => void;
+  mobileSheetSnapIndex?: number | null;
+  onRequestExpand?: () => void;
 }
 
-export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps) {
+export default function DiscoverPanel({
+  onOpenRouteBuilder,
+  mobileSheetSnapIndex = null,
+  onRequestExpand,
+}: DiscoverPanelProps) {
+  const isMobile = useIsMobile();
+  const isCompactMobileSheet = isMobile && mobileSheetSnapIndex !== null && mobileSheetSnapIndex <= 1;
   const discoverResults = useDiscoverResults();
   const discoverSearchMetrics = useDiscoverSearchMetrics();
   const selectedDiscoverIds = useSelectedDiscoverIds();
@@ -209,6 +219,29 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
     dispatchPanToLocation(result.lat, result.lng, 16, result.displayName);
   }, [setHoveredDiscoverId]);
 
+  const quickAddResultToRoute = useCallback((result: DiscoverResult) => {
+    const routeStopId = `discover_${result.placeId}`;
+    const alreadyInRoute = routeStops.some((stop) => stop.id === routeStopId);
+    const stop: RouteStop = {
+      id: routeStopId,
+      label: result.displayName,
+      address: result.address ?? "",
+      lat: result.lat,
+      lng: result.lng,
+      photoUrl: result.photoUri ?? null,
+    };
+    const added = addStop(stop);
+    if (!added) {
+      setRouteActionMessage("Route is full (25-stop limit reached).");
+      return;
+    }
+    if (alreadyInRoute) {
+      setRouteActionMessage(`${result.displayName} is already in route.`);
+      return;
+    }
+    setRouteActionMessage(`Added ${result.displayName} to route.`);
+  }, [routeStops, addStop]);
+
   const addSelectedStopsToRoute = useCallback((openBuilderAfterAdd: boolean) => {
     if (selectedDiscoverIds.size === 0) return;
 
@@ -225,90 +258,240 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
     }
   }, [selectedDiscoverIds, routeStops, discoverResults, addStop, openRouteBuilder]);
 
+  const handleCompactPrimaryAction = useCallback(() => {
+    if (selectedDiscoverIds.size > 0) {
+      addSelectedStopsToRoute(true);
+      return;
+    }
+
+    if (!selectableVisibleResults.length) return;
+    const autoSelectedIds = new Set(selectableVisibleResults.map((result) => result.placeId));
+    for (const result of selectableVisibleResults) {
+      if (!selectedDiscoverIds.has(result.placeId)) {
+        toggleDiscoverSelected(result.placeId);
+      }
+    }
+
+    const addResult = addSelectedDiscoverResultsToRoute({
+      selectedDiscoverIds: autoSelectedIds,
+      discoverResults,
+      existingRouteStops: routeStops,
+      addStop,
+    });
+    setRouteActionMessage(getRouteSelectionMessage(addResult));
+    if (addResult.addedCount > 0 || addResult.alreadyInRouteCount > 0 || routeStops.length > 0) {
+      openRouteBuilder();
+    }
+  }, [
+    selectedDiscoverIds,
+    selectableVisibleResults,
+    toggleDiscoverSelected,
+    discoverResults,
+    routeStops,
+    addStop,
+    addSelectedStopsToRoute,
+    openRouteBuilder,
+  ]);
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Step 1: Draw area prompt */}
       {step === 1 && (
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-4">
-          <div className="text-4xl">🗺️</div>
-          <div className="text-text-primary font-bold text-base">Draw a search area</div>
-          <div className="text-text-secondary text-sm">
-            Click and drag on the map to draw a rectangle around the area you want to search.
+        isCompactMobileSheet ? (
+          <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+            <div className="text-sm font-bold text-text-primary">Draw a search area</div>
+            <div className="mt-1 text-xs text-text-secondary">
+              Switch to map and drag a rectangle to start Discover.
+            </div>
+            <Button
+              type="button"
+              onClick={startDiscoverDraw}
+              className="mt-3 h-9 w-full rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
+            >
+              Draw Area
+            </Button>
+            <button
+              onClick={toggleMarathonMode}
+              className={`mt-2 flex w-full items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+                marathonMode
+                  ? "border-orange bg-orange/10 text-orange"
+                  : "border-border text-text-secondary hover:border-orange/60"
+              }`}
+            >
+              <span className={`h-3.5 w-3.5 rounded-full border-2 ${marathonMode ? "border-orange bg-orange" : "border-text-muted"}`} />
+              Marathon Mode {marathonMode ? "ON" : "OFF"}
+            </button>
           </div>
-          <Button
-            type="button"
-            onClick={startDiscoverDraw}
-            className="h-10 min-w-[170px] rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
-          >
-            Draw Area
-          </Button>
-          <button
-            onClick={toggleMarathonMode}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
-              marathonMode
-                ? "border-orange bg-orange/10 text-orange"
-                : "border-border text-text-secondary hover:border-orange/60"
-            }`}
-          >
-            <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${marathonMode ? "bg-orange border-orange" : "border-text-muted"}`} />
-            Marathon Mode {marathonMode ? "ON" : "OFF"}
-          </button>
-          {marathonMode && (
-            <p className="text-xs text-text-muted text-center">
-              Draw multiple areas — results accumulate without clearing.
-            </p>
-          )}
-        </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-4">
+            <div className="text-4xl">🗺️</div>
+            <div className="text-text-primary font-bold text-base">Draw a search area</div>
+            <div className="text-text-secondary text-sm">
+              Click and drag on the map to draw a rectangle around the area you want to search.
+            </div>
+            <Button
+              type="button"
+              onClick={startDiscoverDraw}
+              className="h-10 min-w-[170px] rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
+            >
+              Draw Area
+            </Button>
+            <button
+              onClick={toggleMarathonMode}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition-colors ${
+                marathonMode
+                  ? "border-orange bg-orange/10 text-orange"
+                  : "border-border text-text-secondary hover:border-orange/60"
+              }`}
+            >
+              <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${marathonMode ? "bg-orange border-orange" : "border-text-muted"}`} />
+              Marathon Mode {marathonMode ? "ON" : "OFF"}
+            </button>
+            {marathonMode && (
+              <p className="text-xs text-text-muted text-center">
+                Draw multiple areas — results accumulate without clearing.
+              </p>
+            )}
+          </div>
+        )
       )}
 
       {/* Step 2: Searching progress */}
       {step === 2 && (
-        <div className="flex-1 flex items-center justify-center px-4 py-6">
-          <Card className="w-full max-w-sm bg-bg-card/95 ring-1 ring-border/70 shadow-gw-lg">
-            <CardHeader className="gap-2 border-b border-border/70 pb-3">
-              <CardTitle className="flex items-center gap-2 text-text-primary">
-                <Loader2Icon className="size-4 animate-spin text-orange" />
-                Discovering Businesses
-              </CardTitle>
-              <CardDescription className="text-xs text-text-secondary">
-                Searching your selected area for nearby contractors and trade businesses.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 pt-4">
-              <div className="rounded-md border border-border/70 bg-bg px-3 py-2 text-center text-sm font-semibold text-text-primary">
-                {searchProgress}
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-bg">
-                <div
-                  className="h-full rounded-full bg-orange transition-[width] duration-300 ease-out"
-                  style={{ width: `${searchProgressPercent}%` }}
-                />
-              </div>
-              <div className="text-center text-xs text-text-muted">
-                {totalSearchSteps > 0
-                  ? `${completedSearchSteps} of ${totalSearchSteps} query groups completed`
-                  : "Initializing search..."}
-              </div>
-            </CardContent>
-            <CardFooter className="border-t border-border/70 bg-bg-card/70">
-              <Button
-                variant="destructive"
-                className="w-full"
-                onClick={() => {
-                  cancelDiscoverSearch();
-                  setDiscoverMode(false);
-                  clearDiscover();
-                }}
-              >
-                Stop Search
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+        isCompactMobileSheet ? (
+          <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-text-primary">
+              <Loader2Icon className="size-4 animate-spin text-orange" />
+              Discovering Businesses
+            </div>
+            <div className="mt-1 text-xs text-text-secondary">
+              Searching your selected area for nearby contractors and trade businesses.
+            </div>
+            <div className="mt-2 rounded-md border border-border/70 bg-bg px-3 py-2 text-[12px] font-semibold text-text-primary">
+              {searchProgress}
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-bg">
+              <div
+                className="h-full rounded-full bg-orange transition-[width] duration-300 ease-out"
+                style={{ width: `${searchProgressPercent}%` }}
+              />
+            </div>
+            <div className="mt-1 text-[11px] text-text-muted">
+              {totalSearchSteps > 0
+                ? `${completedSearchSteps} of ${totalSearchSteps} query groups completed`
+                : "Initializing search..."}
+            </div>
+            <Button
+              variant="destructive"
+              className="mt-3 h-9 w-full"
+              onClick={() => {
+                cancelDiscoverSearch();
+                setDiscoverMode(false);
+                clearDiscover();
+              }}
+            >
+              Stop Search
+            </Button>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center px-4 py-6">
+            <Card className="w-full max-w-sm bg-bg-card/95 ring-1 ring-border/70 shadow-gw-lg">
+              <CardHeader className="gap-2 border-b border-border/70 pb-3">
+                <CardTitle className="flex items-center gap-2 text-text-primary">
+                  <Loader2Icon className="size-4 animate-spin text-orange" />
+                  Discovering Businesses
+                </CardTitle>
+                <CardDescription className="text-xs text-text-secondary">
+                  Searching your selected area for nearby contractors and trade businesses.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-4">
+                <div className="rounded-md border border-border/70 bg-bg px-3 py-2 text-center text-sm font-semibold text-text-primary">
+                  {searchProgress}
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-bg">
+                  <div
+                    className="h-full rounded-full bg-orange transition-[width] duration-300 ease-out"
+                    style={{ width: `${searchProgressPercent}%` }}
+                  />
+                </div>
+                <div className="text-center text-xs text-text-muted">
+                  {totalSearchSteps > 0
+                    ? `${completedSearchSteps} of ${totalSearchSteps} query groups completed`
+                    : "Initializing search..."}
+                </div>
+              </CardContent>
+              <CardFooter className="border-t border-border/70 bg-bg-card/70">
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  onClick={() => {
+                    cancelDiscoverSearch();
+                    setDiscoverMode(false);
+                    clearDiscover();
+                  }}
+                >
+                  Stop Search
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        )
       )}
 
       {/* Step 3: Results list */}
       {step === 3 && (
+        isCompactMobileSheet ? (
+          <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-sm font-bold text-text-primary">
+                  {visibleResults.length} results
+                </div>
+                <div className="text-xs text-text-muted">
+                  {selectedDiscoverIds.size} selected
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => onRequestExpand?.()}
+                className="h-8 border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
+              >
+                Expand
+              </Button>
+            </div>
+
+            {routeActionMessage ? (
+              <div className="mt-2 rounded-md border border-orange/30 bg-orange-dim px-3 py-2 text-xs font-semibold text-orange">
+                {routeActionMessage}
+              </div>
+            ) : null}
+
+            <div className="mt-3">
+              <Button
+                onClick={handleCompactPrimaryAction}
+                className="h-9 w-full justify-center gap-2 rounded-xl border border-orange bg-orange text-white hover:bg-orange/90 hover:text-white"
+              >
+                <ArrowRight className="size-4" />
+                {selectedDiscoverIds.size > 0 ? `Add + Route (${selectedDiscoverIds.size})` : "Route Top 20"}
+              </Button>
+            </div>
+
+            {visibleResults[0] ? (
+              <div className="mt-3 overflow-hidden rounded-xl border border-white/10 bg-white/5 px-3 py-2">
+                <div className="text-[11px] font-semibold text-text-secondary">Drag up for full list</div>
+                <div className="mt-1 truncate text-[13px] font-bold text-text-primary">
+                  {visibleResults[0].displayName}
+                </div>
+                <div className="truncate text-[11px] text-text-muted">
+                  {visibleResults[0].address}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : (
         <>
           <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
             <div className="flex items-start justify-between gap-3">
@@ -343,7 +526,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                   onClick={toggleSelectVisible}
                   className="h-7 border border-white/12 bg-white/5 px-2.5 text-[11px] font-semibold text-text-secondary hover:bg-white/10 hover:text-white"
                 >
-                  {allVisibleSelected ? "Deselect Visible" : "Select Visible"}
+                  {allVisibleSelected ? "Deselect Top 20" : "Select Top 20"}
                 </Button>
                 <Button
                   type="button"
@@ -361,6 +544,11 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
+              {isMobile ? (
+                <span className="text-[11px] font-medium text-text-muted">
+                  Swipe cards: right to pin, left to route
+                </span>
+              ) : null}
               <Button
                 type="button"
                 variant="secondary"
@@ -427,6 +615,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                 </button>
               ) : null}
             </div>
+
           </div>
 
           {/* Per-zone summary bar — shown in marathon mode */}
@@ -502,6 +691,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
                             }
                           }}
                           onLocateOnMap={jumpToResultOnMap}
+                          onQuickRoute={quickAddResultToRoute}
                           onUnsave={(nextResult) => {
                             const match = pins.find(
                               (pin) =>
@@ -568,6 +758,7 @@ export default function DiscoverPanel({ onOpenRouteBuilder }: DiscoverPanelProps
             </div>
           </div>
         </>
+        )
       )}
       <DiscoverSearchDiagnosticsDialog
         metrics={discoverSearchMetrics}

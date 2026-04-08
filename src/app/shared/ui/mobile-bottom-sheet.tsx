@@ -1,7 +1,7 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
-import { Sheet } from "react-modal-sheet";
+import type { CSSProperties, ReactNode, RefObject } from "react";
+import { Sheet, type SheetRef } from "react-modal-sheet";
 import { cn } from "@/app/shared/lib/utils";
 
 interface MobileBottomSheetProps {
@@ -15,6 +15,10 @@ interface MobileBottomSheetProps {
   detent?: "default" | "content" | "full";
   inset?: boolean;
   disableContentDrag?: boolean;
+  snapPoints?: number[];
+  initialSnap?: number;
+  onSnap?: (index: number) => void;
+  sheetRef?: RefObject<SheetRef | null>;
 }
 
 export function MobileBottomSheet({
@@ -28,6 +32,10 @@ export function MobileBottomSheet({
   detent = "default",
   inset = false,
   disableContentDrag = false,
+  snapPoints,
+  initialSnap,
+  onSnap,
+  sheetRef,
 }: MobileBottomSheetProps) {
   const containerStyle: CSSProperties = {
     bottom: "var(--mobile-bottom-bar-offset)",
@@ -43,11 +51,15 @@ export function MobileBottomSheet({
 
   return (
     <Sheet
+      ref={sheetRef}
       isOpen={open}
       onClose={() => onOpenChange(false)}
       unstyled
       disableScrollLocking
       detent={detent}
+      snapPoints={snapPoints}
+      initialSnap={initialSnap}
+      onSnap={onSnap}
       className="z-50"
     >
       <Sheet.Container
