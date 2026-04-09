@@ -29,5 +29,6 @@ export const usePlannerActions = () =>
       setMapsProvider: state.setMapsProvider,
       setCalendarOpen: state.setCalendarOpen,
       setMonthViewOpen: state.setMonthViewOpen,
+      reorderPlannerStops: state.reorderPlannerStops,
     })),
   );

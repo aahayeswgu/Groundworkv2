@@ -1,5 +1,7 @@
 "use client";
 
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { PlannerStop, PlannerStopStatus } from "@/app/features/planner/model/planner.types";
 
 interface PlannerStopItemProps {
@@ -7,6 +9,7 @@ interface PlannerStopItemProps {
   index: number;
   onStatusChange: (stopId: string, status: PlannerStopStatus) => void;
   onRemove: (stopId: string) => void;
+  dragDisabled?: boolean;
 }
 
 const STATUS_CYCLE: Record<PlannerStopStatus, PlannerStopStatus> = {
@@ -27,18 +30,41 @@ const STATUS_STYLES: Record<PlannerStopStatus, string> = {
   skipped: "bg-amber-500/10 text-amber-400 border border-amber-500/30",
 };
 
-export function PlannerStopItem({ stop, index, onStatusChange, onRemove }: PlannerStopItemProps) {
+export function PlannerStopItem({ stop, index, onStatusChange, onRemove, dragDisabled = false }: PlannerStopItemProps) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: stop.id, disabled: dragDisabled });
+
+  const dragHandleProps = dragDisabled ? {} : { ...attributes, ...listeners };
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
   function handleStatusClick(e: React.MouseEvent) {
     e.stopPropagation();
     onStatusChange(stop.id, STATUS_CYCLE[stop.status]);
   }
 
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-border last:border-b-0 group">
-      {/* Index number */}
-      <span className="w-5 h-5 rounded-full bg-orange/15 text-orange text-[10px] font-bold flex items-center justify-center shrink-0">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2.5 px-3 py-2.5 border-b border-border last:border-b-0 group touch-pan-y"
+    >
+      {/* Index number — drag handle */}
+      <button
+        type="button"
+        ref={setActivatorNodeRef}
+        {...dragHandleProps}
+        aria-label={`Drag to reorder ${stop.label}`}
+        className={`w-5 h-5 rounded-full bg-orange/15 text-orange text-[10px] font-bold flex items-center justify-center shrink-0 select-none ${
+          dragDisabled ? "" : "cursor-grab active:cursor-grabbing touch-none"
+        }`}
+      >
         {index + 1}
-      </span>
+      </button>
       {/* Status badge */}
       <button
         onClick={handleStatusClick}
