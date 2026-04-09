@@ -307,7 +307,7 @@ export default function Sidebar({
         <MobileBottomSheet
           open={mobileOpen && !accountModalOpen}
           onOpenChange={(nextOpen) => {
-            if (!nextOpen) onMobileClose?.();
+            if (!nextOpen && !accountModalOpen) onMobileClose?.();
           }}
           fullHeight={!useAdaptiveMobileSheet}
           detent={useAdaptiveMobileSheet ? "default" : "full"}
