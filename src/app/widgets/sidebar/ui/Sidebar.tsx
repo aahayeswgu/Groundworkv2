@@ -81,7 +81,11 @@ export default function Sidebar({
   const [collapsed, setCollapsed] = useState(false);
   const [desktopActiveTab, setDesktopActiveTab] = useState<SidebarTab>("pins");
   const [settingsToast, setSettingsToast] = useState<string | null>(null);
-  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [accountModalOpen, setAccountModalOpenRaw] = useState(false);
+  const openAccountModal = useCallback(() => {
+    if (settingsOpen) onSettingsClose();
+    setAccountModalOpenRaw(true);
+  }, [settingsOpen, onSettingsClose]);
   const [mobileSheetSnapIndex, setMobileSheetSnapIndex] = useState<number>(MOBILE_SHEET_SNAP_INDEX.low);
   const mobileSheetRef = useRef<SheetRef | null>(null);
   const isMobile = useIsMobile();
@@ -222,10 +226,7 @@ export default function Sidebar({
               <DropdownMenuItem onSelect={handleToggleSettings}>
                 {settingsOpen ? "Close Settings" : "Open Settings"}
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {
-                if (settingsOpen) onSettingsClose();
-                setAccountModalOpen(true);
-              }}>
+              <DropdownMenuItem onSelect={openAccountModal}>
                 {user ? "Account Details" : "Sign In / Create Account"}
               </DropdownMenuItem>
               {user && (
@@ -253,10 +254,7 @@ export default function Sidebar({
             onThemeChange={setTheme}
             onReplayTutorial={onReplayTutorial}
             onSignOut={user ? handleSignOut : undefined}
-            onAccountOpen={() => {
-              onSettingsClose();
-              setAccountModalOpen(true);
-            }}
+            onAccountOpen={openAccountModal}
             mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
             onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
           />
@@ -295,7 +293,7 @@ export default function Sidebar({
             company: profile?.company ?? "",
             homebase: profile?.homebase ?? "",
           }}
-          onClose={() => setAccountModalOpen(false)}
+          onClose={() => setAccountModalOpenRaw(false)}
           onSaveProfile={handleSaveProfile}
         />
       )}
