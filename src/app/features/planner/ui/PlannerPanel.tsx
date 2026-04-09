@@ -115,6 +115,14 @@ export default function PlannerPanel({
     reorderPlannerStops(activePlannerDate, newOrder);
   }
 
+  function moveStop(stopId: string, direction: "up" | "down") {
+    const currentIndex = day.stops.findIndex((s) => s.id === stopId);
+    if (currentIndex < 0) return;
+    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= day.stops.length) return;
+    reorderPlannerStops(activePlannerDate, arrayMove(day.stops, currentIndex, targetIndex));
+  }
+
   function handleAddNotesPage() {
     addNotesPage();
     if (trackingEnabled) {
@@ -407,6 +415,10 @@ export default function PlannerPanel({
                     key={stop.id}
                     stop={stop}
                     index={i}
+                    canMoveUp={i > 0}
+                    canMoveDown={i < day.stops.length - 1}
+                    onMoveUp={(id) => moveStop(id, "up")}
+                    onMoveDown={(id) => moveStop(id, "down")}
                     onStatusChange={handleStatusChange}
                     onRemove={removePlannerStop}
                   />

@@ -7,6 +7,10 @@ import type { PlannerStop, PlannerStopStatus } from "@/app/features/planner/mode
 interface PlannerStopItemProps {
   stop: PlannerStop;
   index: number;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onMoveUp: (stopId: string) => void;
+  onMoveDown: (stopId: string) => void;
   onStatusChange: (stopId: string, status: PlannerStopStatus) => void;
   onRemove: (stopId: string) => void;
   dragDisabled?: boolean;
@@ -30,7 +34,7 @@ const STATUS_STYLES: Record<PlannerStopStatus, string> = {
   skipped: "bg-amber-500/10 text-amber-400 border border-amber-500/30",
 };
 
-export function PlannerStopItem({ stop, index, onStatusChange, onRemove, dragDisabled = false }: PlannerStopItemProps) {
+export function PlannerStopItem({ stop, index, canMoveUp, canMoveDown, onMoveUp, onMoveDown, onStatusChange, onRemove, dragDisabled = false }: PlannerStopItemProps) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: stop.id, disabled: dragDisabled });
 
@@ -79,20 +83,48 @@ export function PlannerStopItem({ stop, index, onStatusChange, onRemove, dragDis
           <div className="text-[11px] text-text-muted truncate mt-0.5">{stop.address}</div>
         )}
       </div>
-      {/* Remove */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onRemove(stop.id);
-        }}
-        className="opacity-0 group-hover:opacity-100 shrink-0 text-text-muted hover:text-red-400 p-1 transition-opacity"
-        title="Remove stop"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
+      {/* Reorder + Remove */}
+      <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveUp(stop.id)}
+          disabled={!canMoveUp}
+          aria-label={`Move ${stop.label} up`}
+          className="rounded p-1 text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+          title="Move up"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onMoveDown(stop.id)}
+          disabled={!canMoveDown}
+          aria-label={`Move ${stop.label} down`}
+          className="rounded p-1 text-text-muted transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+          title="Move down"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => onRemove(stop.id)}
+          aria-label={`Remove ${stop.label}`}
+          className="rounded p-1 text-text-muted transition-colors hover:text-red-400"
+          title="Remove stop"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
