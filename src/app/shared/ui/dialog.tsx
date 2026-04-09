@@ -42,6 +42,10 @@ function DialogOverlay({
         "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
+      // Stop pointer events from propagating through stacked portals.
+      // Without this, tapping inside a Dialog rendered over a MobileBottomSheet
+      // reaches the Sheet.Backdrop onTap handler and dismisses the sheet.
+      onPointerDownCapture={(event) => event.stopPropagation()}
       {...props}
     />
   )
