@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 Phase: 08
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-04-09 - Completed quick task 260409-pio: Fix mobile auth modal dismiss-on-tap bug
+Last activity: 2026-04-09 - Completed quick task 260409-pru: Add drag-to-reorder stops in planner
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -121,6 +121,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260409-pio | Fix mobile auth modal dismiss-on-tap bug | 2026-04-09 | a5772a2 | [260409-pio-fix-mobile-auth-modal-dismiss-on-tap-bug](./quick/260409-pio-fix-mobile-auth-modal-dismiss-on-tap-bug/) |
+| 260409-pru | Add drag-to-reorder stops in planner | 2026-04-09 | c553e3d | [260409-pru-add-drag-to-reorder-stops-in-planner-wit](./quick/260409-pru-add-drag-to-reorder-stops-in-planner-wit/) |
 
 ## Session Continuity
 
