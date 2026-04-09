@@ -22,6 +22,7 @@ interface SidebarSettingsPanelProps {
   onThemeChange: (theme: SidebarTheme) => void;
   onReplayTutorial: () => void;
   onSignOut?: () => void;
+  onAccountOpen?: () => void;
   mobileSheetSnapIndex?: number | null;
   onRequestExpand?: () => void;
 }
@@ -37,6 +38,7 @@ export default function SidebarSettingsPanel({
   onThemeChange,
   onReplayTutorial,
   onSignOut,
+  onAccountOpen,
   mobileSheetSnapIndex = null,
   onRequestExpand,
 }: SidebarSettingsPanelProps) {
@@ -284,6 +286,22 @@ export default function SidebarSettingsPanel({
           </button>
         )}
       </div>
+
+      {/* Account / Sign In */}
+      {onAccountOpen && (
+        <div className="px-5 py-4 border-b border-border">
+          <button
+            onClick={onAccountOpen}
+            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-orange-dim hover:text-orange"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M20 21a8 8 0 00-16 0" />
+              <circle cx="12" cy="8" r="4" />
+            </svg>
+            {onSignOut ? "Account Details" : "Sign In / Create Account"}
+          </button>
+        </div>
+      )}
 
       {/* Sign Out */}
       {onSignOut && (

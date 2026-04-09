@@ -222,7 +222,10 @@ export default function Sidebar({
               <DropdownMenuItem onSelect={handleToggleSettings}>
                 {settingsOpen ? "Close Settings" : "Open Settings"}
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setAccountModalOpen(true)}>
+              <DropdownMenuItem onSelect={() => {
+                if (settingsOpen) onSettingsClose();
+                setAccountModalOpen(true);
+              }}>
                 {user ? "Account Details" : "Sign In / Create Account"}
               </DropdownMenuItem>
               {user && (
@@ -250,6 +253,10 @@ export default function Sidebar({
             onThemeChange={setTheme}
             onReplayTutorial={onReplayTutorial}
             onSignOut={user ? handleSignOut : undefined}
+            onAccountOpen={() => {
+              onSettingsClose();
+              setAccountModalOpen(true);
+            }}
             mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
             onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
           />
