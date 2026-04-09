@@ -285,43 +285,48 @@ export default function Sidebar({
         )}
       </div>
 
-      {accountModalOpen && (
-        <SidebarAccountModal
-          user={user}
-          initialProfileValues={{
-            name: profile?.name ?? "",
-            company: profile?.company ?? "",
-            homebase: profile?.homebase ?? "",
-          }}
-          onClose={() => setAccountModalOpenRaw(false)}
-          onSaveProfile={handleSaveProfile}
-        />
-      )}
     </>
   );
 
+  const accountModal = accountModalOpen ? (
+    <SidebarAccountModal
+      user={user}
+      initialProfileValues={{
+        name: profile?.name ?? "",
+        company: profile?.company ?? "",
+        homebase: profile?.homebase ?? "",
+      }}
+      onClose={() => setAccountModalOpenRaw(false)}
+      onSaveProfile={handleSaveProfile}
+    />
+  ) : null;
+
   if (isMobile) {
     return (
-      <MobileBottomSheet
-        open={mobileOpen}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) onMobileClose?.();
-        }}
-        fullHeight={!useAdaptiveMobileSheet}
-        detent={useAdaptiveMobileSheet ? "default" : "full"}
-        snapPoints={useAdaptiveMobileSheet ? MOBILE_SHEET_SNAP_POINTS : undefined}
-        initialSnap={useAdaptiveMobileSheet ? adaptiveInitialSnap : undefined}
-        onSnap={useAdaptiveMobileSheet ? setMobileSheetSnapIndex : undefined}
-        sheetRef={mobileSheetRef}
-      >
-        <div className="sr-only">
-          <h2>Sidebar</h2>
-          <p>Access pins, planner, discover, and account tools.</p>
-        </div>
-        <div className="relative flex h-full flex-col overflow-hidden bg-bg-secondary">
-          {sidebarPanel}
-        </div>
-      </MobileBottomSheet>
+      <>
+        <MobileBottomSheet
+          open={mobileOpen}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) onMobileClose?.();
+          }}
+          fullHeight={!useAdaptiveMobileSheet}
+          detent={useAdaptiveMobileSheet ? "default" : "full"}
+          snapPoints={useAdaptiveMobileSheet ? MOBILE_SHEET_SNAP_POINTS : undefined}
+          initialSnap={useAdaptiveMobileSheet ? adaptiveInitialSnap : undefined}
+          onSnap={useAdaptiveMobileSheet ? setMobileSheetSnapIndex : undefined}
+          sheetRef={mobileSheetRef}
+          disableContentDrag={accountModalOpen}
+        >
+          <div className="sr-only">
+            <h2>Sidebar</h2>
+            <p>Access pins, planner, discover, and account tools.</p>
+          </div>
+          <div className="relative flex h-full flex-col overflow-hidden bg-bg-secondary">
+            {sidebarPanel}
+          </div>
+        </MobileBottomSheet>
+        {accountModal}
+      </>
     );
   }
 
@@ -337,6 +342,7 @@ export default function Sidebar({
         </svg>
       </button>
       {sidebarPanel}
+      {accountModal}
     </div>
   );
 }
