@@ -1,6 +1,8 @@
 "use client";
 
 import { getOrCreateDay } from "@/app/features/planner/model/planner.store";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { toast } from "sonner";
 import {
   useActiveNotesPage,
@@ -57,6 +59,7 @@ export default function PlannerPanel({
     setTrackingEnabled,
     setCalendarOpen,
     setMonthViewOpen,
+    reorderPlannerStops,
   } = usePlannerActions();
   const trackingEnabled = useTrackingEnabled();
   const activeNotesPage = useActiveNotesPage();
@@ -64,6 +67,8 @@ export default function PlannerPanel({
   const calendarOpen = useCalendarOpen();
   const monthViewOpen = useMonthViewOpen();
   const isCompactMobileSheet = isMobile && mobileSheetSnapIndex !== null && mobileSheetSnapIndex <= 1;
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const day = getOrCreateDay(plannerDays, activePlannerDate);
   const currentNotesPage = activeNotesPage[activePlannerDate] ?? 0;
@@ -98,6 +103,16 @@ export default function PlannerPanel({
     const d = new Date(activePlannerDate + "T00:00:00");
     d.setDate(d.getDate() + offset);
     setActivePlannerDate(d.toLocaleDateString("en-CA")); // "YYYY-MM-DD"
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = day.stops.findIndex((s) => s.id === active.id);
+    const newIndex = day.stops.findIndex((s) => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const newOrder = arrayMove(day.stops, oldIndex, newIndex);
+    reorderPlannerStops(activePlannerDate, newOrder);
   }
 
   function handleAddNotesPage() {
@@ -385,17 +400,19 @@ export default function PlannerPanel({
               <span className="text-[11px]">Add stops from a pin or the route panel.</span>
             </div>
           ) : (
-            <div>
-              {day.stops.map((stop, i) => (
-                <PlannerStopItem
-                  key={stop.id}
-                  stop={stop}
-                  index={i}
-                  onStatusChange={handleStatusChange}
-                  onRemove={removePlannerStop}
-                />
-              ))}
-            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={day.stops.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+                {day.stops.map((stop, i) => (
+                  <PlannerStopItem
+                    key={stop.id}
+                    stop={stop}
+                    index={i}
+                    onStatusChange={handleStatusChange}
+                    onRemove={removePlannerStop}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           )}
         </div>
 
