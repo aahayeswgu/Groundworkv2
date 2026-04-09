@@ -24,7 +24,7 @@ export function PinListItem({ pin, onEditPin }: PinListItemProps) {
   const isInRoute = routeStops.some((s) => s.id === pin.id);
   const { addPlannerStop, removePlannerStop, setActivePlannerDate } = usePlannerActions();
   const plannerDays = usePlannerDays();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA");
   const todayStops = plannerDays[today]?.stops ?? [];
   const isPlanned = todayStops.some((s) => s.pinId === pin.id);
   const routeButtonClass = isInRoute

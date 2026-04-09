@@ -19,7 +19,7 @@ import {
   buildRouteStopFromPin,
   createPlannerPinIdSet,
   createRouteStopIdSet,
-  getIsoDate,
+  getLocalDate,
 } from "../lib/marker-layer";
 import { MARKER_BOUNCE_DURATION_MS, MIN_PIN_FOCUS_ZOOM } from "../model/map.constants";
 import type { MarkerLayerProps } from "../model/marker-layer.types";
@@ -42,11 +42,11 @@ export function MarkerLayer({ onEditPin }: MarkerLayerProps) {
   const selectedPinNonce = useStore((s) => s.selectedPinNonce);
   const [openPinId, setOpenPinId] = useState<string | null>(null);
   const [bounceToken, setBounceToken] = useState<string | null>(null);
-  const [today, setToday] = useState(() => getIsoDate(new Date()));
+  const [today, setToday] = useState(() => getLocalDate(new Date()));
 
   useEffect(() => {
     const refreshToday = () => {
-      const nextToday = getIsoDate(new Date());
+      const nextToday = getLocalDate(new Date());
       setToday((currentToday) => (currentToday === nextToday ? currentToday : nextToday));
     };
 

@@ -568,7 +568,7 @@ export default function RouteConfirmPanel({
     if (!actionData) return;
     const stopsToSend = actionData.stops;
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString("en-CA");
     const todayStops = plannerDays[today]?.stops ?? [];
     const existingPinIds = new Set(
       todayStops

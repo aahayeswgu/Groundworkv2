@@ -31,7 +31,7 @@ export default function GpsCheckin() {
         const state = useStore.getState();
         if (!state.trackingEnabled) return;
 
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date().toLocaleDateString("en-CA");
         const day = getOrCreateDay(state.plannerDays, today);
 
         for (const stop of day.stops) {

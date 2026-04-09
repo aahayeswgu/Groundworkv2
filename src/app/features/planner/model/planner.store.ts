@@ -8,7 +8,7 @@ export function getOrCreateDay(days: Record<string, DayPlan>, date: string): Day
 export const createPlannerSlice: StateCreator<PlannerSlice> = (set) => ({
   // Initial state
   plannerDays: {},
-  activePlannerDate: new Date().toISOString().slice(0, 10),
+  activePlannerDate: new Date().toLocaleDateString("en-CA"),
   trackingEnabled: true,
   mapsProvider: "google",
   activeNotesPage: {},
@@ -205,7 +205,7 @@ export const createPlannerSlice: StateCreator<PlannerSlice> = (set) => ({
     set((s) => {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - 30);
-      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      const cutoffStr = cutoff.toLocaleDateString("en-CA");
       const filtered = Object.fromEntries(
         Object.entries(s.plannerDays).filter(([date]) => date >= cutoffStr)
       );

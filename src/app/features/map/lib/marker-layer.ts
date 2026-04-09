@@ -2,8 +2,8 @@ import type { Pin } from "@/app/features/pins/model/pin.types";
 import type { PlannerStop } from "@/app/features/planner/model/planner.types";
 import type { RouteStop } from "@/app/features/route/model/route.types";
 
-export function getIsoDate(date: Date): string {
-  return date.toISOString().slice(0, 10);
+export function getLocalDate(date: Date): string {
+  return date.toLocaleDateString("en-CA");
 }
 
 export function lightenColor(hex: string, amount: number): string {

@@ -119,7 +119,7 @@ export default function Map({ onEditPin }: MapProps) {
       const transcript = event.results[0][0].transcript;
       if (!transcript.trim()) return;
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = new Date().toLocaleDateString("en-CA");
       const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
       // Set active date to today
