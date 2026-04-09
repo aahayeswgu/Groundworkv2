@@ -3,12 +3,6 @@
 import { useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/app/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/app/shared/ui/dialog";
 import { Input } from "@/app/shared/ui/input";
 import { supabase } from "@/app/shared/api/supabase";
 import { type SidebarProfileFormValues } from "@/app/widgets/sidebar/model/sidebar.model";
@@ -116,189 +110,190 @@ export default function SidebarAccountModal({
   }
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent
-        showCloseButton={false}
-        className="max-w-sm rounded-2xl border border-border bg-bg-card p-0 text-text-primary shadow-gw-lg"
-      >
-        <DialogHeader className="flex-row items-center justify-between gap-2 border-b border-border px-5 py-4">
-          <DialogTitle className="text-base font-bold text-text-primary">
-            {user ? "Account" : "Welcome"}
-          </DialogTitle>
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="ghost"
-            aria-label="Close account modal"
-            onClick={onClose}
-            className="text-text-secondary hover:text-text-primary"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </Button>
-        </DialogHeader>
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[70] bg-black/40"
+        onClick={onClose}
+      />
+      {/* Modal card */}
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="pointer-events-auto w-full max-w-sm rounded-2xl border border-border bg-bg-card p-0 text-text-primary shadow-gw-lg"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between gap-2 border-b border-border px-5 py-4">
+            <h2 className="text-base font-bold text-text-primary">
+              {user ? "Account" : "Welcome"}
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:text-text-primary"
+              aria-label="Close account modal"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
 
-        <div className="flex flex-col gap-3 px-5 py-5">
-          {user ? (
-            <>
-              <Input
-                aria-label="Your name"
-                placeholder="Your name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className={inputClassName}
-              />
-              <Input
-                aria-label="Company"
-                placeholder="Company"
-                value={company}
-                onChange={(event) => setCompany(event.target.value)}
-                className={inputClassName}
-              />
-              <Input
-                aria-label="Home base address"
-                placeholder="Home base address"
-                value={homebase}
-                onChange={(event) => setHomebase(event.target.value)}
-                className={inputClassName}
-              />
-              {message && <div className="text-xs font-medium text-gw-green">{message}</div>}
-              <div className="mt-1 flex gap-2">
-                <Button
-                  type="button"
-                  onClick={() => void handleProfileSave()}
-                  className="flex-1 bg-orange text-white hover:bg-orange-hover"
-                >
-                  Save Profile
-                </Button>
-                <Button type="button" variant="destructive" onClick={() => void handleSignOut()} className="flex-1">
-                  Sign Out
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant={tab === "signin" ? "default" : "outline"}
-                  onClick={() => {
-                    setTab("signin");
-                    setError("");
-                    setMessage("");
+          {/* Body */}
+          <div className="flex flex-col gap-3 px-5 py-5">
+            {user ? (
+              <>
+                <Input
+                  aria-label="Your name"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className={inputClassName}
+                />
+                <Input
+                  aria-label="Company"
+                  placeholder="Company"
+                  value={company}
+                  onChange={(event) => setCompany(event.target.value)}
+                  className={inputClassName}
+                />
+                <Input
+                  aria-label="Home base address"
+                  placeholder="Home base address"
+                  value={homebase}
+                  onChange={(event) => setHomebase(event.target.value)}
+                  className={inputClassName}
+                />
+                {message && <div className="text-xs font-medium text-gw-green">{message}</div>}
+                <div className="mt-1 flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => void handleProfileSave()}
+                    className="flex-1 bg-orange text-white hover:bg-orange-hover"
+                  >
+                    Save Profile
+                  </Button>
+                  <Button type="button" variant="destructive" onClick={() => void handleSignOut()} className="flex-1">
+                    Sign Out
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={tab === "signin" ? "default" : "outline"}
+                    onClick={() => {
+                      setTab("signin");
+                      setError("");
+                      setMessage("");
+                    }}
+                    className={
+                      tab === "signin"
+                        ? "bg-orange text-white hover:bg-orange-hover"
+                        : "border-border bg-bg-input text-text-secondary hover:bg-bg-card hover:text-text-primary"
+                    }
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={tab === "signup" ? "default" : "outline"}
+                    onClick={() => {
+                      setTab("signup");
+                      setError("");
+                      setMessage("");
+                    }}
+                    className={
+                      tab === "signup"
+                        ? "bg-orange text-white hover:bg-orange-hover"
+                        : "border-border bg-bg-input text-text-secondary hover:bg-bg-card hover:text-text-primary"
+                    }
+                  >
+                    Create Account
+                  </Button>
+                </div>
+
+                {tab === "signup" && (
+                  <>
+                    <Input
+                      aria-label="Your name"
+                      placeholder="Your name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      className={inputClassName}
+                    />
+                    <Input
+                      aria-label="Company optional"
+                      placeholder="Company (optional)"
+                      value={company}
+                      onChange={(event) => setCompany(event.target.value)}
+                      className={inputClassName}
+                    />
+                  </>
+                )}
+
+                <Input
+                  aria-label="Email"
+                  placeholder="Email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  className={inputClassName}
+                />
+                <Input
+                  aria-label="Password"
+                  placeholder="Password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      if (tab === "signin") {
+                        void handleSignIn();
+                      } else {
+                        void handleSignUp();
+                      }
+                    }
                   }}
-                  className={
-                    tab === "signin"
-                      ? "bg-orange text-white hover:bg-orange-hover"
-                      : "border-border bg-bg-input text-text-secondary hover:bg-bg-card hover:text-text-primary"
-                  }
-                >
-                  Sign In
-                </Button>
+                  className={inputClassName}
+                />
+
+                {error && <div className="text-xs font-medium text-gw-red">{error}</div>}
+                {message && <div className="text-xs font-medium text-gw-green">{message}</div>}
+
                 <Button
                   type="button"
-                  variant={tab === "signup" ? "default" : "outline"}
+                  disabled={loading}
                   onClick={() => {
-                    setTab("signup");
-                    setError("");
-                    setMessage("");
-                  }}
-                  className={
-                    tab === "signup"
-                      ? "bg-orange text-white hover:bg-orange-hover"
-                      : "border-border bg-bg-input text-text-secondary hover:bg-bg-card hover:text-text-primary"
-                  }
-                >
-                  Create Account
-                </Button>
-              </div>
-
-              {tab === "signup" && (
-                <>
-                  <Input
-                    aria-label="Your name"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    className={inputClassName}
-                  />
-                  <Input
-                    aria-label="Company optional"
-                    placeholder="Company (optional)"
-                    value={company}
-                    onChange={(event) => setCompany(event.target.value)}
-                    className={inputClassName}
-                  />
-                </>
-              )}
-
-              <Input
-                aria-label="Email"
-                placeholder="Email"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className={inputClassName}
-              />
-              <Input
-                aria-label="Password"
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
                     if (tab === "signin") {
                       void handleSignIn();
                     } else {
                       void handleSignUp();
                     }
-                  }
-                }}
-                className={inputClassName}
-              />
-
-              {error && <div className="text-xs font-medium text-gw-red">{error}</div>}
-              {message && <div className="text-xs font-medium text-gw-green">{message}</div>}
-
-              <Button
-                type="button"
-                disabled={loading}
-                onClick={() => {
-                  if (tab === "signin") {
-                    void handleSignIn();
-                  } else {
-                    void handleSignUp();
-                  }
-                }}
-                className="w-full bg-orange text-white hover:bg-orange-hover disabled:bg-orange/60"
-              >
-                {loading ? "Working..." : tab === "signin" ? "Sign In" : "Create Account"}
-              </Button>
-
-              {tab === "signin" && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => void handleForgotPassword()}
-                  className="text-sm text-text-secondary hover:text-orange"
+                  }}
+                  className="w-full bg-orange text-white hover:bg-orange-hover disabled:bg-orange/60"
                 >
-                  Forgot password?
+                  {loading ? "Working..." : tab === "signin" ? "Sign In" : "Create Account"}
                 </Button>
-              )}
-            </>
-          )}
+
+                {tab === "signin" && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => void handleForgotPassword()}
+                    className="text-sm text-text-secondary hover:text-orange"
+                  >
+                    Forgot password?
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }
