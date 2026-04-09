@@ -305,7 +305,7 @@ export default function Sidebar({
     return (
       <>
         <MobileBottomSheet
-          open={mobileOpen}
+          open={mobileOpen && !accountModalOpen}
           onOpenChange={(nextOpen) => {
             if (!nextOpen) onMobileClose?.();
           }}
@@ -315,7 +315,6 @@ export default function Sidebar({
           initialSnap={useAdaptiveMobileSheet ? adaptiveInitialSnap : undefined}
           onSnap={useAdaptiveMobileSheet ? setMobileSheetSnapIndex : undefined}
           sheetRef={mobileSheetRef}
-          disableContentDrag={accountModalOpen}
         >
           <div className="sr-only">
             <h2>Sidebar</h2>
