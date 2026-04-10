@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useStore } from "@/app/store";
 import {
   SIDEBAR_MAP_PROVIDER_OPTIONS,
@@ -9,6 +10,7 @@ import {
 } from "@/app/widgets/sidebar/model/sidebar.model";
 import type { MapsProvider } from "@/app/shared/model/maps-provider";
 import { getMapsRuntimePlatform } from "@/app/shared/lib/maps-links";
+import { syncPins } from "@/app/features/pins/api/sync/pin-sync";
 
 interface SidebarSettingsPanelProps {
   settingsToast: string | null;
@@ -40,6 +42,8 @@ export default function SidebarSettingsPanel({
   const pins = useStore((s) => s.pins);
   const deletePin = useStore((s) => s.deletePin);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const user = useStore((s) => s.user);
   const mapsPlatform = useMemo(() => getMapsRuntimePlatform(), []);
   const appleMapsSelectable = mapsPlatform === "ios";
   const effectiveMapsProvider: MapsProvider =
@@ -151,6 +155,43 @@ export default function SidebarSettingsPanel({
               {option.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Sync Pins */}
+      <div className="px-5 py-4 border-b border-border">
+        <button
+          onClick={async () => {
+            if (!user) {
+              toast.error("Sign in to sync pins");
+              return;
+            }
+            setSyncing(true);
+            try {
+              const result = await syncPins();
+              toast.success(`Synced — ${result.uploaded} uploaded, ${result.downloaded} new from cloud`);
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : "Sync failed");
+            } finally {
+              setSyncing(false);
+            }
+          }}
+          disabled={syncing}
+          className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+            syncing
+              ? "text-text-muted cursor-default"
+              : "text-text-primary hover:bg-orange-dim hover:text-orange"
+          }`}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="1 4 1 10 7 10" />
+            <polyline points="23 20 23 14 17 14" />
+            <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" />
+          </svg>
+          {syncing ? "Syncing..." : `Sync Pins (${pins.length})`}
+        </button>
+        <div className="px-4 mt-1 text-[11px] text-text-muted">
+          {user ? "Upload pins to cloud and pull any changes" : "Sign in to enable cloud sync"}
         </div>
       </div>
 
