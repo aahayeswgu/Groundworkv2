@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { AdvancedMarker, ControlPosition, Map as GoogleMap, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, ControlPosition, Map as GoogleMap, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { toast } from "sonner";
 import MapButton from "@/app/features/map/ui/MapButton";
 import { reverseGeocode } from "@/app/shared/api/geocoding";
@@ -89,6 +89,56 @@ export default function Map({ onEditPin }: MapProps) {
   const [quickListening, setQuickListening] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const quickRecognitionRef = useRef<any>(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<{ description: string; placeId: string }[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const placesLib = useMapsLibrary("places");
+  const geocodingLib = useMapsLibrary("geocoding");
+
+  const handleSearchInput = useCallback(async (input: string) => {
+    if (input.length < 3 || !placesLib) {
+      setSearchSuggestions([]);
+      setShowSearchDropdown(false);
+      return;
+    }
+    try {
+      const response = await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions({ input });
+      const results: { description: string; placeId: string }[] = [];
+      for (const s of response.suggestions ?? []) {
+        if (s.placePrediction) {
+          results.push({ description: s.placePrediction.text.text, placeId: s.placePrediction.placeId });
+        }
+        if (results.length >= 5) break;
+      }
+      setSearchSuggestions(results);
+      setShowSearchDropdown(results.length > 0);
+    } catch {
+      setSearchSuggestions([]);
+      setShowSearchDropdown(false);
+    }
+  }, [placesLib]);
+
+  const handleSearchSelect = useCallback(async (placeId: string, description: string) => {
+    setSearchValue(description);
+    setSearchSuggestions([]);
+    setShowSearchDropdown(false);
+    if (!geocodingLib || !mapInstance.current) return;
+    const geocoder = new geocodingLib.Geocoder();
+    try {
+      const { results } = await geocoder.geocode({ placeId });
+      if (results[0]?.geometry?.location) {
+        const loc = results[0].geometry.location;
+        mapInstance.current.panTo(loc);
+        mapInstance.current.setZoom(16);
+        setTempMarker({ lat: loc.lat(), lng: loc.lng(), label: description });
+        if (tempMarkerTimerRef.current) clearTimeout(tempMarkerTimerRef.current);
+        tempMarkerTimerRef.current = setTimeout(() => setTempMarker(null), 10000);
+      }
+    } catch {
+      toast.error("Could not find location");
+    }
+  }, [geocodingLib]);
 
   const handleMapChange = useCallback((nextMap: google.maps.Map | null) => {
     mapInstance.current = nextMap;
@@ -373,6 +423,62 @@ export default function Map({ onEditPin }: MapProps) {
             </AdvancedMarker>
           )}
         </GoogleMap>
+
+        {/* Map search bar */}
+        <div
+          className="absolute top-3 left-3 right-16 z-30"
+          onBlurCapture={(e) => {
+            const next = e.relatedTarget as Node | null;
+            if (!e.currentTarget.contains(next)) setShowSearchDropdown(false);
+          }}
+        >
+          <div className="relative">
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => {
+                setSearchValue(e.target.value);
+                if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                searchDebounceRef.current = setTimeout(() => handleSearchInput(e.target.value), 300);
+              }}
+              onFocus={() => searchSuggestions.length > 0 && setShowSearchDropdown(true)}
+              placeholder="Search places..."
+              className="w-full h-10 rounded-xl border border-border bg-bg-card/95 px-4 pr-9 text-sm text-text-primary placeholder:text-text-muted shadow-gw-lg backdrop-blur-sm outline-none focus:border-orange transition-colors"
+            />
+            {searchValue ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchValue("");
+                  setSearchSuggestions([]);
+                  setShowSearchDropdown(false);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            ) : (
+              <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            )}
+          </div>
+          {showSearchDropdown && searchSuggestions.length > 0 && (
+            <div className="mt-1 rounded-xl border border-border bg-bg-card shadow-gw-lg overflow-hidden">
+              {searchSuggestions.map((s) => (
+                <button
+                  key={s.placeId}
+                  onClick={() => void handleSearchSelect(s.placeId, s.description)}
+                  className="w-full text-left px-4 py-2.5 text-sm text-text-primary hover:bg-orange-dim transition-colors border-b border-border last:border-0"
+                >
+                  {s.description}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Floating controls */}
         <div className="map-controls absolute top-3 right-3 z-30 flex flex-col gap-2">
