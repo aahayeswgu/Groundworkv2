@@ -8,6 +8,7 @@ export default function AuthListener() {
   const setUser = useStore((s) => s.setUser);
   const setProfile = useStore((s) => s.setProfile);
   const setAuthReady = useStore((s) => s.setAuthReady);
+  const setPasswordRecovery = useStore((s) => s.setPasswordRecovery);
 
   const pullProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -35,8 +36,11 @@ export default function AuthListener() {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
+      if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecovery(true);
+      }
       if (session?.user) {
         pullProfile(session.user.id);
       } else {
@@ -45,7 +49,7 @@ export default function AuthListener() {
     });
 
     return () => subscription.unsubscribe();
-  }, [setUser, setProfile, setAuthReady, pullProfile]);
+  }, [setUser, setProfile, setAuthReady, setPasswordRecovery, pullProfile]);
 
   return null;
 }

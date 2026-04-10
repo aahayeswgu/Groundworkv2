@@ -80,9 +80,17 @@ export default function Sidebar({
     if (settingsOpen) onSettingsClose();
     setAccountModalOpenRaw(true);
   }, [settingsOpen, onSettingsClose]);
+  const passwordRecovery = useStore((s) => s.passwordRecovery);
   const [mobileSheetSnapIndex, setMobileSheetSnapIndex] = useState<number>(MOBILE_SHEET_SNAP_INDEX.low);
   const mobileSheetRef = useRef<SheetRef | null>(null);
   const isMobile = useIsMobile();
+
+  // Auto-open account modal when password recovery is detected
+  useEffect(() => {
+    if (passwordRecovery && !accountModalOpen) {
+      openAccountModal();
+    }
+  }, [passwordRecovery, accountModalOpen, openAccountModal]);
 
   const activeTab = isMobile ? (mobileTab ?? desktopActiveTab) : desktopActiveTab;
   const isCollapsed = collapsed && !mobileOpen;

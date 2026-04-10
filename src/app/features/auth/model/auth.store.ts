@@ -14,9 +14,11 @@ export interface AuthSlice {
   user: User | null;
   profile: Profile | null;
   authReady: boolean;
+  passwordRecovery: boolean;
   setUser: (user: User | null) => void;
   setProfile: (profile: Profile | null) => void;
   setAuthReady: (ready: boolean) => void;
+  setPasswordRecovery: (recovery: boolean) => void;
   updateProfile: (patch: Partial<Profile>) => Promise<void>;
 }
 
@@ -24,9 +26,11 @@ export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   user: null,
   profile: null,
   authReady: false,
+  passwordRecovery: false,
   setUser: (user) => set({ user }),
   setProfile: (profile) => set({ profile }),
   setAuthReady: (ready) => set({ authReady: ready }),
+  setPasswordRecovery: (recovery) => set({ passwordRecovery: recovery }),
   updateProfile: async (patch) => {
     const user = get().user;
     if (!user) return;
