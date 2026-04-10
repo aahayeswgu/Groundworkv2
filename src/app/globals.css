@@ -72,6 +72,19 @@
   --border: #363B45;
 }
 
+[data-theme="gray"] {
+  --bg-primary: #2A2A2E;
+  --bg-secondary: #323236;
+  --bg-card: #3A3A3F;
+  --bg-input: #424247;
+  --text-primary: #E8E8EA;
+  --text-secondary: #A8A8AE;
+  --text-muted: #78787E;
+  --shadow: 0 1px 8px rgba(0,0,0,0.25);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.35);
+  --border: #4A4A50;
+}
+
 /* ─── Map CSS variables to Tailwind theme tokens ─── */
 @theme inline {
   --color-orange: var(--orange);
