@@ -124,7 +124,7 @@ export default function PinModal({ mode, initialData, onClose }: PinModalProps) 
   }
 
   const modal = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
@@ -135,7 +135,7 @@ export default function PinModal({ mode, initialData, onClose }: PinModalProps) 
         onKeyDown={(event) => {
           if (event.key === "Escape") onClose();
         }}
-        className="relative z-10 bg-bg-card rounded-xl border border-border shadow-gw w-full max-w-lg mx-4 max-h-[90vh] flex flex-col"
+        className="relative z-10 bg-bg-card rounded-xl border border-border shadow-gw w-full max-w-lg mx-4 max-h-[85vh] mb-[var(--mobile-bottom-bar-offset,0px)] flex flex-col"
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
           <h2 className="text-base font-semibold text-text-primary">
