@@ -4,12 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { SheetRef } from "react-modal-sheet";
 import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 import { Button } from "@/app/shared/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/app/shared/ui/dropdown-menu";
 import { MobileBottomSheet } from "@/app/shared/ui/mobile-bottom-sheet";
 import PinList from "@/app/features/pins/ui/PinList";
 import { useStore } from "@/app/store";
@@ -203,39 +197,23 @@ export default function Sidebar({
               <polyline points="22,7 12,13 2,7" />
             </svg>
           </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                size="icon-lg"
-                variant="ghost"
-                aria-label={user ? "Open account menu" : "Open sign-in menu"}
-                className={`shrink-0 ${accountTriggerClassName}`}
-              >
-                {user ? (
-                  accountInitials
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21a8 8 0 00-16 0" />
-                    <circle cx="12" cy="8" r="4" />
-                  </svg>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto min-w-[190px]">
-              <DropdownMenuItem onSelect={handleToggleSettings}>
-                {settingsOpen ? "Close Settings" : "Open Settings"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={openAccountModal}>
-                {user ? "Account Details" : "Sign In / Create Account"}
-              </DropdownMenuItem>
-              {user && (
-                <DropdownMenuItem variant="destructive" onSelect={() => void handleSignOut()}>
-                  Sign Out
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            type="button"
+            size="icon-lg"
+            variant="ghost"
+            aria-label={user ? "Open account" : "Sign in"}
+            onClick={openAccountModal}
+            className={`shrink-0 ${accountTriggerClassName}`}
+          >
+            {user ? (
+              accountInitials
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 21a8 8 0 00-16 0" />
+                <circle cx="12" cy="8" r="4" />
+              </svg>
+            )}
+          </Button>
         </div>
       </div>
 
@@ -255,8 +233,6 @@ export default function Sidebar({
             onReplayTutorial={onReplayTutorial}
             onSignOut={user ? handleSignOut : undefined}
             onAccountOpen={openAccountModal}
-            mobileSheetSnapIndex={useAdaptiveMobileSheet ? activeMobileSnapIndex : null}
-            onRequestExpand={() => mobileSheetRef.current?.snapTo(MOBILE_SHEET_SNAP_INDEX.max)}
           />
         ) : activeTab === "route" ? (
           <RouteConfirmPanel

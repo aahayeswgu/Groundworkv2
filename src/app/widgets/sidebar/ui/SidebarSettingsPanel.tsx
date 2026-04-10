@@ -9,7 +9,6 @@ import {
 } from "@/app/widgets/sidebar/model/sidebar.model";
 import type { MapsProvider } from "@/app/shared/model/maps-provider";
 import { getMapsRuntimePlatform } from "@/app/shared/lib/maps-links";
-import { useIsMobile } from "@/app/shared/lib/use-is-mobile";
 
 interface SidebarSettingsPanelProps {
   settingsToast: string | null;
@@ -23,8 +22,6 @@ interface SidebarSettingsPanelProps {
   onReplayTutorial: () => void;
   onSignOut?: () => void;
   onAccountOpen?: () => void;
-  mobileSheetSnapIndex?: number | null;
-  onRequestExpand?: () => void;
 }
 
 export default function SidebarSettingsPanel({
@@ -39,10 +36,7 @@ export default function SidebarSettingsPanel({
   onReplayTutorial,
   onSignOut,
   onAccountOpen,
-  mobileSheetSnapIndex = null,
-  onRequestExpand,
 }: SidebarSettingsPanelProps) {
-  const isMobile = useIsMobile();
   const pins = useStore((s) => s.pins);
   const deletePin = useStore((s) => s.deletePin);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
@@ -50,21 +44,12 @@ export default function SidebarSettingsPanel({
   const appleMapsSelectable = mapsPlatform === "ios";
   const effectiveMapsProvider: MapsProvider =
     mapsProvider === "apple" && !appleMapsSelectable ? "google" : mapsProvider;
-  const isCompactMobileSheet = isMobile && mobileSheetSnapIndex !== null && mobileSheetSnapIndex <= 1;
-
   const trackingToggleTrackClass = trackingEnabled
     ? "border-orange bg-orange"
     : "border-[#666] bg-[#555]";
   const trackingToggleThumbClass = trackingEnabled
     ? "translate-x-5 bg-white"
     : "bg-[#999]";
-  const activeMapsProviderLabel =
-    SIDEBAR_MAP_PROVIDER_OPTIONS.find((option) => option.value === effectiveMapsProvider)?.label ?? "Google Maps";
-  const activeThemeLabel =
-    SIDEBAR_THEME_OPTIONS.find((option) => option.value === theme)?.label ?? "Dark";
-  const compactSecondaryActionLabel = appleMapsSelectable
-    ? `Switch to ${effectiveMapsProvider === "google" ? "Apple Maps" : "Google Maps"}`
-    : `Switch to ${theme === "dark" ? "Graphite Theme" : "Dark Theme"}`;
 
   function handleDeleteAllPins() {
     if (!confirmDeleteAll) {
@@ -76,76 +61,6 @@ export default function SidebarSettingsPanel({
       deletePin(id);
     }
     setConfirmDeleteAll(false);
-  }
-
-  if (isCompactMobileSheet) {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="shrink-0 border-b border-border bg-bg-card px-4 py-3">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="text-sm font-bold text-text-primary">Settings</div>
-              <div className="text-xs text-text-muted">Profile and preferences</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => onRequestExpand?.()}
-              className="h-8 rounded-md border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white"
-            >
-              Expand
-            </button>
-          </div>
-
-          {settingsToast ? (
-            <div className="mt-2 rounded-md border border-orange/30 bg-orange-dim px-3 py-2 text-xs font-semibold text-orange">
-              {settingsToast}
-            </div>
-          ) : null}
-          <div className="mt-3 grid grid-cols-1 gap-2">
-            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">GPS Auto Check-in</div>
-              <div className="mt-1 text-sm font-semibold text-text-primary">{trackingEnabled ? "Enabled" : "Disabled"}</div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">Maps App</div>
-                <div className="mt-1 text-[12px] font-semibold text-text-primary">{activeMapsProviderLabel}</div>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">Theme</div>
-                <div className="mt-1 text-[12px] font-semibold text-text-primary">{activeThemeLabel}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-3 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={onToggleTracking}
-              className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white"
-            >
-              {trackingEnabled ? "Disable GPS Auto Check-in" : "Enable GPS Auto Check-in"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (appleMapsSelectable) {
-                  onMapsProviderChange(effectiveMapsProvider === "google" ? "apple" : "google");
-                  return;
-                }
-                onThemeChange(theme === "dark" ? "gray" : "dark");
-              }}
-              className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-white/12 bg-white/5 px-3 text-[11px] font-semibold text-text-secondary transition-colors hover:bg-white/10 hover:text-white"
-            >
-              {compactSecondaryActionLabel}
-            </button>
-          </div>
-          <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[11px] font-semibold text-text-secondary">
-            Drag up for full settings controls
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
