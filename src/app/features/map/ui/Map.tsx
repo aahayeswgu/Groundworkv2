@@ -120,7 +120,7 @@ export default function Map({ onEditPin }: MapProps) {
   }, [placesLib]);
 
   const handleSearchSelect = useCallback(async (placeId: string, description: string) => {
-    setSearchValue(description);
+    setSearchValue("");
     setSearchSuggestions([]);
     setShowSearchDropdown(false);
     if (!geocodingLib || !mapInstance.current) return;
@@ -131,9 +131,7 @@ export default function Map({ onEditPin }: MapProps) {
         const loc = results[0].geometry.location;
         mapInstance.current.panTo(loc);
         mapInstance.current.setZoom(16);
-        setTempMarker({ lat: loc.lat(), lng: loc.lng(), label: description });
-        if (tempMarkerTimerRef.current) clearTimeout(tempMarkerTimerRef.current);
-        tempMarkerTimerRef.current = setTimeout(() => setTempMarker(null), 10000);
+        setPendingPin({ lat: loc.lat(), lng: loc.lng(), address: description });
       }
     } catch {
       toast.error("Could not find location");
