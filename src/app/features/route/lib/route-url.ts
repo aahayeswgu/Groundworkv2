@@ -42,6 +42,7 @@ export function buildGoogleMapsUrl(origin: RouteStop, stops: RouteStop[]): strin
     origin: stopAddress(origin),
     destination: stopAddress(destination),
     travelmode: 'driving',
+    dir_action: 'navigate',
   });
 
   // Build base URL — waypoints appended separately to preserve literal pipe separators
@@ -67,6 +68,7 @@ export function buildGoogleMapsUrlWithoutOrigin(stops: RouteStop[]): string {
     api: '1',
     destination: stopAddress(destination),
     travelmode: 'driving',
+    dir_action: 'navigate',
   });
 
   const base = `https://www.google.com/maps/dir/?${params.toString()}`;
