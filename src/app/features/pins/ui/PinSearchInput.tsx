@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
-import { dispatchPanToLocation } from "@/app/shared/model/mobile-events";
+import { dispatchCreatePinAtLocation } from "@/app/shared/model/mobile-events";
 
 interface PlaceSuggestion {
   description: string;
@@ -69,7 +69,7 @@ export default function PinSearchInput({ value, onChange }: PinSearchInputProps)
       const result = await geocoder.geocode({ placeId: suggestion.placeId });
       const location = result.results[0]?.geometry?.location;
       if (location) {
-        dispatchPanToLocation(location.lat(), location.lng(), 16, suggestion.description);
+        dispatchCreatePinAtLocation(location.lat(), location.lng(), suggestion.description);
       }
     } catch {
       // silently fail — user can still search

@@ -38,9 +38,11 @@ import {
 import {
   MAP_ACTION_EVENT,
   PAN_TO_LOCATION_EVENT,
+  CREATE_PIN_AT_LOCATION_EVENT,
   dispatchOpenMobileTab,
   type MapMobileActionEventDetail,
   type PanToLocationEventDetail,
+  type CreatePinAtLocationEventDetail,
 } from "@/app/shared/model/mobile-events";
 
 interface PendingPin { lat: number; lng: number; address: string; }
@@ -359,8 +361,22 @@ export default function Map({ onEditPin }: MapProps) {
       }
     };
 
+    const handleCreatePinAtLocation = (event: Event) => {
+      const detail = (event as CustomEvent<CreatePinAtLocationEventDetail>).detail;
+      if (!detail) return;
+      const map = mapInstance.current;
+      if (!map) return;
+      map.panTo({ lat: detail.lat, lng: detail.lng });
+      map.setZoom(16);
+      setPendingPin({ lat: detail.lat, lng: detail.lng, address: detail.address });
+    };
+
     window.addEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
-    return () => window.removeEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
+    window.addEventListener(CREATE_PIN_AT_LOCATION_EVENT, handleCreatePinAtLocation);
+    return () => {
+      window.removeEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
+      window.removeEventListener(CREATE_PIN_AT_LOCATION_EVENT, handleCreatePinAtLocation);
+    };
   }, []);
 
   const toggleSatellite = useCallback(() => {
@@ -424,7 +440,7 @@ export default function Map({ onEditPin }: MapProps) {
 
         {/* Map search bar */}
         <div
-          className="absolute top-3 left-3 right-16 z-30"
+          className="absolute top-3 left-1/2 -translate-x-1/2 w-96 max-w-[calc(100%-5rem)] z-30"
           onBlurCapture={(e) => {
             const next = e.relatedTarget as Node | null;
             if (!e.currentTarget.contains(next)) setShowSearchDropdown(false);

@@ -43,3 +43,17 @@ export function dispatchPanToLocation(lat: number, lng: number, zoom?: number, l
     detail: { lat, lng, zoom, label },
   }));
 }
+
+export const CREATE_PIN_AT_LOCATION_EVENT = "gw-create-pin-at-location" as const;
+
+export interface CreatePinAtLocationEventDetail {
+  lat: number;
+  lng: number;
+  address: string;
+}
+
+export function dispatchCreatePinAtLocation(lat: number, lng: number, address: string) {
+  window.dispatchEvent(new CustomEvent<CreatePinAtLocationEventDetail>(CREATE_PIN_AT_LOCATION_EVENT, {
+    detail: { lat, lng, address },
+  }));
+}
