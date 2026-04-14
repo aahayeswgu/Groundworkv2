@@ -39,4 +39,10 @@ export const DISCOVER_QUERIES: string[] = [
   "sheet metal workers",
   "machinists",
   "computer numerical control operators",
+  "scaffolding contractor",
+  "civil construction company",
+  "asphalt contractor",
+  "site development contractor",
+  "telecommunications contractor",
+  "utilities contractor",
 ];
