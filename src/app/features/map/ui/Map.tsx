@@ -94,7 +94,7 @@ export default function Map({ onEditPin }: MapProps) {
   const [searchValue, setSearchValue] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<{ description: string; placeId: string }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const searchBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const placesLib = useMapsLibrary("places");
   const geocodingLib = useMapsLibrary("geocoding");
@@ -284,13 +284,24 @@ export default function Map({ onEditPin }: MapProps) {
   useEffect(() => {
     return () => {
       quickRecognitionRef.current?.stop();
-      if (searchBlurTimerRef.current) clearTimeout(searchBlurTimerRef.current);
       exitDropMode();
       stopDiscoverSession(true);
       mapInstance.current = null;
       setMapState(null);
     };
   }, [exitDropMode, stopDiscoverSession]);
+
+  // Close search dropdown on tap/click outside
+  useEffect(() => {
+    if (!showSearchDropdown) return;
+    const handleOutside = (e: Event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener("pointerdown", handleOutside);
+    return () => document.removeEventListener("pointerdown", handleOutside);
+  }, [showSearchDropdown]);
 
   // Show toast when route stops are added
   useEffect(() => {
@@ -445,14 +456,8 @@ export default function Map({ onEditPin }: MapProps) {
 
         {/* Map search bar */}
         <div
-          className="absolute top-2 z-30 max-lg:left-[50px] max-lg:right-[58px] lg:top-3 lg:left-1/2 lg:-translate-x-1/2 lg:w-96 lg:max-w-[calc(100%-5rem)]"
-          onBlurCapture={(e) => {
-            const next = e.relatedTarget as Node | null;
-            if (!e.currentTarget.contains(next)) {
-              if (searchBlurTimerRef.current) clearTimeout(searchBlurTimerRef.current);
-              searchBlurTimerRef.current = setTimeout(() => setShowSearchDropdown(false), 150);
-            }
-          }}
+          ref={searchContainerRef}
+          className="absolute z-30 max-lg:top-1 max-lg:left-[46px] max-lg:right-[56px] lg:top-3 lg:left-1/2 lg:-translate-x-1/2 lg:w-96 lg:max-w-[calc(100%-5rem)]"
         >
           <div className="relative">
             <input
@@ -492,9 +497,7 @@ export default function Map({ onEditPin }: MapProps) {
               {searchSuggestions.map((s) => (
                 <button
                   key={s.placeId}
-                  onPointerDown={() => {
-                    if (searchBlurTimerRef.current) clearTimeout(searchBlurTimerRef.current);
-                  }}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => void handleSearchSelect(s.placeId, s.description)}
                   className="w-full text-left px-4 py-3 text-sm text-text-primary hover:bg-orange-dim active:bg-orange-dim transition-colors border-b border-border last:border-0"
                 >
