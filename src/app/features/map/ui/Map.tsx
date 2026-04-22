@@ -47,6 +47,7 @@ import {
 
 interface PendingPin { lat: number; lng: number; address: string; }
 interface TempMarker { lat: number; lng: number; label: string; }
+interface PreviewPin { lat: number; lng: number; address: string; }
 
 interface MapProps {
   onEditPin: (pinId: string) => void;
@@ -75,6 +76,7 @@ export default function Map({ onEditPin }: MapProps) {
   const dropSessionRef = useRef<(() => void) | null>(null);
   const discoverSessionRef = useRef<DiscoverDrawSession | null>(null);
   const [pendingPin, setPendingPin] = useState<PendingPin | null>(null);
+  const [previewPin, setPreviewPin] = useState<PreviewPin | null>(null);
   const [tempMarker, setTempMarker] = useState<TempMarker | null>(null);
   const tempMarkerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const discoverMode = useDiscoverMode();
@@ -137,7 +139,7 @@ export default function Map({ onEditPin }: MapProps) {
         const loc = results[0].geometry.location;
         mapInstance.current.panTo(loc);
         mapInstance.current.setZoom(16);
-        setPendingPin({ lat: loc.lat(), lng: loc.lng(), address: description });
+        setPreviewPin({ lat: loc.lat(), lng: loc.lng(), address: description });
       }
     } catch {
       toast.error("Could not find location");
@@ -384,7 +386,7 @@ export default function Map({ onEditPin }: MapProps) {
       if (!map) return;
       map.panTo({ lat: detail.lat, lng: detail.lng });
       map.setZoom(16);
-      setPendingPin({ lat: detail.lat, lng: detail.lng, address: detail.address });
+      setPreviewPin({ lat: detail.lat, lng: detail.lng, address: detail.address });
     };
 
     window.addEventListener(PAN_TO_LOCATION_EVENT, handlePanToLocation);
@@ -446,6 +448,43 @@ export default function Map({ onEditPin }: MapProps) {
                   {tempMarker.label}
                 </div>
                 <svg width="24" height="32" viewBox="0 0 24 32" className="drop-shadow-lg">
+                  <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#C4692A" />
+                  <circle cx="12" cy="12" r="5" fill="white" />
+                </svg>
+              </div>
+            </AdvancedMarker>
+          )}
+          {previewPin && (
+            <AdvancedMarker
+              position={{ lat: previewPin.lat, lng: previewPin.lng }}
+              title={previewPin.address}
+            >
+              <div className="flex flex-col items-center">
+                <div className="rounded-xl bg-bg-card px-4 py-3 shadow-gw-lg ring-1 ring-border min-w-[180px] max-w-[260px]">
+                  <p className="text-xs font-semibold text-text-primary leading-snug mb-2.5 line-clamp-2">
+                    {previewPin.address}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingPin({ lat: previewPin.lat, lng: previewPin.lng, address: previewPin.address });
+                        setPreviewPin(null);
+                      }}
+                      className="flex-1 rounded-lg bg-orange px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-orange-hover"
+                    >
+                      Save Pin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewPin(null)}
+                      className="flex-1 rounded-lg border border-border bg-bg-input px-3 py-1.5 text-xs font-bold text-text-secondary transition-colors hover:bg-bg-secondary"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+                <svg width="24" height="32" viewBox="0 0 24 32" className="drop-shadow-lg mt-1">
                   <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20c0-6.6-5.4-12-12-12z" fill="#C4692A" />
                   <circle cx="12" cy="12" r="5" fill="white" />
                 </svg>
