@@ -169,7 +169,12 @@ export default function SidebarSettingsPanel({
             setSyncing(true);
             try {
               const result = await syncPins();
-              toast.success(`Synced — ${result.uploaded} uploaded, ${result.downloaded} new from cloud`);
+              const parts = [
+                `${result.uploaded} uploaded`,
+                `${result.downloaded} new from cloud`,
+              ];
+              if (result.deleted > 0) parts.push(`${result.deleted} deleted`);
+              toast.success(`Synced — ${parts.join(", ")}`);
             } catch (err) {
               toast.error(err instanceof Error ? err.message : "Sync failed");
             } finally {

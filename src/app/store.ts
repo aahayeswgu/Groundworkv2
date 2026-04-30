@@ -31,6 +31,7 @@ export const useStore = create<AppStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         pins: state.pins,
+        deletedPinIds: state.deletedPinIds,
         plannerDays: state.plannerDays,
         activePlannerDate: state.activePlannerDate,
         trackingEnabled: state.trackingEnabled,
